@@ -29,6 +29,8 @@
 # ==================================================================================================================== #
 #
 """Tests for pyVHDLModel.Type."""
+from typing                 import Optional as Nullable
+
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, RangeFromName, SimpleRange
@@ -38,9 +40,10 @@ from pyVHDLModel.Expression import IntegerLiteral, EnumerationLiteral, Character
                                    PhysicalIntegerLiteral
 from pyVHDLModel.Object     import Variable
 from pyVHDLModel.Subprogram import Procedure, Operator, PredefinedOperator, PredefinedFunction
-from pyVHDLModel.Type       import Subtype, RangedScalarType, EnumeratedType, IntegerType, RealType, PhysicalType, \
-                                   PhysicalUnit, ArrayType, RecordTypeElement, RecordType, ProtectedType, \
-                                   ProtectedTypeBody, AccessType, FileType
+from pyVHDLModel.Type       import BaseType, Subtype, RangedScalarType, EnumeratedType, IntegerType, RealType, \
+                                   PhysicalType, PhysicalUnit, ArrayType, RecordTypeElement, RecordType, \
+                                   ProtectedType, ProtectedTypeBody, AccessType, FileType
+from pyVHDLModel.STD        import Bit, Boolean, Standard
 
 from tests.unit             import _Element, _subtypeSymbol
 
@@ -65,6 +68,55 @@ def _signatures(fullType) -> list[tuple[str, tuple[str, ...], str]]:
 		)
 		for operation in fullType.ImplicitOperations
 	]
+
+
+def _array(identifier: str, element: Nullable[BaseType], elementName: str = "e", dimensions: int = 1) -> ArrayType:
+	"""An array type indexed by ``natural``; its element type mark references ``element``, as after resolution."""
+	elementSymbol =            _subtypeSymbol(elementName)
+	elementSymbol._reference = element
+
+	return ArrayType(identifier, [_subtypeSymbol("natural") for _ in range(dimensions)], elementSymbol)
+
+
+def _concatenationSignatures(name: str, element: str) -> list[tuple[str, tuple[str, ...], str]]:
+	"""The concatenation operators of a one-dimensional array type."""
+	return [
+		("&", (name,    name),    name),
+		("&", (name,    element), name),
+		("&", (element, name),    name),
+		("&", (element, element), name)
+	]
+
+
+def _orderingSignatures(name: str) -> list[tuple[str, tuple[str, ...], str]]:
+	"""The ordering operators and ``MINIMUM``/``MAXIMUM`` of a discrete array type."""
+	return [
+		("<",       (name, name), "boolean"),
+		("<=",      (name, name), "boolean"),
+		(">",       (name, name), "boolean"),
+		(">=",      (name, name), "boolean"),
+		("minimum", (name, name), name),
+		("maximum", (name, name), name)
+	]
+
+
+def _logicalSignatures(name: str, element: str) -> list[tuple[str, tuple[str, ...], str]]:
+	"""The logical, shift and logical reduction operators of an array type of ``bit`` or ``boolean``."""
+	signatures = [("not", (name,), name)]
+	for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+		signatures.append((operatorSymbol, (name, name), name))
+
+	for operatorSymbol in ("sll", "srl", "sla", "sra", "rol", "ror"):
+		signatures.append((operatorSymbol, (name, "integer"), name))
+
+	for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+		signatures.append((operatorSymbol, (element, name), name))
+		signatures.append((operatorSymbol, (name, element), name))
+
+	for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+		signatures.append((operatorSymbol, (name,), element))
+
+	return signatures
 
 
 def _scalarSignatures(name: str) -> list[tuple[str, tuple[str, ...], str]]:
@@ -556,13 +608,162 @@ class ImplicitOperations(Testcase):
 			_signatures(physicalType)
 		)
 
-	def test_ArrayType(self) -> None:
-		arrayType = ArrayType("my_vector", [_subtypeSymbol("natural")], _subtypeSymbol("bit"))
+	def test_ArrayType_Unresolved(self) -> None:
+		"""An unresolved element type mark: the equality operators and the concatenation of two arrays."""
+		arrayType = _array("v", None)
 
 		self.assertListEqual(
-			[("=", ("my_vector", "my_vector"), "boolean"), ("/=", ("my_vector", "my_vector"), "boolean")],
+			[("=", ("v", "v"), "boolean"), ("/=", ("v", "v"), "boolean"), ("&", ("v", "v"), "v")],
 			_signatures(arrayType)
 		)
+
+	def test_ArrayType_UnresolvedSubtype(self) -> None:
+		"""An element subtype without base type: the element is typed by the subtype, but its kind is unknown."""
+		arrayType = _array("v", Subtype("s", _subtypeSymbol("unknown")), "s")
+
+		self.assertListEqual(
+			[("=", ("v", "v"), "boolean"), ("/=", ("v", "v"), "boolean"), *_concatenationSignatures("v", "s")],
+			_signatures(arrayType)
+		)
+
+	def test_ArrayType_MultiDimensional(self) -> None:
+		"""A two-dimensional array type has the equality operators only."""
+		arrayType = _array("m", Bit(), "bit", dimensions=2)
+
+		self.assertListEqual([("=", ("m", "m"), "boolean"), ("/=", ("m", "m"), "boolean")], _signatures(arrayType))
+
+	def test_ArrayType_Enumerated(self) -> None:
+		"""A discrete element type of identifiers: ordering, concatenation, ``MINIMUM``/``MAXIMUM`` of the elements."""
+		arrayType = _array("v", EnumeratedType("state", [EnumerationLiteral("idle"), EnumerationLiteral("run")]), "state")
+
+		self.assertListEqual(
+			[
+				("=",  ("v", "v"), "boolean"),
+				("/=", ("v", "v"), "boolean"),
+				*_orderingSignatures("v"),
+				*_concatenationSignatures("v", "state"),
+				("minimum", ("v",), "state"),
+				("maximum", ("v",), "state")
+			],
+			_signatures(arrayType)
+		)
+
+	def test_ArrayType_Integer(self) -> None:
+		arrayType = _array("v", IntegerType("nibble", _range()), "nibble")
+
+		self.assertListEqual(
+			[
+				("=",  ("v", "v"), "boolean"),
+				("/=", ("v", "v"), "boolean"),
+				*_orderingSignatures("v"),
+				*_concatenationSignatures("v", "nibble"),
+				("minimum", ("v",), "nibble"),
+				("maximum", ("v",), "nibble")
+			],
+			_signatures(arrayType)
+		)
+
+	def test_ArrayType_Real(self) -> None:
+		"""A scalar, not discrete element type: no ordering."""
+		arrayType = _array("v", RealType("fraction", _range()), "fraction")
+
+		self.assertListEqual(
+			[
+				("=",  ("v", "v"), "boolean"),
+				("/=", ("v", "v"), "boolean"),
+				*_concatenationSignatures("v", "fraction"),
+				("minimum", ("v",), "fraction"),
+				("maximum", ("v",), "fraction")
+			],
+			_signatures(arrayType)
+		)
+
+	def test_ArrayType_Record(self) -> None:
+		"""A composite element type: equality and concatenation only."""
+		arrayType = _array("v", RecordType("rec", None), "rec")
+
+		self.assertListEqual(
+			[("=", ("v", "v"), "boolean"), ("/=", ("v", "v"), "boolean"), *_concatenationSignatures("v", "rec")],
+			_signatures(arrayType)
+		)
+
+	def test_ArrayType_Bit(self) -> None:
+		"""Element type ``bit``: also logical, shift, reduction and matching operators and ``TO_STRING``."""
+		arrayType = _array("bv", Bit(), "bit")
+
+		self.assertListEqual(
+			[
+				("=",  ("bv", "bv"), "boolean"),
+				("/=", ("bv", "bv"), "boolean"),
+				*_orderingSignatures("bv"),
+				*_concatenationSignatures("bv", "bit"),
+				("minimum", ("bv",), "bit"),
+				("maximum", ("bv",), "bit"),
+				*_logicalSignatures("bv", "bit"),
+				("?=",  ("bv", "bv"), "bit"),
+				("?/=", ("bv", "bv"), "bit"),
+				("to_string", ("bv",), "string")
+			],
+			_signatures(arrayType)
+		)
+
+	def test_ArrayType_Boolean(self) -> None:
+		"""Element type ``boolean``: logical, shift and reduction operators, no matching operators, no ``TO_STRING``."""
+		arrayType = _array("bv", Boolean(), "boolean")
+
+		self.assertListEqual(
+			[
+				("=",  ("bv", "bv"), "boolean"),
+				("/=", ("bv", "bv"), "boolean"),
+				*_orderingSignatures("bv"),
+				*_concatenationSignatures("bv", "boolean"),
+				("minimum", ("bv",), "boolean"),
+				("maximum", ("bv",), "boolean"),
+				*_logicalSignatures("bv", "boolean")
+			],
+			_signatures(arrayType)
+		)
+
+	def test_ArrayType_Character(self) -> None:
+		"""``character`` has identifier literals too (``nul``, ...), so ``string`` declares no ``TO_STRING``."""
+		arrayType = _array("str", Standard().Types["character"], "character")
+
+		self.assertListEqual(
+			[
+				("=",  ("str", "str"), "boolean"),
+				("/=", ("str", "str"), "boolean"),
+				*_orderingSignatures("str"),
+				*_concatenationSignatures("str", "character"),
+				("minimum", ("str",), "character"),
+				("maximum", ("str",), "character")
+			],
+			_signatures(arrayType)
+		)
+
+	def test_ArrayType_CharacterLiterals(self) -> None:
+		"""A character type containing only character literals: ``TO_STRING``."""
+		element =   EnumeratedType("digit", [CharacterEnumerationLiteral("0"), CharacterEnumerationLiteral("1")])
+		arrayType = _array("v", element, "digit")
+
+		self.assertEqual(("to_string", ("v",), "string"), _signatures(arrayType)[-1])
+
+	def test_ArrayType_Subtype(self) -> None:
+		"""The element subtype counts by its base type; its type mark names the subtype."""
+		subtype =           Subtype("my_bit", _subtypeSymbol("bit"))
+		subtype._baseType = Bit()
+		arrayType =         _array("bv", subtype, "my_bit")
+
+		self.assertIn(("?=", ("bv", "bv"), "my_bit"), _signatures(arrayType))
+
+	def test_ArrayType_ElementTypeMark(self) -> None:
+		"""A parameter of the element type references the element type mark's reference."""
+		element =     Bit()
+		arrayType =   _array("bv", element, "bit")
+		concatenate = [operation for operation in arrayType.ImplicitOperations if operation.Identifier == "&"][1]
+		left, right = concatenate.ParameterItems
+
+		self.assertIs(arrayType, left.Subtype.Reference)
+		self.assertIs(element, right.Subtype.Reference)
 
 	def test_RecordType(self) -> None:
 		recordType = RecordType("rec", None)

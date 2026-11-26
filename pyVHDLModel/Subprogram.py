@@ -36,7 +36,7 @@ Subprograms are procedures, functions and methods.
 """
 from __future__             import annotations
 
-from typing                 import TYPE_CHECKING, Any, ClassVar, Generator, Iterable, Optional as Nullable
+from typing                 import TYPE_CHECKING, Any, ClassVar, Generator, Iterable, Union, Optional as Nullable
 
 from pyTooling.Common       import getFullyQualifiedName
 from pyTooling.Decorators   import export, readonly
@@ -44,13 +44,16 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf, ReservedWord
 from pyVHDLModel.Symbol     import SubtypeSymbol
-from pyVHDLModel.Type       import ProtectedType
+from pyVHDLModel.Type       import FullType, ProtectedType
 from pyVHDLModel.Regions    import DeclarativeRegionMixin, SequentialDeclarationRegionMixin, WithGenericsMixin, \
                                    WithParametersMixin
 from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
 
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor  import Visitor
+
+
+__all__ = ["PredefinedOperation"]
 
 
 @export
@@ -700,6 +703,194 @@ class Function(Subprogram):
 			)
 
 		return self._signature
+
+
+@export
+class Operator(Function):
+	"""
+	Represents an operator: a function whose designator is an operator symbol (IEEE Std 1076-2008, 4.2).
+
+	Its identifier is the operator symbol without quotation marks, as pyGHDL reads it from VHDL code (``+``, ``and``).
+	The word operators are normalized to lower case, as identifiers.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      function "and" (L, R : my_logic) return my_logic is
+	      --       ^^^^^                                        <- Identifier (and)
+	      begin
+	        return resolve_and(L, R);
+	      end function;
+
+	.. seealso::
+
+	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
+	   * :class:`Predefined operator <pyVHDLModel.Subprogram.PredefinedOperator>`
+	"""
+
+	_OPERATOR_SYMBOLS: ClassVar[frozenset[str]] = frozenset((
+		"and", "or", "nand", "nor", "xor", "xnor",
+		"=", "/=", "<", "<=", ">", ">=", "?=", "?/=", "?<", "?<=", "?>", "?>=",
+		"sll", "srl", "sla", "sra", "rol", "ror",
+		"+", "-", "&", "*", "/", "mod", "rem", "**", "abs", "not", "??"
+	))  #: The operator symbols an operator function may declare (IEEE Std 1076-2008, 9.2).
+
+	def __init__(
+		self,
+		operatorSymbol:  str,
+		returnType:      SubtypeSymbol,
+		isPure:          bool =                                            True,
+		genericItems:    Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems:  Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		declaredItems:   Nullable[Iterable] =                              None,
+		statements:      Nullable[Iterable[SequentialStatement]] =         None,
+		documentation:   Nullable[str] =                                   None,
+		parent:          Nullable[ModelEntity] =                           None,
+		genericGroups:   Nullable[Iterable[GenericGroup]] =                None,
+		parameterGroups: Nullable[Iterable[ParameterGroup]] =              None
+	) -> None:
+		"""
+		Initializes an operator.
+
+		:param operatorSymbol:  The operator symbol without quotation marks.
+		:param returnType:      Reference to the subtype of the function's return value.
+		:param isPure:          Optional, ``True`` if the subprogram was declared pure. Default: ``True``.
+		:param genericItems:    Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param parameterItems:  Optional, list of all parameters, in declaration order. Default: ``None``, no parameters.
+		:param declaredItems:   Optional, list of all declared items in this sequential declaration region.
+		                        Default: ``None``, no declared items.
+		:param statements:      Optional, list of all sequential statements in the subprogram's body.
+		                        Default: ``None``, no statements.
+		:param documentation:   Optional, the documentation comment associated with this declaration.
+		                        Default: ``None``, no documentation.
+		:param parent:          Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
+		                        Default: ``None``, one unnamed generic group.
+		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
+		                        Default: ``None``, one unnamed parameter group.
+		:raises ValueError:     If parameter ``operatorSymbol`` isn't an operator symbol of VHDL.
+		"""
+		super().__init__(
+			operatorSymbol,
+			returnType,
+			isPure,
+			genericItems,
+			parameterItems,
+			declaredItems,
+			statements,
+			documentation,
+			parent,
+			genericGroups,
+			parameterGroups
+		)
+
+		if self._normalizedIdentifier not in self._OPERATOR_SYMBOLS:
+			ex = ValueError("Parameter 'operatorSymbol' isn't an operator symbol.")
+			ex.add_note(f"Got value '{operatorSymbol}'.")
+			ex.add_note(f"Operator symbols: {', '.join(sorted(self._OPERATOR_SYMBOLS))}")
+			raise ex
+
+
+@export
+class PredefinedSubprogramMixin(metaclass=ExtendedType, mixin=True):
+	"""
+	A ``PredefinedSubprogramMixin`` is a mixin class for all subprograms a type declaration declares implicitly
+	(IEEE Std 1076-2008, 5).
+
+	The declaring type is the subprogram's parent; the subprogram has neither declared items nor statements.
+
+	.. seealso::
+
+	   * :class:`Predefined operator <pyVHDLModel.Subprogram.PredefinedOperator>`
+	   * :class:`Predefined function <pyVHDLModel.Subprogram.PredefinedFunction>`
+	   * :attr:`Implicit operations of a full type <pyVHDLModel.Type.FullType.ImplicitOperations>`
+	"""
+
+
+@export
+class PredefinedOperator(Operator, PredefinedSubprogramMixin):
+	"""
+	Represents an operator a type declaration declares implicitly (IEEE Std 1076-2008, 9.2).
+
+	For example, an integer type declares ``"+"`` and ``"<"``.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      type counter is range 0 to 9;
+	      -- implicitly declares, among others:
+	      --   function "<" (L, R : counter) return BOOLEAN;
+
+	.. seealso::
+
+	   * :class:`Operator <pyVHDLModel.Subprogram.Operator>`
+	   * :class:`Predefined function <pyVHDLModel.Subprogram.PredefinedFunction>`
+	"""
+
+	def __init__(
+		self,
+		operatorSymbol: str,
+		returnType:     SubtypeSymbol,
+		parameterItems: Iterable[ParameterInterfaceItemMixin],
+		*,
+		parent:         FullType
+	) -> None:
+		"""
+		Initializes a predefined operator of a type.
+
+		:param operatorSymbol: The operator symbol without quotation marks.
+		:param returnType:     Reference to the subtype of the operator's return value.
+		:param parameterItems: List of all parameters, in declaration order.
+		:param parent:         The type declaring this operator.
+		:raises ValueError:    If parameter ``operatorSymbol`` isn't an operator symbol of VHDL.
+		"""
+		super().__init__(operatorSymbol, returnType, parameterItems=parameterItems, parent=parent)
+
+
+@export
+class PredefinedFunction(Function, PredefinedSubprogramMixin):
+	"""
+	Represents a function a type declaration declares implicitly (IEEE Std 1076-2008, 5).
+
+	For example, a scalar type declares ``MINIMUM`` and ``TO_STRING``.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      type counter is range 0 to 9;
+	      -- implicitly declares, among others:
+	      --   function MINIMUM (L, R : counter) return counter;
+
+	.. seealso::
+
+	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
+	   * :class:`Predefined operator <pyVHDLModel.Subprogram.PredefinedOperator>`
+	"""
+
+	def __init__(
+		self,
+		identifier:     str,
+		returnType:     SubtypeSymbol,
+		parameterItems: Iterable[ParameterInterfaceItemMixin],
+		*,
+		parent:         FullType
+	) -> None:
+		"""
+		Initializes a predefined function of a type.
+
+		:param identifier:     The function's identifier.
+		:param returnType:     Reference to the subtype of the function's return value.
+		:param parameterItems: List of all parameters, in declaration order.
+		:param parent:         The type declaring this function.
+		"""
+		super().__init__(identifier, returnType, parameterItems=parameterItems, parent=parent)
+
+
+PredefinedOperation = Union[PredefinedOperator, PredefinedFunction]
+"""An operation a type declaration declares implicitly: a predefined operator or a predefined function."""
 
 
 @export

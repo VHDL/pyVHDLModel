@@ -34,9 +34,10 @@ from pyTooling.Testing      import Testcase
 from pyVHDLModel.Base       import Direction, RangeFromName, SimpleRange
 from pyVHDLModel.Name       import SimpleName, AttributeName
 from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol
-from pyVHDLModel.Expression import IntegerLiteral, CharacterEnumerationLiteral, PhysicalIntegerLiteral
+from pyVHDLModel.Expression import IntegerLiteral, EnumerationLiteral, CharacterEnumerationLiteral, \
+                                   PhysicalIntegerLiteral
 from pyVHDLModel.Object     import Variable
-from pyVHDLModel.Subprogram import Procedure
+from pyVHDLModel.Subprogram import Procedure, Operator, PredefinedOperator, PredefinedFunction
 from pyVHDLModel.Type       import Subtype, RangedScalarType, EnumeratedType, IntegerType, RealType, PhysicalType, \
                                    PhysicalUnit, ArrayType, RecordTypeElement, RecordType, ProtectedType, \
                                    ProtectedTypeBody, AccessType, FileType
@@ -52,6 +53,33 @@ if __name__ == "__main__":  # pragma: no cover
 
 def _range(left: int = 0, right: int = 15, direction: Direction = Direction.To) -> SimpleRange:
 	return SimpleRange(IntegerLiteral(left), IntegerLiteral(right), direction)
+
+
+def _signatures(fullType) -> list[tuple[str, tuple[str, ...], str]]:
+	"""The implicit operations of a type as (designator, parameter type marks, return type mark) tuples."""
+	return [
+		(
+			operation.Identifier,
+			tuple(item.Subtype.Name.Identifier for item in operation.ParameterItems),
+			operation.ReturnType.Name.Identifier
+		)
+		for operation in fullType.ImplicitOperations
+	]
+
+
+def _scalarSignatures(name: str) -> list[tuple[str, tuple[str, ...], str]]:
+	"""The implicit operations every scalar type declares."""
+	return [
+		("=",         (name, name), "boolean"),
+		("/=",        (name, name), "boolean"),
+		("<",         (name, name), "boolean"),
+		("<=",        (name, name), "boolean"),
+		(">",         (name, name), "boolean"),
+		(">=",        (name, name), "boolean"),
+		("minimum",   (name, name), name),
+		("maximum",   (name, name), name),
+		("to_string", (name,),      "string")
+	]
 
 
 class ParentAndDocumentationWiringAcrossAllLeafTypes(Testcase):
@@ -444,3 +472,142 @@ class FileTypes(Testcase):
 		self.assertIs(designated, fileType.DesignatedSubtype)
 		self.assertIs(fileType, designated.Parent)
 		self.assertEqual("text is file of character?", str(fileType))
+
+
+class ImplicitOperations(Testcase):
+	"""The operations a type declares implicitly (IEEE Std 1076-2008, 5): their designators and type marks."""
+
+	def test_EnumeratedType(self) -> None:
+		enumType = EnumeratedType("state", [EnumerationLiteral("idle"), EnumerationLiteral("run")])
+
+		self.assertListEqual(_scalarSignatures("state"), _signatures(enumType))
+
+	def test_IntegerType(self) -> None:
+		integerType = IntegerType("nibble", _range())
+
+		self.assertListEqual(
+			[
+				*_scalarSignatures("nibble"),
+				("+",   ("nibble", "nibble"),  "nibble"),
+				("-",   ("nibble", "nibble"),  "nibble"),
+				("*",   ("nibble", "nibble"),  "nibble"),
+				("/",   ("nibble", "nibble"),  "nibble"),
+				("mod", ("nibble", "nibble"),  "nibble"),
+				("rem", ("nibble", "nibble"),  "nibble"),
+				("+",   ("nibble",),           "nibble"),
+				("-",   ("nibble",),           "nibble"),
+				("abs", ("nibble",),           "nibble"),
+				("**",  ("nibble", "integer"), "nibble")
+			],
+			_signatures(integerType)
+		)
+
+	def test_RealType(self) -> None:
+		realType = RealType("fraction", _range())
+
+		self.assertListEqual(
+			[
+				*_scalarSignatures("fraction"),
+				("+",   ("fraction", "fraction"), "fraction"),
+				("-",   ("fraction", "fraction"), "fraction"),
+				("*",   ("fraction", "fraction"), "fraction"),
+				("/",   ("fraction", "fraction"), "fraction"),
+				("+",   ("fraction",),            "fraction"),
+				("-",   ("fraction",),            "fraction"),
+				("abs", ("fraction",),            "fraction"),
+				("**",  ("fraction", "integer"),  "fraction")
+			],
+			_signatures(realType)
+		)
+
+	def test_PhysicalType(self) -> None:
+		physicalType = PhysicalType("my_time", _range(0, 1000), PhysicalUnit("ps"), [])
+
+		self.assertListEqual(
+			[
+				*_scalarSignatures("my_time"),
+				("+",   ("my_time", "my_time"), "my_time"),
+				("-",   ("my_time", "my_time"), "my_time"),
+				("mod", ("my_time", "my_time"), "my_time"),
+				("rem", ("my_time", "my_time"), "my_time"),
+				("+",   ("my_time",),           "my_time"),
+				("-",   ("my_time",),           "my_time"),
+				("abs", ("my_time",),           "my_time"),
+				("*",   ("my_time", "integer"), "my_time"),
+				("*",   ("integer", "my_time"), "my_time"),
+				("/",   ("my_time", "integer"), "my_time"),
+				("*",   ("my_time", "real"),    "my_time"),
+				("*",   ("real", "my_time"),    "my_time"),
+				("/",   ("my_time", "real"),    "my_time")
+			],
+			_signatures(physicalType)
+		)
+
+	def test_ArrayType(self) -> None:
+		arrayType = ArrayType("my_vector", [_subtypeSymbol("natural")], _subtypeSymbol("bit"))
+
+		self.assertListEqual(
+			[("=", ("my_vector", "my_vector"), "boolean"), ("/=", ("my_vector", "my_vector"), "boolean")],
+			_signatures(arrayType)
+		)
+
+	def test_RecordType(self) -> None:
+		recordType = RecordType("rec", None)
+
+		self.assertListEqual(
+			[("=", ("rec", "rec"), "boolean"), ("/=", ("rec", "rec"), "boolean")],
+			_signatures(recordType)
+		)
+
+	def test_AccessType(self) -> None:
+		accessType = AccessType("ptr", _subtypeSymbol("natural"))
+
+		self.assertListEqual(
+			[("=", ("ptr", "ptr"), "boolean"), ("/=", ("ptr", "ptr"), "boolean")],
+			_signatures(accessType)
+		)
+
+	def test_FileType(self) -> None:
+		"""A file type has no equality."""
+		self.assertTupleEqual((), FileType("text", _subtypeSymbol("character")).ImplicitOperations)
+
+	def test_ProtectedType(self) -> None:
+		"""A protected type has no equality."""
+		self.assertTupleEqual((), ProtectedType("pt", None).ImplicitOperations)
+
+	def test_ProtectedTypeBody(self) -> None:
+		"""A protected type body declares nothing implicitly; its protected type does."""
+		self.assertTupleEqual((), ProtectedTypeBody("pt", None).ImplicitOperations)
+
+	def test_Operator(self) -> None:
+		"""An operator is a predefined operator of its type: a type mark naming the type references it."""
+		integerType = IntegerType("nibble", _range())
+		equal =       integerType.ImplicitOperations[0]
+		left, right = equal.ParameterItems
+
+		self.assertIsInstance(equal, PredefinedOperator)
+		self.assertIsInstance(equal, Operator)
+		self.assertIs(integerType, equal.Parent)
+		self.assertTupleEqual(("L",), left.Identifiers)
+		self.assertTupleEqual(("R",), right.Identifiers)
+		self.assertIs(integerType, left.Subtype.Reference)
+		self.assertIs(integerType, right.Subtype.Reference)
+		self.assertFalse(equal.ReturnType.IsResolved)
+		self.assertListEqual([], equal.DeclaredItems)
+		self.assertListEqual([], equal.Statements)
+
+	def test_Function(self) -> None:
+		"""``MINIMUM`` is a predefined function of its type, no operator."""
+		integerType = IntegerType("nibble", _range())
+		minimum =     integerType.ImplicitOperations[6]
+
+		self.assertEqual("minimum", minimum.Identifier)
+		self.assertIsInstance(minimum, PredefinedFunction)
+		self.assertNotIsInstance(minimum, Operator)
+		self.assertIs(integerType, minimum.Parent)
+
+	def test_Kept(self) -> None:
+		"""The operations are created on the first access and kept."""
+		integerType = IntegerType("nibble", _range())
+
+		self.assertIs(integerType.ImplicitOperations, integerType.ImplicitOperations)

@@ -1093,23 +1093,33 @@ class PackageDeclarations(Testcase):
 	"""The declarations of a package a use clause can make potentially visible."""
 
 	def test_IterateDeclarations(self) -> None:
-		"""A declared item, then the enumeration literals of an enumerated type."""
+		"""A declared item, then the enumeration literals and operations of an enumerated type."""
 		constant =   _constant("K", "integer")
 		enumerated = _enumeration("T", "a", "'b'")
 		package =    Package("p", declaredItems=[constant, enumerated])
 
 		self.assertListEqual(
-			[("k", constant), ("t", enumerated), ("a", enumerated.Literals[0]), ("'b'", enumerated.Literals[1])],
+			[
+				("k", constant),
+				("t", enumerated),
+				("a", enumerated.Literals[0]),
+				("'b'", enumerated.Literals[1]),
+				*((operation.NormalizedIdentifier, operation) for operation in enumerated.ImplicitOperations)
+			],
 			list(package.IterateDeclarations())
 		)
 
 	def test_IterateMemberDeclarations(self) -> None:
-		"""The member with its identifier, and the enumeration literals of a type."""
+		"""The member with its identifier, and the enumeration literals and operations of a type."""
 		enumerated = _enumeration("T", "a")
 		package =    Package("p", declaredItems=[_constant("K", "integer"), enumerated])
 
 		self.assertListEqual(
-			[("t", enumerated), ("a", enumerated.Literals[0])],
+			[
+				("t", enumerated),
+				("a", enumerated.Literals[0]),
+				*((operation.NormalizedIdentifier, operation) for operation in enumerated.ImplicitOperations)
+			],
 			list(package.IterateMemberDeclarations("t"))
 		)
 

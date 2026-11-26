@@ -307,15 +307,16 @@ class Designators(Testcase):
 		self.assertEqual("idle", literal.NormalizedDesignator)
 
 	def test_ImplicitDeclarations(self) -> None:
-		"""An enumerated type in a region declares its literals; removing the type removes them."""
+		"""An enumerated type in a region declares its literals and operations; removing the type removes them."""
 		enumeration =  _enumeration("T", "Idle", "'a'")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[enumeration])
 		architecture.IndexDeclaredItems()
 
-		self.assertDictEqual(
-			{"idle": [enumeration.Literals[0]], "'a'": [enumeration.Literals[1]]},
-			architecture._namespace.ImplicitDeclarations
-		)
+		expected = {"idle": [enumeration.Literals[0]], "'a'": [enumeration.Literals[1]]}
+		for operation in enumeration.ImplicitOperations:
+			expected.setdefault(operation.NormalizedIdentifier, []).append(operation)
+
+		self.assertDictEqual(expected, architecture._namespace.ImplicitDeclarations)
 
 		architecture.RemoveDeclaredItem(enumeration)
 
@@ -344,16 +345,24 @@ class DeclarationProperties(Testcase):
 		enumeration = _enumeration("T", "Idle", "'a'")
 
 		self.assertTupleEqual(
-			(("idle", enumeration.Literals[0]), ("'a'", enumeration.Literals[1])),
+			(
+				("idle", enumeration.Literals[0]),
+				("'a'",  enumeration.Literals[1]),
+				*((operation.NormalizedIdentifier, operation) for operation in enumeration.ImplicitOperations)
+			),
 			tuple(enumeration.IterateImplicitDeclarations())
 		)
 
 	def test_IterateImplicitDeclarations_PhysicalType(self) -> None:
-		"""The primary unit, then the secondary units."""
+		"""The primary unit, then the secondary units, then the operations."""
 		distance = _distance()
 
 		self.assertTupleEqual(
-			(("mm", distance.PrimaryUnit), ("cm", distance.SecondaryUnits[0])),
+			(
+				("mm", distance.PrimaryUnit),
+				("cm", distance.SecondaryUnits[0]),
+				*((operation.NormalizedIdentifier, operation) for operation in distance.ImplicitOperations)
+			),
 			tuple(distance.IterateImplicitDeclarations())
 		)
 

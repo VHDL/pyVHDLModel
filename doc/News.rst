@@ -30,6 +30,11 @@ Version 0.45.0 (2026)
      ``hwrite`` with all their overloads. The aliases (``bread``, ``swrite``, ...) aren't declared yet.
    * Package ``std.env`` declares what IEEE Std 1076-2008, 16.5 lists: the procedures ``stop`` and ``finish``, each
      with and without a ``STATUS`` parameter, and the function ``resolution_limit``.
+   * A one-dimensional array type declares, depending on its element type, the concatenation operator ``&``, the
+     ordering operators and ``MINIMUM``/``MAXIMUM`` (discrete elements), ``MINIMUM``/``MAXIMUM`` of its elements
+     (scalar elements), the logical, shift and logical reduction operators (``bit``, ``boolean``), the matching
+     operators ``?=``/``?/=`` (``bit``) and ``TO_STRING`` (elements of a character type with only character literals).
+     The new :class:`~pyVHDLModel.Type.MatchingOperatorsMixin` marks the element types with matching operators.
 
    .. rubric:: Changes
 

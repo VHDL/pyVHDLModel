@@ -50,7 +50,7 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedE
 from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
 from pyVHDLModel.Name       import Name, SimpleName
 from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
-from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
+from pyVHDLModel.Expression import EnumerationLiteral, CharacterEnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarationRegionMixin, \
                                    SequentialDeclarationRegionMixin, WithoutStatementsMixin
 
@@ -654,6 +654,69 @@ class DiscreteTypeMixin(metaclass=ExtendedType, mixin=True):
 		Initializes a discrete type.
 		"""
 		pass
+
+
+@export
+class LogicalOperatorsMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_TypeMark", "_BinaryOperator", "_UnaryOperator")
+):
+	"""
+	A mixin-class for the enumerated types declaring the logical operators (IEEE Std 1076-2008, 9.2.2): ``boolean`` and
+	``bit`` of package ``std.standard``.
+
+	A one-dimensional array type of such an element type declares the logical, shift and logical reduction operators
+	(:attr:`~pyVHDLModel.Type.FullType.ImplicitOperations`).
+
+	.. seealso::
+
+	   * :class:`Boolean <pyVHDLModel.STD.Boolean>`
+	   * :class:`Bit <pyVHDLModel.STD.Bit>`
+	"""
+
+	def _CreateLogicalOperators(self) -> list[PredefinedOperator]:
+		"""
+		Create the logical operators of this type: ``"and"``, ``"or"``, ``"nand"``, ``"nor"``, ``"xor"`` and ``"xnor"``,
+		then ``"not"``.
+
+		:returns: List of predefined operators.
+		"""
+		operations = []
+		for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+		operations.append(self._UnaryOperator("not", self._TypeMark()))
+
+		return operations
+
+
+@export
+class MatchingOperatorsMixin(metaclass=ExtendedType, mixin=True, expects=("_TypeMark", "_BinaryOperator")):
+	"""
+	A mixin-class for the enumerated types declaring the matching relational operators (IEEE Std 1076-2008, 9.2.3):
+	``bit`` of package ``std.standard``.
+
+	A one-dimensional array type of such an element type declares the matching operators ``"?="`` and ``"?/="``
+	(:attr:`~pyVHDLModel.Type.FullType.ImplicitOperations`).
+
+	.. seealso::
+
+	   * :class:`Bit <pyVHDLModel.STD.Bit>`
+	"""
+
+	def _CreateMatchingOperators(self) -> list[PredefinedOperator]:
+		"""
+		Create the matching relational operators of this type: ``"?="``, ``"?/="``, ``"?<"``, ``"?<="``, ``"?>"`` and
+		``"?>="``.
+
+		:returns: List of predefined operators.
+		"""
+		operations = []
+		for operatorSymbol in ("?=", "?/=", "?<", "?<=", "?>", "?>="):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+		return operations
 
 
 @export
@@ -1274,6 +1337,126 @@ class ArrayType(CompositeType):
 
 		if isinstance(self._elementType, SubtypeSymbol):
 			yield region, self, self._elementType
+
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this array type declares implicitly.
+
+		Every array type declares the equality operators. A one-dimensional array type adds, depending on its element type
+		(the base type of the element subtype, known after the element type mark is resolved):
+
+		* discrete element type: the ordering operators ``"<"``, ``"<="``, ``">"``, ``">="`` (IEEE Std 1076-2008,
+		  9.2.3), ``MINIMUM`` and ``MAXIMUM`` of two arrays (5.3.2.4);
+		* any element type: the concatenation operator ``"&"`` of array and array, array and element, element and array,
+		  element and element (9.2.5);
+		* scalar element type: ``MINIMUM`` and ``MAXIMUM`` of the elements of an array (5.3.2.4);
+		* element type ``bit`` or ``boolean`` (:class:`LogicalOperatorsMixin`): ``"not"``, the binary
+		  logical operators of two arrays, the shift operators ``"sll"``, ``"srl"``, ``"sla"``, ``"sra"``, ``"rol"``,
+		  ``"ror"`` with an ``integer`` shift amount (9.2.4), the binary logical operators of an element and an array and
+		  of an array and an element, and the logical reduction operators (9.2.2);
+		* element type ``bit`` (:class:`MatchingOperatorsMixin`): the matching operators ``"?="`` and
+		  ``"?/="`` (9.2.3);
+		* element type a character type containing only character literals: ``TO_STRING`` (5.3.2.4).
+
+		A parameter or result of the element type has a type mark naming the element subtype, which references it. With an
+		unresolved element type mark, only the equality operators and the concatenation of two arrays are created.
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		if len(self._dimensions) != 1:
+			return operations
+
+		reference = self._elementType._reference
+		if not isinstance(reference, BaseType):
+			operations.append(self._BinaryOperator("&", self._TypeMark()))
+			return operations
+
+		def elementTypeMark() -> SimpleSubtypeSymbol:
+			"""
+			Nested function creating a type mark naming the element subtype, which it references.
+
+			:returns: The type mark.
+			"""
+			symbol =            SimpleSubtypeSymbol(SimpleName(reference._identifier))
+			symbol._reference = reference
+
+			return symbol
+
+		element = reference.BaseType
+		if isinstance(element, DiscreteTypeMixin):
+			for operatorSymbol in ("<", "<=", ">", ">="):
+				operations.append(self._BinaryOperator(operatorSymbol, SimpleSubtypeSymbol(SimpleName("boolean"))))
+
+			for identifier in ("minimum", "maximum"):
+				operations.append(self._Function(
+					identifier,
+					self._TypeMark(),
+					(self._Parameter("L", self._TypeMark()), self._Parameter("R", self._TypeMark()))
+				))
+
+		operations.append(self._BinaryOperator("&", self._TypeMark()))
+		operations.append(self._Operator(
+			"&",
+			self._TypeMark(),
+			(self._Parameter("L", self._TypeMark()), self._Parameter("R", elementTypeMark()))
+		))
+		operations.append(self._Operator(
+			"&",
+			self._TypeMark(),
+			(self._Parameter("L", elementTypeMark()), self._Parameter("R", self._TypeMark()))
+		))
+		operations.append(self._Operator(
+			"&",
+			self._TypeMark(),
+			(self._Parameter("L", elementTypeMark()), self._Parameter("R", elementTypeMark()))
+		))
+
+		if isinstance(element, ScalarType):
+			for identifier in ("minimum", "maximum"):
+				operations.append(self._Function(identifier, elementTypeMark(), (self._Parameter("L", self._TypeMark()),)))
+
+		if isinstance(element, LogicalOperatorsMixin):
+			operations.append(self._UnaryOperator("not", self._TypeMark()))
+			for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+				operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+			for operatorSymbol in ("sll", "srl", "sla", "sra", "rol", "ror"):
+				operations.append(self._Operator(
+					operatorSymbol,
+					self._TypeMark(),
+					(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName("integer"))))
+				))
+
+			for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+				operations.append(self._Operator(
+					operatorSymbol,
+					self._TypeMark(),
+					(self._Parameter("L", elementTypeMark()), self._Parameter("R", self._TypeMark()))
+				))
+				operations.append(self._Operator(
+					operatorSymbol,
+					self._TypeMark(),
+					(self._Parameter("L", self._TypeMark()), self._Parameter("R", elementTypeMark()))
+				))
+
+			for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+				operations.append(self._UnaryOperator(operatorSymbol, elementTypeMark()))
+
+		if isinstance(element, MatchingOperatorsMixin):
+			for operatorSymbol in ("?=", "?/="):
+				operations.append(self._BinaryOperator(operatorSymbol, elementTypeMark()))
+
+		if isinstance(element, EnumeratedType) and all(
+			isinstance(literal, CharacterEnumerationLiteral) for literal in element._literals
+		):
+			operations.append(self._Function(
+				"to_string",
+				SimpleSubtypeSymbol(SimpleName("string")),
+				(self._Parameter("VALUE", self._TypeMark()),)
+			))
+
+		return operations
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

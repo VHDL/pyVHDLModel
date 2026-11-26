@@ -34,7 +34,6 @@
 from typing                  import Optional as Nullable
 
 from pyTooling.Decorators    import export
-from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Base        import SimpleRange, Direction, Mode
 from pyVHDLModel.Name        import SimpleName
@@ -43,44 +42,13 @@ from pyVHDLModel.Symbol      import SimpleSubtypeSymbol, ConstrainedScalarSubtyp
 from pyVHDLModel.Expression  import EnumerationLiteral, CharacterEnumerationLiteral, IntegerLiteral, \
                                     FloatingPointLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, PhysicalUnit, ArrayType, \
-                                    AccessType, FileType, Subtype
+                                    AccessType, FileType, Subtype, LogicalOperatorsMixin, MatchingOperatorsMixin
 from pyVHDLModel.Object      import File
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
                                     ParameterFileInterfaceItem
 from pyVHDLModel.Declaration import Attribute
-from pyVHDLModel.Subprogram  import Procedure, Function, PredefinedOperator, PredefinedOperation
+from pyVHDLModel.Subprogram  import Procedure, Function, PredefinedOperation
 from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
-
-
-@export
-class LogicalOperatorsMixin(
-	metaclass=ExtendedType,
-	mixin=True,
-	expects=("_TypeMark", "_BinaryOperator", "_UnaryOperator")
-):
-	"""
-	A mixin-class for the types ``boolean`` and ``bit``, which declare the logical operators (IEEE Std 1076-2008, 9.2.2).
-
-	.. seealso::
-
-	   * :class:`Boolean <pyVHDLModel.STD.Boolean>`
-	   * :class:`Bit <pyVHDLModel.STD.Bit>`
-	"""
-
-	def _CreateLogicalOperators(self) -> list[PredefinedOperator]:
-		"""
-		Create the logical operators of this type: ``"and"``, ``"or"``, ``"nand"``, ``"nor"``, ``"xor"`` and ``"xnor"``,
-		then ``"not"``.
-
-		:returns: List of predefined operators.
-		"""
-		operations = []
-		for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
-			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
-
-		operations.append(self._UnaryOperator("not", self._TypeMark()))
-
-		return operations
 
 
 @export
@@ -110,7 +78,7 @@ class Boolean(EnumeratedType, LogicalOperatorsMixin):
 
 
 @export
-class Bit(EnumeratedType, LogicalOperatorsMixin):
+class Bit(EnumeratedType, LogicalOperatorsMixin, MatchingOperatorsMixin):
 	"""
 	Represents the predefined type ``bit`` of package ``std.standard``: ``('0', '1')``.
 
@@ -135,8 +103,7 @@ class Bit(EnumeratedType, LogicalOperatorsMixin):
 		operations = super()._CreateImplicitOperations()
 		operations.extend(self._CreateLogicalOperators())
 		operations.append(self._UnaryOperator("??", SimpleSubtypeSymbol(SimpleName("boolean"))))
-		for operatorSymbol in ("?=", "?/=", "?<", "?<=", "?>", "?>="):
-			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+		operations.extend(self._CreateMatchingOperators())
 
 		return operations
 

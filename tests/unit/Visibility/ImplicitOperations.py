@@ -158,3 +158,17 @@ class Standard(Testcase):
 
 		for operation in _operationsOf(bit, "and"):
 			self.assertIn(operation, declarations)
+
+	def test_BitVector(self) -> None:
+		"""``bit_vector`` declares ``"and"`` (4 forms) once ``bit`` is resolved; a user entity finds them."""
+		entity =     Entity("e")
+		design =     _design(entity)
+		bitVector =  design.Libraries["std"].Packages["standard"].Types["bit_vector"]
+		operations = _operationsOf(bitVector, "and")
+
+		self.assertEqual(4, len(operations))
+
+		declarations = entity._namespace.Lookup("and").Declarations
+
+		for operation in operations:
+			self.assertIn(operation, declarations)

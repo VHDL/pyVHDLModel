@@ -432,8 +432,8 @@ class Namespace(Generic[K, O]):
 
 		self._elements[normalizedIdentifier] = element
 
-		for implicitIdentifier, declaration in element.IterateImplicitDeclarations():
-			declarations = self._implicitDeclarations.setdefault(implicitIdentifier, [])
+		for declaration in element.IterateImplicitDeclarations():
+			declarations = self._implicitDeclarations.setdefault(declaration.NormalizedDesignator, [])
 			if not any(existing is declaration for existing in declarations):
 				declarations.append(declaration)
 
@@ -465,11 +465,12 @@ class Namespace(Generic[K, O]):
 
 		del self._elements[normalizedIdentifier]
 
-		for implicitIdentifier, declaration in element.IterateImplicitDeclarations():
-			declarations = self._implicitDeclarations[implicitIdentifier]
+		for declaration in element.IterateImplicitDeclarations():
+			normalizedDesignator = declaration.NormalizedDesignator
+			declarations =         self._implicitDeclarations[normalizedDesignator]
 			declarations.remove(declaration)
 			if len(declarations) == 0:
-				del self._implicitDeclarations[implicitIdentifier]
+				del self._implicitDeclarations[normalizedDesignator]
 
 	def AddImport(self, normalizedIdentifier: K, element: O, useClause: Nullable[_UseClause]) -> None:
 		"""

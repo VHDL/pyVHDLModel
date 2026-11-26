@@ -259,14 +259,13 @@ class FullType(BaseType):
 
 		return self._implicitOperations
 
-	def IterateImplicitDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+	def IterateImplicitDeclarations(self) -> Generator[PredefinedOperation, None, None]:
 		"""
 		Iterate the declarations this type declaration implies: its implicit operations (:attr:`ImplicitOperations`).
 
-		:returns: A generator to iterate (normalized designator, predefined operator or function) pairs.
+		:returns: A generator to iterate the predefined operators and functions.
 		"""
-		for operation in self.ImplicitOperations:
-			yield operation._normalizedIdentifier, operation
+		yield from self.ImplicitOperations
 
 	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
@@ -694,17 +693,14 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		"""
 		return self._literals
 
-	def IterateImplicitDeclarations(self) -> Generator[tuple[str, EnumerationLiteral | PredefinedOperation], None, None]:
+	def IterateImplicitDeclarations(self) -> Generator[EnumerationLiteral | PredefinedOperation, None, None]:
 		"""
 		Iterate the declarations this type declaration implies: the enumeration literals, then the implicit operations
 		(:attr:`~FullType.ImplicitOperations`).
 
-		:returns: A generator to iterate (normalized designator, enumeration literal or predefined operation) pairs,
-		          the literals in declaration order.
+		:returns: A generator to iterate the enumeration literals, in declaration order, and the predefined operations.
 		"""
-		for literal in self._literals:
-			yield literal.NormalizedDesignator, literal
-
+		yield from self._literals
 		yield from super().IterateImplicitDeclarations()
 
 	def Visit(self, visitor: Visitor) -> None:
@@ -930,6 +926,20 @@ class PhysicalUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 			value.Parent = self
 
 	@readonly
+	def NormalizedDesignator(self) -> str:
+		"""
+		Read-only property to access the normalized designator (:attr:`_normalizedIdentifier`), the key the unit is
+		indexed by in a namespace.
+
+		.. seealso::
+
+		   * :term:`Normalized`
+
+		:returns: The normalized identifier of the unit.
+		"""
+		return self._normalizedIdentifier
+
+	@readonly
 	def Value(self) -> Nullable[PhysicalIntegerLiteral]:
 		"""
 		Read-only property to access the unit's value (:attr:`_value`).
@@ -1105,18 +1115,15 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 		return operations
 
-	def IterateImplicitDeclarations(self) -> Generator[tuple[str, PhysicalUnit | PredefinedOperation], None, None]:
+	def IterateImplicitDeclarations(self) -> Generator[PhysicalUnit | PredefinedOperation, None, None]:
 		"""
 		Iterate the declarations this type declaration implies: the primary unit, the secondary units, then the implicit
 		operations (:attr:`~FullType.ImplicitOperations`).
 
-		:returns: A generator to iterate (normalized identifier, unit or predefined operation) pairs, the units in
-		          declaration order.
+		:returns: A generator to iterate the units, in declaration order, and the predefined operations.
 		"""
-		yield self._primaryUnit._normalizedIdentifier, self._primaryUnit
-		for unit in self._secondaryUnits:
-			yield unit._normalizedIdentifier, unit
-
+		yield self._primaryUnit
+		yield from self._secondaryUnits
 		yield from super().IterateImplicitDeclarations()
 
 	def Visit(self, visitor: Visitor) -> None:

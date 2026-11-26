@@ -107,6 +107,10 @@ class Functions(Testcase):
 
 		self.assertFalse(function.IsPure)
 
+	def test_NormalizedDesignator(self) -> None:
+		"""The key a namespace indexes the function by: its normalized identifier."""
+		self.assertEqual("func", Function("Func", _returnType()).NormalizedDesignator)
+
 
 class Operators(Testcase):
 	def test_Construction(self) -> None:
@@ -124,6 +128,7 @@ class Operators(Testcase):
 
 		self.assertEqual("AND", operator.Identifier)
 		self.assertEqual("and", operator.NormalizedIdentifier)
+		self.assertEqual("and", operator.NormalizedDesignator)
 
 	def test_NoOperatorSymbol(self) -> None:
 		with self.assertRaises(ValueError) as context:

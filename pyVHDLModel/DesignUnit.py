@@ -929,7 +929,8 @@ class Package(
 				for normalizedIdentifier in normalizedIdentifiersOf(item):
 					yield normalizedIdentifier, item
 
-				yield from item.IterateImplicitDeclarations()
+				for declaration in item.IterateImplicitDeclarations():
+					yield declaration.NormalizedDesignator, declaration
 
 	def IterateMemberDeclarations(self, memberIdentifier: str) -> Generator[tuple[str, ModelEntity], None, None]:
 		"""
@@ -958,7 +959,8 @@ class Package(
 						baseType = None
 
 				if baseType is not None:
-					yield from baseType.IterateImplicitDeclarations()
+					for implicitDeclaration in baseType.IterateImplicitDeclarations():
+						yield implicitDeclaration.NormalizedDesignator, implicitDeclaration
 
 	def DenoteBy(
 		self,

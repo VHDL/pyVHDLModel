@@ -234,6 +234,10 @@ class PhysicalUnits(Testcase):
 	def test_Documentation(self) -> None:
 		self.assertEqual("doc", PhysicalUnit("ps", documentation="doc").Documentation)
 
+	def test_NormalizedDesignator(self) -> None:
+		"""The key a namespace indexes the unit by: its normalized identifier."""
+		self.assertEqual("ps", PhysicalUnit("PS").NormalizedDesignator)
+
 
 class PhysicalTypes(Testcase):
 	def test_Construction(self) -> None:

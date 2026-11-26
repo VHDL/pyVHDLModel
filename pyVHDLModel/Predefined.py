@@ -38,9 +38,11 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
                                    PackageMemberReferenceSymbol
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin
 from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
-from pyVHDLModel.Symbol     import LibraryReferenceSymbol, PackageSymbol
+from pyVHDLModel.Symbol     import LibraryReferenceSymbol, PackageSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.DesignUnit import LibraryClause, UseClause
+from pyVHDLModel.Subprogram import Subprogram
 
 
 @export
@@ -149,6 +151,36 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 		:param identifier: Optional, the VHDL package name. Default: ``None``, the class name.
 		"""
 		super().__init__(getTypeName(self) if identifier is None else identifier)
+
+	def _DeclareItem(self, declaration: NamedEntityMixin, table: dict[str, ModelEntity]) -> None:
+		"""
+		Add a declaration to this package and to the package's lookup table of its kind.
+
+		:param declaration: The declaration.
+		:param table:       The lookup table of the declaration's kind, e.g. :attr:`_types`.
+		"""
+		table[declaration._normalizedIdentifier] = declaration
+		self.AddDeclaredItem(declaration)
+
+	def _DeclareSubprogram(self, subprogram: Subprogram, table: dict[str, list[Subprogram]]) -> None:
+		"""
+		Add a subprogram to this package and to the package's lookup table of its kind, after its overloads.
+
+		:param subprogram: The subprogram.
+		:param table:      The lookup table of the subprogram's kind, :attr:`_procedures` or :attr:`_functions`.
+		"""
+		table.setdefault(subprogram._normalizedIdentifier, []).append(subprogram)
+		self.AddDeclaredItem(subprogram)
+
+	@staticmethod
+	def _TypeMark(identifier: str) -> SimpleSubtypeSymbol:
+		"""
+		Create a type mark naming a type or subtype by its simple name.
+
+		:param identifier: The identifier of the type or subtype.
+		:returns:          The type mark.
+		"""
+		return SimpleSubtypeSymbol(SimpleName(identifier))
 
 
 @export

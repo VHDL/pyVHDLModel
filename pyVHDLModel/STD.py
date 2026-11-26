@@ -34,7 +34,7 @@
 from pyTooling.Decorators    import export
 from pyTooling.MetaClasses   import ExtendedType
 
-from pyVHDLModel.Base        import ModelEntity, SimpleRange, Direction
+from pyVHDLModel.Base        import SimpleRange, Direction
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
 from pyVHDLModel.Expression  import EnumerationLiteral, CharacterEnumerationLiteral, IntegerLiteral, \
@@ -188,27 +188,8 @@ class Standard(PredefinedPackage):
 		"""
 		super().__init__()
 
-		def declare(declaration: ModelEntity, table: dict[str, ModelEntity]) -> None:
-			"""
-			Nested function adding a declaration to this package and to the package's lookup table of its kind.
-
-			:param declaration: The declaration.
-			:param table:       The lookup table of the declaration's kind, e.g. :attr:`_types`.
-			"""
-			table[declaration._normalizedIdentifier] = declaration
-			self.AddDeclaredItem(declaration)
-
-		def typeMark(identifier: str) -> SimpleSubtypeSymbol:
-			"""
-			Nested function creating a type mark naming a declaration of this package.
-
-			:param identifier: The identifier of the declaration.
-			:returns:          The type mark.
-			"""
-			return SimpleSubtypeSymbol(SimpleName(identifier))
-
-		declare(Boolean(), self._types)
-		declare(Bit(), self._types)
+		self._DeclareItem(Boolean(), self._types)
+		self._DeclareItem(Bit(), self._types)
 
 		controlCharacters = \
 			"nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs",  "ht",  "lf",  "vt",  "ff",  "cr",  "so",  "si", \
@@ -224,20 +205,20 @@ class Standard(PredefinedPackage):
 			else:
 				characters.append(CharacterEnumerationLiteral(chr(position)))
 
-		declare(EnumeratedType("character", characters), self._types)
+		self._DeclareItem(EnumeratedType("character", characters), self._types)
 
 		levels = "note", "warning", "error", "failure"
-		declare(EnumeratedType("severity_level", [EnumerationLiteral(level) for level in levels]), self._types)
+		self._DeclareItem(EnumeratedType("severity_level", [EnumerationLiteral(level) for level in levels]), self._types)
 
 		integer = IntegerType("integer", SimpleRange(IntegerLiteral(-2**31), IntegerLiteral(2**31 - 1), Direction.To))
-		declare(integer, self._types)
+		self._DeclareItem(integer, self._types)
 
 		realRange = SimpleRange(
 			FloatingPointLiteral(-1.7976931348623157e308),
 			FloatingPointLiteral(1.7976931348623157e308),
 			Direction.To
 		)
-		declare(RealType("real", realRange), self._types)
+		self._DeclareItem(RealType("real", realRange), self._types)
 
 		time = PhysicalType(
 			"time",
@@ -253,31 +234,30 @@ class Standard(PredefinedPackage):
 				PhysicalUnit("hr",  PhysicalIntegerLiteral(60, "min")),
 			)
 		)
-		declare(time, self._types)
+		self._DeclareItem(time, self._types)
 
-		delayLength =           Subtype("delay_length", typeMark("time"))
+		delayLength =           Subtype("delay_length", self._TypeMark("time"))
 		delayLength._baseType = time
 		delayLength._range =     SimpleRange(
 			PhysicalIntegerLiteral(0, "fs"),
 			PhysicalIntegerLiteral(2**63 - 1, "fs"),
 			Direction.To
 		)
-		declare(delayLength, self._subtypes)
+		self._DeclareItem(delayLength, self._subtypes)
 
-		now =                    Function("now", typeMark("delay_length"), isPure=False)
-		self._functions["now"] = [now]
-		self.AddDeclaredItem(now)
+		now =                    Function("now", self._TypeMark("delay_length"), isPure=False)
+		self._DeclareSubprogram(now, self._functions)
 
 		for identifier, low in (
 			("natural",  0),
 			("positive", 1)
 		):
-			subtype =           Subtype(identifier, typeMark("integer"))
+			subtype =           Subtype(identifier, self._TypeMark("integer"))
 			subtype._baseType = integer
 			subtype._range =    SimpleRange(IntegerLiteral(low), IntegerLiteral(2**31 - 1), Direction.To)
-			declare(subtype, self._subtypes)
+			self._DeclareItem(subtype, self._subtypes)
 
-		declare(ArrayType("string", (typeMark("positive"),), typeMark("character")), self._types)
+		self._DeclareItem(ArrayType("string", (self._TypeMark("positive"),), self._TypeMark("character")), self._types)
 		for identifier, element in (
 			("boolean_vector", "boolean"),
 			("bit_vector",     "bit"),
@@ -285,15 +265,16 @@ class Standard(PredefinedPackage):
 			("real_vector",    "real"),
 			("time_vector",    "time")
 		):
-			declare(ArrayType(identifier, (typeMark("natural"),), typeMark(element)), self._types)
+			self._DeclareItem(ArrayType(identifier, (self._TypeMark("natural"),), self._TypeMark(element)), self._types)
 
 		kinds = "read_mode", "write_mode", "append_mode"
-		declare(EnumeratedType("file_open_kind", [EnumerationLiteral(kind) for kind in kinds]), self._types)
+		self._DeclareItem(EnumeratedType("file_open_kind", [EnumerationLiteral(kind) for kind in kinds]), self._types)
 
-		statuses = "open_ok", "status_error", "name_error", "mode_error"
-		declare(EnumeratedType("file_open_status", [EnumerationLiteral(status) for status in statuses]), self._types)
+		statuses =       "open_ok", "status_error", "name_error", "mode_error"
+		fileOpenStatus = EnumeratedType("file_open_status", [EnumerationLiteral(status) for status in statuses])
+		self._DeclareItem(fileOpenStatus, self._types)
 
-		self.AddDeclaredItem(Attribute("foreign", typeMark("string")))
+		self.AddDeclaredItem(Attribute("foreign", self._TypeMark("string")))
 
 
 @export
@@ -325,9 +306,7 @@ class TextIO(PredefinedPackage):
 		"""
 		super().__init__()
 
-		line =                                    AccessType("line", SimpleSubtypeSymbol(SimpleName("string")))
-		self._types[line._normalizedIdentifier] = line
-		self.AddDeclaredItem(line)
+		self._DeclareItem(AccessType("line", self._TypeMark("string")), self._types)
 
 
 @export

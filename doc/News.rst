@@ -18,8 +18,7 @@ Version 0.45.0 (2026)
      :class:`~pyVHDLModel.Subprogram.PredefinedOperator` and :class:`~pyVHDLModel.Subprogram.PredefinedFunction`
      objects (:data:`~pyVHDLModel.Type.FullType.ImplicitOperations`): equality for every type except file and protected
      types; ordering, ``MINIMUM``, ``MAXIMUM`` and ``TO_STRING`` for scalar types; the arithmetic operators of integer,
-     floating-point and physical types. A namespace indexes them with the enumeration literals and physical units, so a
-     use clause naming a type makes them visible.
+     floating-point and physical types. The analysis indexes them after the type marks are resolved (see *Changes*).
    * Package ``std.standard`` declares what IEEE Std 1076-2008, 16.3 lists, in its order: new are the subtype
      ``delay_length``, the function ``now``, the type ``real_vector`` and the attribute ``foreign``. The types
      ``boolean`` and ``bit`` (:class:`~pyVHDLModel.STD.Boolean`, :class:`~pyVHDLModel.STD.Bit`) declare the logical
@@ -52,9 +51,18 @@ Version 0.45.0 (2026)
      functions (arithmetic, relational, matching, shift, conversion and logical operators and functions) and 18
      procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). The aliases (``rising_edge``,
      ``to_bstring``, ``bread``, ...) aren't declared yet. Its declarations have the package as parent.
+   * Package ``ieee.std_logic_1164`` declares what IEEE Std 1076-2008, 16.7 lists, in its order: the types
+     ``std_ulogic`` (:class:`~pyVHDLModel.IEEE.StdLogic1164.StdULogic`, with the matching relational operators) and
+     ``std_ulogic_vector``, the function ``resolved``, the subtypes ``std_logic``, ``std_logic_vector``, ``x01``,
+     ``x01z``, ``ux01``, ``ux01z``, the logical and shift operators, the conversion functions, ``"??"``,
+     ``rising_edge``, ``falling_edge``, ``is_x``, ``to_ostring``, ``to_hstring`` and the ``read``/``write`` procedures.
+     The aliases (``to_slv``, ``to_bstring``, ``bread``, ...) aren't declared yet.
 
    .. rubric:: Changes
 
+   * pyTooling 10.3 is required.
+   * :data:`VHDLVersion.IsAMS <pyVHDLModel.VHDLVersion.IsAMS>` compares the enumeration members by identity instead of
+     building a tuple per call.
    * Adding a declared item finds clashing declarations by an index of the declared items by name instead of visiting
      every declaration of the region: filling a package with n declarations took quadratic time.
    * :mod:`pyVHDLModel.IEEE` is a package with one module per VHDL package, e.g.
@@ -84,6 +92,13 @@ Version 0.45.0 (2026)
    * The type ``line`` was declared in ``std.standard`` as an access to ``character``; it's declared in ``std.textio``
      as an access to ``string``.
    * The declarations of ``std.standard`` had no parent; their parent is the package.
+   * :data:`Subtype.Range <pyVHDLModel.Type.Subtype.Range>` was always ``None`` for a subtype read by pyGHDL: it
+     returned a field no constructor parameter set. It returns the range constraint of the subtype indication now.
+
+   .. rubric:: Documentation
+
+   * The documentation builds with pyTooling.Sphinx 1.1 (its prolog provides the docutils substitution files) and
+     sphinx_design 0.8.
 
 
 Version 0.44.0 (2026)

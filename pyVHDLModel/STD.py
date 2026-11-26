@@ -505,7 +505,10 @@ class TextIO_Body(PredefinedPackageBody):
 @export
 class Env(PredefinedPackage):
 	"""
-	Predefined package ``std.env``.
+	Predefined package ``std.env`` (IEEE Std 1076-2008, 16.5).
+
+	Its declarations, in the order of the standard: the procedures ``stop`` and ``finish``, each with and without a
+	``STATUS`` parameter, and the function ``resolution_limit``.
 
 	.. seealso::
 
@@ -519,6 +522,13 @@ class Env(PredefinedPackage):
 		super().__init__()
 
 		self._AddPackageClause(("work.textio.all",))
+
+		for identifier in ("stop", "finish"):
+			status = ParameterConstantInterfaceItem(("STATUS",), Mode.In, self._TypeMark("integer"))
+			self._DeclareSubprogram(Procedure(identifier, parameterItems=(status,)), self._procedures)
+			self._DeclareSubprogram(Procedure(identifier), self._procedures)
+
+		self._DeclareSubprogram(Function("resolution_limit", self._TypeMark("delay_length")), self._functions)
 
 
 @export

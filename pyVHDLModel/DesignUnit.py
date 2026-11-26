@@ -1071,13 +1071,13 @@ class Package(
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> tuple[ModelEntity, ...]:
+	def _InterfaceDeclarations(self) -> tuple[ModelEntity, ...]:
 		"""
-		Return all declarations of this package: its generics share the declarative region.
+		Return the interface items of this package: its generics share the declarative region.
 
-		:returns: Tuple of declarations: the generics, then the declared items.
+		:returns: Tuple of the generics.
 		"""
-		return (*self._genericItems, *super()._Declarations())
+		return tuple(self._genericItems)
 
 
 @export
@@ -1353,13 +1353,13 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> tuple[ModelEntity, ...]:
+	def _InterfaceDeclarations(self) -> tuple[ModelEntity, ...]:
 		"""
-		Return all declarations of this entity: its generics and ports share the declarative region.
+		Return the interface items of this entity: its generics and ports share the declarative region.
 
-		:returns: Tuple of declarations: the generics, the ports, then the declared items.
+		:returns: Tuple of the generics, then the ports.
 		"""
-		return (*self._genericItems, *self._portItems, *super()._Declarations())
+		return (*self._genericItems, *self._portItems)
 
 	def _SharedRegions(self) -> tuple[ConcurrentDeclarationRegionMixin, ...]:
 		"""

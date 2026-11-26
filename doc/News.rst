@@ -13,10 +13,11 @@ Version 0.45.0 (2026)
 
    .. rubric:: New Features
 
+   * New class :class:`~pyVHDLModel.Subprogram.Operator`: a function whose designator is an operator symbol.
    * A full type declares its predefined operations (IEEE Std 1076-2008, 5) as
-     :class:`~pyVHDLModel.Subprogram.PredefinedFunction` objects
-     (:data:`~pyVHDLModel.Type.FullType.ImplicitOperations`): equality for every type except file and protected types;
-     ordering, ``MINIMUM``, ``MAXIMUM`` and ``TO_STRING`` for scalar types; the arithmetic operators of integer,
+     :class:`~pyVHDLModel.Subprogram.PredefinedOperator` and :class:`~pyVHDLModel.Subprogram.PredefinedFunction`
+     objects (:data:`~pyVHDLModel.Type.FullType.ImplicitOperations`): equality for every type except file and protected
+     types; ordering, ``MINIMUM``, ``MAXIMUM`` and ``TO_STRING`` for scalar types; the arithmetic operators of integer,
      floating-point and physical types. A namespace indexes them with the enumeration literals and physical units, so a
      use clause naming a type makes them visible.
 

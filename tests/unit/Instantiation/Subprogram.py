@@ -37,8 +37,8 @@ from pyVHDLModel.Name        import SelectedName, SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
 from pyVHDLModel.Sequential  import NullStatement
 from pyVHDLModel.Type        import ProtectedType, RecordType, Subtype
-from pyVHDLModel.Subprogram  import Procedure, Function, PredefinedFunction, ProcedureMethod, FunctionMethod, \
-                                    SubprogramSignature
+from pyVHDLModel.Subprogram  import Procedure, Function, Operator, PredefinedOperator, PredefinedFunction, \
+                                    PredefinedSubprogramMixin, ProcedureMethod, FunctionMethod, SubprogramSignature
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -108,16 +108,68 @@ class Functions(Testcase):
 		self.assertFalse(function.IsPure)
 
 
-class PredefinedFunctions(Testcase):
+class Operators(Testcase):
 	def test_Construction(self) -> None:
-		"""A predefined function of a type: an operator designator without quotation marks, parameters, no body."""
+		"""An operator: the operator symbol without quotation marks."""
+		returnType = _returnType("bit")
+		operator =   Operator("and", returnType, parameterItems=[_parameter(("L", "R"), _returnType("bit"))])
+
+		self.assertEqual("and", operator.Identifier)
+		self.assertIs(returnType, operator.ReturnType)
+		self.assertIsInstance(operator, Function)
+
+	def test_UpperCase(self) -> None:
+		"""A word operator is normalized like an identifier."""
+		operator = Operator("AND", _returnType("bit"))
+
+		self.assertEqual("AND", operator.Identifier)
+		self.assertEqual("and", operator.NormalizedIdentifier)
+
+	def test_NoOperatorSymbol(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			Operator("func", _returnType())
+
+		self.assertEqual("Parameter 'operatorSymbol' isn't an operator symbol.", str(context.exception))
+		self.assertEqual("Got value 'func'.", context.exception.__notes__[0])
+
+
+class PredefinedOperators(Testcase):
+	def test_Construction(self) -> None:
+		"""A predefined operator of a type: parameters, no body."""
 		recordType = RecordType("rec", None)
-		returnType = _returnType()
+		returnType = _returnType("boolean")
 		left =       _parameter(("L",), SimpleSubtypeSymbol(SimpleName("rec")))
 		right =      _parameter(("R",), SimpleSubtypeSymbol(SimpleName("rec")))
-		function =   PredefinedFunction("=", returnType, [left, right], parent=recordType)
+		operator =   PredefinedOperator("=", returnType, [left, right], parent=recordType)
 
-		self.assertEqual("=", function.Identifier)
+		self.assertEqual("=", operator.Identifier)
+		self.assertIs(returnType, operator.ReturnType)
+		self.assertListEqual([left, right], operator.ParameterItems)
+		self.assertIs(recordType, operator.Parent)
+		self.assertIs(operator, left.Parent)
+		self.assertTrue(operator.IsPure)
+		self.assertListEqual([], operator.DeclaredItems)
+		self.assertListEqual([], operator.Statements)
+		self.assertIsInstance(operator, Operator)
+		self.assertIsInstance(operator, PredefinedSubprogramMixin)
+
+	def test_NoOperatorSymbol(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PredefinedOperator("minimum", _returnType(), [], parent=RecordType("rec", None))
+
+		self.assertEqual("Parameter 'operatorSymbol' isn't an operator symbol.", str(context.exception))
+
+
+class PredefinedFunctions(Testcase):
+	def test_Construction(self) -> None:
+		"""A predefined function of a type: an identifier, parameters, no body."""
+		recordType = RecordType("rec", None)
+		returnType = _returnType("rec")
+		left =       _parameter(("L",), SimpleSubtypeSymbol(SimpleName("rec")))
+		right =      _parameter(("R",), SimpleSubtypeSymbol(SimpleName("rec")))
+		function =   PredefinedFunction("minimum", returnType, [left, right], parent=recordType)
+
+		self.assertEqual("minimum", function.Identifier)
 		self.assertIs(returnType, function.ReturnType)
 		self.assertListEqual([left, right], function.ParameterItems)
 		self.assertIs(recordType, function.Parent)
@@ -125,6 +177,8 @@ class PredefinedFunctions(Testcase):
 		self.assertTrue(function.IsPure)
 		self.assertListEqual([], function.DeclaredItems)
 		self.assertListEqual([], function.Statements)
+		self.assertNotIsInstance(function, Operator)
+		self.assertIsInstance(function, PredefinedSubprogramMixin)
 
 
 class MethodMixinHosts(Testcase):

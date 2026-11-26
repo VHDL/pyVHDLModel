@@ -57,7 +57,7 @@ from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarat
 if TYPE_CHECKING:
 	from pyVHDLModel.DesignUnit import DesignUnit
 	from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
-	from pyVHDLModel.Subprogram import PredefinedFunction
+	from pyVHDLModel.Subprogram import PredefinedOperator, PredefinedFunction, PredefinedOperation
 	from pyVHDLModel.Visitor    import Visitor
 
 
@@ -224,7 +224,7 @@ class FullType(BaseType):
 	   * :class:`File type <pyVHDLModel.Type.FileType>`
 	"""
 
-	_implicitOperations: Nullable[tuple[PredefinedFunction, ...]]  #: Implicit operations, ``None`` until created.
+	_implicitOperations: Nullable[tuple[PredefinedOperation, ...]]  #: Implicit operations, ``None`` until created.
 
 	def __init__(
 		self,
@@ -245,14 +245,14 @@ class FullType(BaseType):
 		self._implicitOperations = None
 
 	@readonly
-	def ImplicitOperations(self) -> tuple[PredefinedFunction, ...]:
+	def ImplicitOperations(self) -> tuple[PredefinedOperation, ...]:
 		"""
 		Read-only property to access the operations this type declares implicitly (:attr:`_implicitOperations`): its
 		predefined operators and predefined functions (IEEE Std 1076-2008, 5).
 
 		They are created on the first access and kept.
 
-		:returns: Tuple of predefined functions.
+		:returns: Tuple of predefined operators and predefined functions.
 		"""
 		if self._implicitOperations is None:
 			self._implicitOperations = tuple(self._CreateImplicitOperations())
@@ -263,23 +263,23 @@ class FullType(BaseType):
 		"""
 		Iterate the declarations this type declaration implies: its implicit operations (:attr:`ImplicitOperations`).
 
-		:returns: A generator to iterate (normalized designator, predefined function) pairs.
+		:returns: A generator to iterate (normalized designator, predefined operator or function) pairs.
 		"""
 		for operation in self.ImplicitOperations:
 			yield operation._normalizedIdentifier, operation
 
-	def _CreateImplicitOperations(self) -> list[PredefinedFunction]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this type declares implicitly: the equality operators ``"="`` and ``"/="``
 		(IEEE Std 1076-2008, 9.2.3).
 
 		A file type and a protected type declare no equality; derived classes add their operations.
 
-		:returns: List of predefined functions.
+		:returns: List of predefined operators and predefined functions.
 		"""
 		return [
-			self._BinaryOperation("=",  SimpleSubtypeSymbol(SimpleName("boolean"))),
-			self._BinaryOperation("/=", SimpleSubtypeSymbol(SimpleName("boolean")))
+			self._BinaryOperator("=",  SimpleSubtypeSymbol(SimpleName("boolean"))),
+			self._BinaryOperator("/=", SimpleSubtypeSymbol(SimpleName("boolean")))
 		]
 
 	def _TypeMark(self) -> SimpleSubtypeSymbol:
@@ -305,48 +305,65 @@ class FullType(BaseType):
 
 		return ParameterConstantInterfaceItem((identifier,), Mode.In, subtype)
 
-	def _Operation(
+	def _Operator(
 		self,
-		designator:     str,
+		operatorSymbol: str,
+		returnType:     SubtypeSymbol,
+		parameterItems: Iterable[ParameterConstantInterfaceItem]
+	) -> PredefinedOperator:
+		"""
+		Create an implicit operator of this type.
+
+		:param operatorSymbol: The operator symbol without quotation marks.
+		:param returnType:     The type mark of the return value.
+		:param parameterItems: The parameters, in declaration order.
+		:returns:              The predefined operator.
+		"""
+		from pyVHDLModel.Subprogram import PredefinedOperator
+
+		return PredefinedOperator(operatorSymbol, returnType, parameterItems, parent=self)
+
+	def _Function(
+		self,
+		identifier:     str,
 		returnType:     SubtypeSymbol,
 		parameterItems: Iterable[ParameterConstantInterfaceItem]
 	) -> PredefinedFunction:
 		"""
-		Create an implicit operation of this type.
+		Create an implicit function of this type.
 
-		:param designator:     The function's designator: an operator symbol without quotation marks, or an identifier.
+		:param identifier:     The function's identifier.
 		:param returnType:     The type mark of the return value.
 		:param parameterItems: The parameters, in declaration order.
 		:returns:              The predefined function.
 		"""
 		from pyVHDLModel.Subprogram import PredefinedFunction
 
-		return PredefinedFunction(designator, returnType, parameterItems, parent=self)
+		return PredefinedFunction(identifier, returnType, parameterItems, parent=self)
 
-	def _BinaryOperation(self, designator: str, returnType: SubtypeSymbol) -> PredefinedFunction:
+	def _BinaryOperator(self, operatorSymbol: str, returnType: SubtypeSymbol) -> PredefinedOperator:
 		"""
-		Create an implicit binary operation of this type: both operands, ``L`` and ``R``, are of this type.
+		Create an implicit binary operator of this type: both operands, ``L`` and ``R``, are of this type.
 
-		:param designator: The function's designator: an operator symbol without quotation marks, or an identifier.
-		:param returnType: The type mark of the return value.
-		:returns:          The predefined function.
+		:param operatorSymbol: The operator symbol without quotation marks.
+		:param returnType:     The type mark of the return value.
+		:returns:              The predefined operator.
 		"""
-		return self._Operation(
-			designator,
+		return self._Operator(
+			operatorSymbol,
 			returnType,
 			(self._Parameter("L", self._TypeMark()), self._Parameter("R", self._TypeMark()))
 		)
 
-	def _UnaryOperation(self, designator: str, returnType: SubtypeSymbol) -> PredefinedFunction:
+	def _UnaryOperator(self, operatorSymbol: str, returnType: SubtypeSymbol) -> PredefinedOperator:
 		"""
-		Create an implicit unary operation of this type: the operand ``R`` is of this type.
+		Create an implicit unary operator of this type: the operand ``R`` is of this type.
 
-		:param designator: The function's designator: an operator symbol without quotation marks.
-		:param returnType: The type mark of the return value.
-		:returns:          The predefined function.
+		:param operatorSymbol: The operator symbol without quotation marks.
+		:param returnType:     The type mark of the return value.
+		:returns:              The predefined operator.
 		"""
-		return self._Operation(designator, returnType, (self._Parameter("R", self._TypeMark()),))
-
+		return self._Operator(operatorSymbol, returnType, (self._Parameter("R", self._TypeMark()),))
 
 @export
 class Subtype(BaseType):
@@ -525,21 +542,26 @@ class ScalarType(FullType):
 	   * :class:`Enumerated type <pyVHDLModel.Type.EnumeratedType>`
 	"""
 
-	def _CreateImplicitOperations(self) -> list[PredefinedFunction]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this scalar type declares implicitly: the equality operators, the ordering operators
 		``"<"``, ``"<="``, ``">"`` and ``">="`` (IEEE Std 1076-2008, 9.2.3), ``MINIMUM`` and ``MAXIMUM`` (5.2.6), and
 		``TO_STRING`` (5.7).
 
-		:returns: List of predefined functions.
+		:returns: List of predefined operators and predefined functions.
 		"""
 		operations = super()._CreateImplicitOperations()
-		for designator in ("<", "<=", ">", ">="):
-			operations.append(self._BinaryOperation(designator, SimpleSubtypeSymbol(SimpleName("boolean"))))
+		for operatorSymbol in ("<", "<=", ">", ">="):
+			operations.append(self._BinaryOperator(operatorSymbol, SimpleSubtypeSymbol(SimpleName("boolean"))))
 
-		operations.append(self._BinaryOperation("minimum", self._TypeMark()))
-		operations.append(self._BinaryOperation("maximum", self._TypeMark()))
-		operations.append(self._Operation(
+		for identifier in ("minimum", "maximum"):
+			operations.append(self._Function(
+				identifier,
+				self._TypeMark(),
+				(self._Parameter("L", self._TypeMark()), self._Parameter("R", self._TypeMark()))
+			))
+
+		operations.append(self._Function(
 			"to_string",
 			SimpleSubtypeSymbol(SimpleName("string")),
 			(self._Parameter("VALUE", self._TypeMark()),)
@@ -670,13 +692,13 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		"""
 		return self._literals
 
-	def IterateImplicitDeclarations(self) -> Generator[tuple[str, EnumerationLiteral | PredefinedFunction], None, None]:
+	def IterateImplicitDeclarations(self) -> Generator[tuple[str, EnumerationLiteral | PredefinedOperation], None, None]:
 		"""
 		Iterate the declarations this type declaration implies: the enumeration literals, then the implicit operations
 		(:attr:`~FullType.ImplicitOperations`).
 
-		:returns: A generator to iterate (normalized designator, enumeration literal or predefined function) pairs, the
-		          literals in declaration order.
+		:returns: A generator to iterate (normalized designator, enumeration literal or predefined operation) pairs,
+		          the literals in declaration order.
 		"""
 		for literal in self._literals:
 			yield literal.NormalizedDesignator, literal
@@ -739,22 +761,22 @@ class IntegerType(RangedScalarType, NumericTypeMixin, DiscreteTypeMixin):
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
-	def _CreateImplicitOperations(self) -> list[PredefinedFunction]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this integer type declares implicitly: those of a scalar type, the adding, multiplying and
 		sign operators, ``"mod"``, ``"rem"``, ``"abs"`` and ``"**"`` with an ``integer`` exponent (IEEE Std 1076-2008,
 		9.2.5 to 9.2.8).
 
-		:returns: List of predefined functions.
+		:returns: List of predefined operators and predefined functions.
 		"""
 		operations = super()._CreateImplicitOperations()
-		for designator in ("+", "-", "*", "/", "mod", "rem"):
-			operations.append(self._BinaryOperation(designator, self._TypeMark()))
+		for operatorSymbol in ("+", "-", "*", "/", "mod", "rem"):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
 
-		for designator in ("+", "-", "abs"):
-			operations.append(self._UnaryOperation(designator, self._TypeMark()))
+		for operatorSymbol in ("+", "-", "abs"):
+			operations.append(self._UnaryOperator(operatorSymbol, self._TypeMark()))
 
-		operations.append(self._Operation(
+		operations.append(self._Operator(
 			"**",
 			self._TypeMark(),
 			(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName("integer"))))
@@ -812,21 +834,21 @@ class RealType(RangedScalarType, NumericTypeMixin):
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
-	def _CreateImplicitOperations(self) -> list[PredefinedFunction]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this floating-point type declares implicitly: those of a scalar type, the adding, multiplying
 		and sign operators, ``"abs"`` and ``"**"`` with an ``integer`` exponent (IEEE Std 1076-2008, 9.2.5 to 9.2.8).
 
-		:returns: List of predefined functions.
+		:returns: List of predefined operators and predefined functions.
 		"""
 		operations = super()._CreateImplicitOperations()
-		for designator in ("+", "-", "*", "/"):
-			operations.append(self._BinaryOperation(designator, self._TypeMark()))
+		for operatorSymbol in ("+", "-", "*", "/"):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
 
-		for designator in ("+", "-", "abs"):
-			operations.append(self._UnaryOperation(designator, self._TypeMark()))
+		for operatorSymbol in ("+", "-", "abs"):
+			operations.append(self._UnaryOperator(operatorSymbol, self._TypeMark()))
 
-		operations.append(self._Operation(
+		operations.append(self._Operator(
 			"**",
 			self._TypeMark(),
 			(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName("integer"))))
@@ -1045,7 +1067,7 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		"""
 		return self._secondaryUnits
 
-	def _CreateImplicitOperations(self) -> list[PredefinedFunction]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this physical type declares implicitly: those of a scalar type, the adding and sign
 		operators, ``"abs"``, ``"mod"`` and ``"rem"``, and the multiplying operators with an ``integer`` or ``real``
@@ -1053,27 +1075,27 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 		The division of two physical values, which returns a value of type *universal_integer*, isn't represented.
 
-		:returns: List of predefined functions.
+		:returns: List of predefined operators and predefined functions.
 		"""
 		operations = super()._CreateImplicitOperations()
-		for designator in ("+", "-", "mod", "rem"):
-			operations.append(self._BinaryOperation(designator, self._TypeMark()))
+		for operatorSymbol in ("+", "-", "mod", "rem"):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
 
-		for designator in ("+", "-", "abs"):
-			operations.append(self._UnaryOperation(designator, self._TypeMark()))
+		for operatorSymbol in ("+", "-", "abs"):
+			operations.append(self._UnaryOperator(operatorSymbol, self._TypeMark()))
 
 		for scalar in ("integer", "real"):
-			operations.append(self._Operation(
+			operations.append(self._Operator(
 				"*",
 				self._TypeMark(),
 				(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName(scalar))))
 			))
-			operations.append(self._Operation(
+			operations.append(self._Operator(
 				"*",
 				self._TypeMark(),
 				(self._Parameter("L", SimpleSubtypeSymbol(SimpleName(scalar))), self._Parameter("R", self._TypeMark()))
 			))
-			operations.append(self._Operation(
+			operations.append(self._Operator(
 				"/",
 				self._TypeMark(),
 				(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName(scalar))))
@@ -1081,12 +1103,12 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 		return operations
 
-	def IterateImplicitDeclarations(self) -> Generator[tuple[str, PhysicalUnit | PredefinedFunction], None, None]:
+	def IterateImplicitDeclarations(self) -> Generator[tuple[str, PhysicalUnit | PredefinedOperation], None, None]:
 		"""
 		Iterate the declarations this type declaration implies: the primary unit, the secondary units, then the implicit
 		operations (:attr:`~FullType.ImplicitOperations`).
 
-		:returns: A generator to iterate (normalized identifier, unit or predefined function) pairs, the units in
+		:returns: A generator to iterate (normalized identifier, unit or predefined operation) pairs, the units in
 		          declaration order.
 		"""
 		yield self._primaryUnit._normalizedIdentifier, self._primaryUnit
@@ -1600,7 +1622,7 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 		FullType.Parent.fset(self, parent)
 		self._ConnectParentNamespace(parent)
 
-	def _CreateImplicitOperations(self) -> list[PredefinedFunction]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this protected type declares implicitly: none, as it has no equality
 		(IEEE Std 1076-2008, 9.2.3).
@@ -1688,7 +1710,7 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 		FullType.Parent.fset(self, parent)
 		self._ConnectParentNamespace(parent)
 
-	def _CreateImplicitOperations(self) -> list[PredefinedFunction]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this protected type body declares implicitly: none, as the protected type declares them.
 
@@ -1856,7 +1878,7 @@ class FileType(FullType):
 		if isinstance(self._designatedSubtype, SubtypeSymbol):
 			yield region, self, self._designatedSubtype
 
-	def _CreateImplicitOperations(self) -> list[PredefinedFunction]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this file type declares implicitly: none represented yet. A file type has no equality
 		(IEEE Std 1076-2008, 9.2.3); its file operations ``FILE_OPEN``, ``FILE_CLOSE``, ``READ``, ``WRITE``, ``FLUSH`` and

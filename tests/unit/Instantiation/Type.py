@@ -37,7 +37,7 @@ from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression import IntegerLiteral, EnumerationLiteral, CharacterEnumerationLiteral, \
                                    PhysicalIntegerLiteral
 from pyVHDLModel.Object     import Variable
-from pyVHDLModel.Subprogram import Procedure, Function, PredefinedFunction
+from pyVHDLModel.Subprogram import Procedure, Operator, PredefinedOperator, PredefinedFunction
 from pyVHDLModel.Type       import Subtype, RangedScalarType, EnumeratedType, IntegerType, RealType, PhysicalType, \
                                    PhysicalUnit, ArrayType, RecordTypeElement, RecordType, ProtectedType, \
                                    ProtectedTypeBody, AccessType, FileType
@@ -579,14 +579,14 @@ class ImplicitOperations(Testcase):
 		"""A protected type body declares nothing implicitly; its protected type does."""
 		self.assertTupleEqual((), ProtectedTypeBody("pt", None).ImplicitOperations)
 
-	def test_Operation(self) -> None:
-		"""An operation is a predefined function of its type: a type mark naming the type references it."""
+	def test_Operator(self) -> None:
+		"""An operator is a predefined operator of its type: a type mark naming the type references it."""
 		integerType = IntegerType("nibble", _range())
 		equal =       integerType.ImplicitOperations[0]
 		left, right = equal.ParameterItems
 
-		self.assertIsInstance(equal, PredefinedFunction)
-		self.assertIsInstance(equal, Function)
+		self.assertIsInstance(equal, PredefinedOperator)
+		self.assertIsInstance(equal, Operator)
 		self.assertIs(integerType, equal.Parent)
 		self.assertTupleEqual(("L",), left.Identifiers)
 		self.assertTupleEqual(("R",), right.Identifiers)
@@ -595,6 +595,16 @@ class ImplicitOperations(Testcase):
 		self.assertFalse(equal.ReturnType.IsResolved)
 		self.assertListEqual([], equal.DeclaredItems)
 		self.assertListEqual([], equal.Statements)
+
+	def test_Function(self) -> None:
+		"""``MINIMUM`` is a predefined function of its type, no operator."""
+		integerType = IntegerType("nibble", _range())
+		minimum =     integerType.ImplicitOperations[6]
+
+		self.assertEqual("minimum", minimum.Identifier)
+		self.assertIsInstance(minimum, PredefinedFunction)
+		self.assertNotIsInstance(minimum, Operator)
+		self.assertIs(integerType, minimum.Parent)
 
 	def test_Kept(self) -> None:
 		"""The operations are created on the first access and kept."""

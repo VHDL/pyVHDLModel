@@ -47,6 +47,11 @@ Version 0.45.0 (2026)
      functions (arithmetic, relational, matching, shift, conversion and logical operators and functions) and 18
      procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). The aliases (``to_bstring``,
      ``bread``, ...) aren't declared yet. Its declarations have the package as parent.
+   * Package ``ieee.numeric_bit`` (:class:`~pyVHDLModel.IEEE.NumericBit.Numeric_Bit`) declares what the VHDL-2008
+     package lists, in its order: the constant ``CopyRightNotice``, the types ``unsigned`` and ``signed``, 218
+     functions (arithmetic, relational, matching, shift, conversion and logical operators and functions) and 18
+     procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). The aliases (``rising_edge``,
+     ``to_bstring``, ``bread``, ...) aren't declared yet. Its declarations have the package as parent.
 
    .. rubric:: Changes
 

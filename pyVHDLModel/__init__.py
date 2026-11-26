@@ -106,7 +106,7 @@ from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, Pac
                                       Configuration, Package, Component, UseClause
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
-from pyVHDLModel.Type          import BaseType, Subtype
+from pyVHDLModel.Type          import BaseType, FullType, Subtype
 from pyVHDLModel.Configuration import ComponentConfiguration
 from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
 from pyVHDLModel.Interface     import ModeViewDeclaration
@@ -1448,7 +1448,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   clauses, use clauses and context references, and the items imported into namespaces. Use clauses in declarative
 		   regions nested in a design unit are cleared too, as are the references of type marks and alias names
 		   (:meth:`ResolveTypeMarks`) and the base types of subtypes; a subtype of a predefined library
-		   (:attr:`Library.IsPredefined`) keeps its base type.
+		   (:attr:`Library.IsPredefined`) keeps its base type. The implicit operations are removed from the namespaces
+		   (:meth:`IndexImplicitOperations`); a type, which isn't predefined, creates them again on the next access.
 		4. Unlink architectures from entities and package bodies from packages: an entity's architectures, a package's
 		   body, the symbols referencing the entity or package, and the link to the parent namespace.
 		5. Unlink package instantiations from their generic package: the symbol and the components copied from it.
@@ -1493,6 +1494,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
 			for region in designUnit.IterateDeclarationRegions():
 				region._namespace.ClearImports()
+				region._namespace.ClearImplicitOperations()
 				for item in region._Declarations():
 					item.ResetReferences(designUnit, region)
 
@@ -2956,6 +2958,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		1. Resolve the type marks of all declarations. |br|
 		   |rarr| :meth:`ResolveTypeMarks`
+		2. Create the implicit operations of all full types and index them in the namespaces. |br|
+		   |rarr| :meth:`IndexImplicitOperations`
 
 		.. todo::
 
@@ -2974,6 +2978,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
 		"""
 		self.ResolveTypeMarks()
+		self.IndexImplicitOperations()
 
 	def ResolveTypeMarks(self) -> None:
 		"""
@@ -3025,6 +3030,21 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
+		for designUnit in self._DesignUnitsInAnalysisOrder():
+			for region in designUnit.IterateDeclarationRegions():
+				if not region._areDeclaredItemsIndexed:
+					region.IndexDeclaredItems()
+
+				for item in region._Declarations():
+					item.ResolveReferences(designUnit, region)
+
+	def _DesignUnitsInAnalysisOrder(self) -> list[DesignUnit]:
+		"""
+		Return the design units with declared items in the order the object analysis visits them: the design units of the
+		predefined libraries (:attr:`Library.IsPredefined`), then those of all documents in compile order.
+
+		:returns: List of design units.
+		"""
 		designUnits = []
 		for library in self._libraries.values():
 			if library.IsPredefined:
@@ -3036,13 +3056,39 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					if designUnit not in designUnits:
 						designUnits.append(designUnit)
 
+		return designUnits
+
+	def IndexImplicitOperations(self) -> None:
+		"""
+		Create the implicit operations of all full types (:attr:`~pyVHDLModel.Type.FullType.ImplicitOperations`) and index
+		them in the namespaces.
+
+		It's the second step of :meth:`AnalyzeObjects`, after the type marks are resolved (:meth:`ResolveTypeMarks`): the
+		operations an array type declares depend on its element type.
+
+		.. rubric:: Algorithm
+
+		1. Iterate the design units in the order of :meth:`ResolveTypeMarks` and their declarative regions: add the
+		   implicit operations of each full type declared in a region to the region's namespace
+		   (:meth:`~pyVHDLModel.Namespace.Namespace.AddImplicitOperations`).
+		2. Iterate them again: import the implicit operations of the full types imported into each region's namespace by
+		   a use clause (:meth:`~pyVHDLModel.Namespace.Namespace.ImportImplicitOperations`).
+
+		.. seealso::
+
+		   :meth:`ResetAnalysis`
+		     Reset everything an analysis derived, including the implicit operations in the namespaces.
+		"""
+		designUnits = self._DesignUnitsInAnalysisOrder()
 		for designUnit in designUnits:
 			for region in designUnit.IterateDeclarationRegions():
-				if not region._areDeclaredItemsIndexed:
-					region.IndexDeclaredItems()
-
 				for item in region._Declarations():
-					item.ResolveReferences(designUnit, region)
+					if isinstance(item, FullType):
+						region._namespace.AddImplicitOperations(item)
+
+		for designUnit in designUnits:
+			for region in designUnit.IterateDeclarationRegions():
+				region._namespace.ImportImplicitOperations()
 
 	def IterateDocumentsInCompileOrder(self) -> Generator[Document, None, None]:
 		"""

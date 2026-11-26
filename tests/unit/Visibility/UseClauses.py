@@ -1120,14 +1120,11 @@ class PackageDeclarations(Testcase):
 		self.assertListEqual([constant], list(package.IterateMemberDeclarations("b")))
 
 	def test_IterateMemberImplicitDeclarations(self) -> None:
-		"""A type brings its enumeration literals and operations along."""
+		"""A type brings its enumeration literals along."""
 		enumerated = _enumeration("T", "a")
 		package =    Package("p", declaredItems=[enumerated])
 
-		self.assertListEqual(
-			[enumerated.Literals[0], *enumerated.ImplicitOperations],
-			list(package.IterateMemberImplicitDeclarations(enumerated))
-		)
+		self.assertListEqual([enumerated.Literals[0]], list(package.IterateMemberImplicitDeclarations(enumerated)))
 
 	def test_IterateMemberImplicitDeclarations_Subtype(self) -> None:
 		"""A subtype brings those of its base type along, found by simple names in the package."""
@@ -1136,10 +1133,7 @@ class PackageDeclarations(Testcase):
 		package =    Package("p", declaredItems=[enumerated, subtype])
 		package.IndexDeclaredItems()
 
-		self.assertListEqual(
-			[enumerated.Literals[0], *enumerated.ImplicitOperations],
-			list(package.IterateMemberImplicitDeclarations(subtype))
-		)
+		self.assertListEqual([enumerated.Literals[0]], list(package.IterateMemberImplicitDeclarations(subtype)))
 
 
 class LinkingOrder(Testcase):

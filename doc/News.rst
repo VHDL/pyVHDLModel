@@ -37,8 +37,8 @@ Version 0.45.0 (2026)
      :mod:`~pyVHDLModel.IEEE.StdLogic1164` for ``ieee.std_logic_1164``. The classes are importable from
      :mod:`pyVHDLModel.IEEE` as before.
    * Breaking change: :meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations` yields the implied
-     declarations (enumeration literals, physical units, implicit operations), no longer (key, declaration) pairs. A
-     namespace takes the key from the new property ``NormalizedDesignator`` of
+     declarations (enumeration literals, physical units), no longer (key, declaration) pairs. A namespace takes the key
+     from the new property ``NormalizedDesignator`` of
      :class:`~pyVHDLModel.Type.PhysicalUnit` and :class:`~pyVHDLModel.Subprogram.Subprogram` (as
      :class:`~pyVHDLModel.Expression.EnumerationLiteral` already had).
    * Breaking change: :meth:`Package.IterateDeclarations() <pyVHDLModel.DesignUnit.Package.IterateDeclarations>` and
@@ -47,6 +47,10 @@ Version 0.45.0 (2026)
      a declaration by its identifiers with the declarations it implies;
      :meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberImplicitDeclarations` (new) iterates those a member brings
      along.
+   * The analysis indexes the implicit operations of the full types after the type marks are resolved
+     (:meth:`~pyVHDLModel.Design.IndexImplicitOperations`, new): a namespace holds them in
+     :data:`~pyVHDLModel.Namespace.Namespace.ImplicitOperations` (new), and a use clause naming a type, or a subtype as
+     package member, imports them. Before, indexing a type declaration created them, before the use clauses were linked.
 
    .. rubric:: Bug Fixes
 

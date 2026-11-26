@@ -250,7 +250,9 @@ class FullType(BaseType):
 		Read-only property to access the operations this type declares implicitly (:attr:`_implicitOperations`): its
 		predefined operators and predefined functions (IEEE Std 1076-2008, 5).
 
-		They are created on the first access and kept.
+		They are created on the first access and kept, until the analysis is reset (:meth:`ResetReferences`). The
+		analysis indexes them in the namespace of the type's region after the type marks are resolved
+		(:meth:`~pyVHDLModel.Design.IndexImplicitOperations`).
 
 		:returns: Tuple of predefined operators and predefined functions.
 		"""
@@ -259,13 +261,19 @@ class FullType(BaseType):
 
 		return self._implicitOperations
 
-	def IterateImplicitDeclarations(self) -> Generator[PredefinedOperation, None, None]:
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
-		Iterate the declarations this type declaration implies: its implicit operations (:attr:`ImplicitOperations`).
+		Reset the references of this type's type marks and its implicit operations, which depend on them: they are
+		created again on the next access (:data:`ImplicitOperations`). A type of a predefined library
+		(:attr:`~pyVHDLModel.Library.IsPredefined`) keeps its implicit operations.
 
-		:returns: A generator to iterate the predefined operators and functions.
+		:param designUnit: The design unit containing this declaration.
+		:param region:     The declarative region declaring this declaration.
 		"""
-		yield from self.ImplicitOperations
+		super().ResetReferences(designUnit, region)
+
+		if not designUnit._parent.IsPredefined:
+			self._implicitOperations = None
 
 	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
@@ -693,15 +701,16 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		"""
 		return self._literals
 
-	def IterateImplicitDeclarations(self) -> Generator[EnumerationLiteral | PredefinedOperation, None, None]:
+	def IterateImplicitDeclarations(self) -> Generator[EnumerationLiteral, None, None]:
 		"""
-		Iterate the declarations this type declaration implies: the enumeration literals, then the implicit operations
-		(:attr:`~FullType.ImplicitOperations`).
+		Iterate the enumeration literals this type declaration implies.
 
-		:returns: A generator to iterate the enumeration literals, in declaration order, and the predefined operations.
+		The implicit operations (:attr:`~FullType.ImplicitOperations`) are indexed by the analysis, after the type marks
+		are resolved.
+
+		:returns: A generator to iterate the enumeration literals, in declaration order.
 		"""
 		yield from self._literals
-		yield from super().IterateImplicitDeclarations()
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1115,16 +1124,17 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 
 		return operations
 
-	def IterateImplicitDeclarations(self) -> Generator[PhysicalUnit | PredefinedOperation, None, None]:
+	def IterateImplicitDeclarations(self) -> Generator[PhysicalUnit, None, None]:
 		"""
-		Iterate the declarations this type declaration implies: the primary unit, the secondary units, then the implicit
-		operations (:attr:`~FullType.ImplicitOperations`).
+		Iterate the units this type declaration implies: the primary unit, then the secondary units.
 
-		:returns: A generator to iterate the units, in declaration order, and the predefined operations.
+		The implicit operations (:attr:`~FullType.ImplicitOperations`) are indexed by the analysis, after the type marks
+		are resolved.
+
+		:returns: A generator to iterate the units, in declaration order.
 		"""
 		yield self._primaryUnit
 		yield from self._secondaryUnits
-		yield from super().IterateImplicitDeclarations()
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

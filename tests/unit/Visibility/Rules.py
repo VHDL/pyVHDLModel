@@ -307,16 +307,15 @@ class Designators(Testcase):
 		self.assertEqual("idle", literal.NormalizedDesignator)
 
 	def test_ImplicitDeclarations(self) -> None:
-		"""An enumerated type in a region declares its literals and operations; removing the type removes them."""
+		"""An enumerated type in a region declares its literals; removing the type removes them."""
 		enumeration =  _enumeration("T", "Idle", "'a'")
 		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[enumeration])
 		architecture.IndexDeclaredItems()
 
-		expected = {"idle": [enumeration.Literals[0]], "'a'": [enumeration.Literals[1]]}
-		for operation in enumeration.ImplicitOperations:
-			expected.setdefault(operation.NormalizedIdentifier, []).append(operation)
-
-		self.assertDictEqual(expected, architecture._namespace.ImplicitDeclarations)
+		self.assertDictEqual(
+			{"idle": [enumeration.Literals[0]], "'a'": [enumeration.Literals[1]]},
+			architecture._namespace.ImplicitDeclarations
+		)
 
 		architecture.RemoveDeclaredItem(enumeration)
 
@@ -345,16 +344,16 @@ class DeclarationProperties(Testcase):
 		enumeration = _enumeration("T", "Idle", "'a'")
 
 		self.assertTupleEqual(
-			(*enumeration.Literals, *enumeration.ImplicitOperations),
+			tuple(enumeration.Literals),
 			tuple(enumeration.IterateImplicitDeclarations())
 		)
 
 	def test_IterateImplicitDeclarations_PhysicalType(self) -> None:
-		"""The primary unit, then the secondary units, then the operations."""
+		"""The primary unit, then the secondary units."""
 		distance = _distance()
 
 		self.assertTupleEqual(
-			(distance.PrimaryUnit, *distance.SecondaryUnits, *distance.ImplicitOperations),
+			(distance.PrimaryUnit, *distance.SecondaryUnits),
 			tuple(distance.IterateImplicitDeclarations())
 		)
 

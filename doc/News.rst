@@ -42,6 +42,11 @@ Version 0.45.0 (2026)
      1076-2008, 16.8.3 lists, in its order: the record types ``complex`` and ``complex_polar``, the subtypes
      ``positive_real`` and ``principal_value``, the constants ``math_cbase_1``, ``math_cbase_j`` and ``math_czero``, and
      58 operators and functions, e.g. ``"+"`` of two complex numbers or of a complex number and a ``real``.
+   * Package ``ieee.numeric_std`` (:class:`~pyVHDLModel.IEEE.NumericStd.Numeric_Std`) declares what the VHDL-2008
+     package lists, in its order: the constant ``CopyRightNotice``, the subtypes ``u_unsigned`` and ``u_signed``, 232
+     functions (arithmetic, relational, matching, shift, conversion and logical operators and functions) and 18
+     procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). The aliases (``to_bstring``,
+     ``bread``, ...) aren't declared yet. Its declarations have the package as parent.
 
    .. rubric:: Changes
 

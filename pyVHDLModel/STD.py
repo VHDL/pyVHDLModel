@@ -42,15 +42,15 @@ from pyVHDLModel.Expression  import EnumerationLiteral, CharacterEnumerationLite
 from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, PhysicalUnit, ArrayType, \
                                     AccessType, Subtype
 from pyVHDLModel.Declaration import Attribute
-from pyVHDLModel.Subprogram  import Function, PredefinedFunction
+from pyVHDLModel.Subprogram  import Function, PredefinedOperator, PredefinedOperation
 from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
 
 @export
-class LogicalOperationsMixin(
+class LogicalOperatorsMixin(
 	metaclass=ExtendedType,
 	mixin=True,
-	expects=("_TypeMark", "_BinaryOperation", "_UnaryOperation")
+	expects=("_TypeMark", "_BinaryOperator", "_UnaryOperator")
 ):
 	"""
 	A mixin-class for the types ``boolean`` and ``bit``, which declare the logical operators (IEEE Std 1076-2008, 9.2.2).
@@ -61,24 +61,24 @@ class LogicalOperationsMixin(
 	   * :class:`Bit <pyVHDLModel.STD.Bit>`
 	"""
 
-	def _CreateLogicalOperations(self) -> list[PredefinedFunction]:
+	def _CreateLogicalOperators(self) -> list[PredefinedOperator]:
 		"""
 		Create the logical operators of this type: ``"and"``, ``"or"``, ``"nand"``, ``"nor"``, ``"xor"`` and ``"xnor"``,
 		then ``"not"``.
 
-		:returns: List of predefined functions.
+		:returns: List of predefined operators.
 		"""
 		operations = []
-		for designator in ("and", "or", "nand", "nor", "xor", "xnor"):
-			operations.append(self._BinaryOperation(designator, self._TypeMark()))
+		for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
 
-		operations.append(self._UnaryOperation("not", self._TypeMark()))
+		operations.append(self._UnaryOperator("not", self._TypeMark()))
 
 		return operations
 
 
 @export
-class Boolean(EnumeratedType, LogicalOperationsMixin):
+class Boolean(EnumeratedType, LogicalOperatorsMixin):
 	"""
 	Represents the predefined type ``boolean`` of package ``std.standard``: ``(false, true)``.
 
@@ -91,20 +91,20 @@ class Boolean(EnumeratedType, LogicalOperationsMixin):
 		"""
 		super().__init__("boolean", (EnumerationLiteral("false"), EnumerationLiteral("true")))
 
-	def _CreateImplicitOperations(self) -> list[PredefinedFunction]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this type declares implicitly: those of an enumerated type, then the logical operators.
 
-		:returns: List of predefined functions.
+		:returns: List of predefined operators and predefined functions.
 		"""
 		operations = super()._CreateImplicitOperations()
-		operations.extend(self._CreateLogicalOperations())
+		operations.extend(self._CreateLogicalOperators())
 
 		return operations
 
 
 @export
-class Bit(EnumeratedType, LogicalOperationsMixin):
+class Bit(EnumeratedType, LogicalOperatorsMixin):
 	"""
 	Represents the predefined type ``bit`` of package ``std.standard``: ``('0', '1')``.
 
@@ -118,19 +118,19 @@ class Bit(EnumeratedType, LogicalOperationsMixin):
 		"""
 		super().__init__("bit", (CharacterEnumerationLiteral("0"), CharacterEnumerationLiteral("1")))
 
-	def _CreateImplicitOperations(self) -> list[PredefinedFunction]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this type declares implicitly: those of an enumerated type, the logical operators, the
 		condition operator ``"??"`` and the matching relational operators ``"?="``, ``"?/="``, ``"?<"``, ``"?<="``,
 		``"?>"`` and ``"?>="``.
 
-		:returns: List of predefined functions.
+		:returns: List of predefined operators and predefined functions.
 		"""
 		operations = super()._CreateImplicitOperations()
-		operations.extend(self._CreateLogicalOperations())
-		operations.append(self._UnaryOperation("??", SimpleSubtypeSymbol(SimpleName("boolean"))))
-		for designator in ("?=", "?/=", "?<", "?<=", "?>", "?>="):
-			operations.append(self._BinaryOperation(designator, self._TypeMark()))
+		operations.extend(self._CreateLogicalOperators())
+		operations.append(self._UnaryOperator("??", SimpleSubtypeSymbol(SimpleName("boolean"))))
+		for operatorSymbol in ("?=", "?/=", "?<", "?<=", "?>", "?>="):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
 
 		return operations
 

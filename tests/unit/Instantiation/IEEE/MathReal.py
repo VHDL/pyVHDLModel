@@ -71,6 +71,10 @@ class MathReals(Testcase):
 
 		self.assertEqual("string", constants["copyrightnotice"].Subtype.Name.Identifier)
 		self.assertIsInstance(constants["copyrightnotice"].DefaultExpression, StringLiteral)
+		self.assertEqual(
+			"Copyright \u00a9 2008 IEEE. All rights reserved.",
+			constants["copyrightnotice"].DefaultExpression.Value
+		)
 		for identifier, value in (
 			("math_e",          2.718281828459045),
 			("math_pi",         3.141592653589793),

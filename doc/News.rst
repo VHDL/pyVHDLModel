@@ -38,6 +38,10 @@ Version 0.45.0 (2026)
    * Package ``ieee.math_real`` declares what IEEE Std 1076-2008, 16.8.2 lists: the constant ``copyrightnotice``, the
      mathematical constants (``math_e``, ``math_pi``, ...), the functions and operators ``"mod"`` and ``"**"`` on
      ``real``, and the procedure ``uniform``.
+   * Package ``ieee.math_complex`` (:class:`~pyVHDLModel.IEEE.MathComplex.Math_Complex`) declares what IEEE Std
+     1076-2008, 16.8.3 lists, in its order: the record types ``complex`` and ``complex_polar``, the subtypes
+     ``positive_real`` and ``principal_value``, the constants ``math_cbase_1``, ``math_cbase_j`` and ``math_czero``, and
+     58 operators and functions, e.g. ``"+"`` of two complex numbers or of a complex number and a ``real``.
 
    .. rubric:: Changes
 

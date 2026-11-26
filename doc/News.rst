@@ -31,6 +31,12 @@ Version 0.45.0 (2026)
    * Package ``std.env`` declares what IEEE Std 1076-2008, 16.5 lists: the procedures ``stop`` and ``finish``, each
      with and without a ``STATUS`` parameter, and the function ``resolution_limit``.
 
+   .. rubric:: Changes
+
+   * :mod:`pyVHDLModel.IEEE` is a package with one module per VHDL package, e.g.
+     :mod:`~pyVHDLModel.IEEE.StdLogic1164` for ``ieee.std_logic_1164``. The classes are importable from
+     :mod:`pyVHDLModel.IEEE` as before.
+
    .. rubric:: Bug Fixes
 
    * ``std.standard`` named three types wrongly: ``severityLevel`` is ``severity_level``, ``open_file_kind`` is

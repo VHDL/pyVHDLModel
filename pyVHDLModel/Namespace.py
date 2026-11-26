@@ -594,7 +594,7 @@ class Namespace(Generic[K, O]):
 		from pyVHDLModel.Type   import FullType, Subtype
 
 		for normalizedIdentifier, imports in list(self._imports.items()):
-			for imported in tuple(imports):
+			for imported in imports:
 				element =   imported._element
 				useClause = imported._useClause
 				if isinstance(element, FullType):

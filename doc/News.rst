@@ -35,6 +35,9 @@ Version 0.45.0 (2026)
      (scalar elements), the logical, shift and logical reduction operators (``bit``, ``boolean``), the matching
      operators ``?=``/``?/=`` (``bit``) and ``TO_STRING`` (elements of a character type with only character literals).
      The new :class:`~pyVHDLModel.Type.MatchingOperatorsMixin` marks the element types with matching operators.
+   * Package ``ieee.math_real`` declares what IEEE Std 1076-2008, 16.8.2 lists: the constant ``copyrightnotice``, the
+     mathematical constants (``math_e``, ``math_pi``, ...), the functions and operators ``"mod"`` and ``"**"`` on
+     ``real``, and the procedure ``uniform``.
 
    .. rubric:: Changes
 

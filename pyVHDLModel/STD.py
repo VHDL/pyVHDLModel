@@ -31,18 +31,24 @@
 #
 """This module contains library and package declarations for VHDL library ``STD``."""
 
+from typing                  import Optional as Nullable
+
 from pyTooling.Decorators    import export
 from pyTooling.MetaClasses   import ExtendedType
 
-from pyVHDLModel.Base        import SimpleRange, Direction
+from pyVHDLModel.Base        import SimpleRange, Direction, Mode
 from pyVHDLModel.Name        import SimpleName
-from pyVHDLModel.Symbol      import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
+from pyVHDLModel.Symbol      import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
+                                    SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Expression  import EnumerationLiteral, CharacterEnumerationLiteral, IntegerLiteral, \
                                     FloatingPointLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, PhysicalUnit, ArrayType, \
-                                    AccessType, Subtype
+                                    AccessType, FileType, Subtype
+from pyVHDLModel.Object      import File
+from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
+                                    ParameterFileInterfaceItem
 from pyVHDLModel.Declaration import Attribute
-from pyVHDLModel.Subprogram  import Function, PredefinedOperator, PredefinedOperation
+from pyVHDLModel.Subprogram  import Procedure, Function, PredefinedOperator, PredefinedOperation
 from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
 
@@ -294,7 +300,14 @@ class TextIO(PredefinedPackage):
 	"""
 	Predefined package ``std.textio`` (IEEE Std 1076-2008, 16.4).
 
-	Its declarations: type ``line``.
+	Its declarations, in the order of the standard:
+
+	* types ``line``, ``text`` and ``side``, subtype ``width`` and function ``justify``
+	* files ``input`` and ``output``
+	* the input procedures ``readline``, ``read``, ``sread``, ``oread`` and ``hread``
+	* the output procedures ``writeline``, ``tee``, ``write``, ``owrite`` and ``hwrite``
+
+	The aliases of the standard (``string_read``, ``bread``, ``swrite``, ``hex_write``, ...) aren't declared.
 
 	.. seealso::
 
@@ -307,7 +320,175 @@ class TextIO(PredefinedPackage):
 		"""
 		super().__init__()
 
+		def line() -> ParameterVariableInterfaceItem:
+			"""
+			Nested function creating the parameter ``L : inout LINE``.
+
+			:returns: The parameter.
+			"""
+			return ParameterVariableInterfaceItem(("L",), Mode.InOut, self._TypeMark("line"))
+
+		def variable(identifier: str, subtype: SimpleSubtypeSymbol) -> ParameterVariableInterfaceItem:
+			"""
+			Nested function creating a variable parameter of mode ``out``.
+
+			:param identifier: The parameter's identifier.
+			:param subtype:    The parameter's type mark.
+			:returns:          The parameter.
+			"""
+			return ParameterVariableInterfaceItem((identifier,), Mode.Out, subtype)
+
+		def constant(
+			identifier:        str,
+			subtype:           SimpleSubtypeSymbol,
+			defaultExpression: Nullable[IntegerLiteral | SimpleObjectOrFunctionCallSymbol] = None
+		) -> ParameterConstantInterfaceItem:
+			"""
+			Nested function creating a constant parameter of mode ``in``.
+
+			:param identifier:        The parameter's identifier.
+			:param subtype:           The parameter's type mark.
+			:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+			:returns:                 The parameter.
+			"""
+			return ParameterConstantInterfaceItem((identifier,), Mode.In, subtype, defaultExpression)
+
+		def justification() -> tuple[ParameterConstantInterfaceItem, ParameterConstantInterfaceItem]:
+			"""
+			Nested function creating the parameters ``JUSTIFIED : SIDE := RIGHT`` and ``FIELD : WIDTH := 0``.
+
+			:returns: The two parameters.
+			"""
+			return (
+				constant("JUSTIFIED", self._TypeMark("side"), SimpleObjectOrFunctionCallSymbol(SimpleName("right"))),
+				constant("FIELD", self._TypeMark("width"), IntegerLiteral(0))
+			)
+
 		self._DeclareItem(AccessType("line", self._TypeMark("string")), self._types)
+		self._DeclareItem(FileType("text", self._TypeMark("string")), self._types)
+		self._DeclareItem(EnumeratedType("side", (EnumerationLiteral("right"), EnumerationLiteral("left"))), self._types)
+		self._DeclareItem(Subtype("width", self._TypeMark("natural")), self._subtypes)
+		self._DeclareSubprogram(
+			Function("justify", self._TypeMark("string"), parameterItems=(
+				constant("VALUE", self._TypeMark("string")),
+				*justification()
+			)),
+			self._functions
+		)
+
+		for identifier in ("input", "output"):
+			file =                    File((identifier,), self._TypeMark("text"))
+			self._files[identifier] = file
+			self.AddDeclaredItem(file)
+
+		self._DeclareSubprogram(
+			Procedure("readline", parameterItems=(
+				ParameterFileInterfaceItem(("F",), self._TypeMark("text")),
+				line()
+			)),
+			self._procedures
+		)
+		for subtype in ("bit", "bit_vector", "boolean", "character", "integer", "real", "string", "time"):
+			self._DeclareSubprogram(
+				Procedure("read", parameterItems=(
+					line(),
+					variable("VALUE", self._TypeMark(subtype)),
+					variable("GOOD", self._TypeMark("boolean"))
+				)),
+				self._procedures
+			)
+			self._DeclareSubprogram(
+				Procedure("read", parameterItems=(line(), variable("VALUE", self._TypeMark(subtype)))),
+				self._procedures
+			)
+
+		self._DeclareSubprogram(
+			Procedure("sread", parameterItems=(
+				line(),
+				variable("VALUE", self._TypeMark("string")),
+				variable("STRLEN", self._TypeMark("natural"))
+			)),
+			self._procedures
+		)
+		for identifier in ("oread", "hread"):
+			self._DeclareSubprogram(
+				Procedure(identifier, parameterItems=(
+					line(),
+					variable("VALUE", self._TypeMark("bit_vector")),
+					variable("GOOD", self._TypeMark("boolean"))
+				)),
+				self._procedures
+			)
+			self._DeclareSubprogram(
+				Procedure(identifier, parameterItems=(
+					line(),
+					variable("VALUE", self._TypeMark("bit_vector"))
+				)),
+				self._procedures
+			)
+
+		for identifier in ("writeline", "tee"):
+			self._DeclareSubprogram(
+				Procedure(identifier, parameterItems=(
+					ParameterFileInterfaceItem(("F",), self._TypeMark("text")),
+					line()
+				)),
+				self._procedures
+			)
+
+		for subtype in ("bit", "bit_vector", "boolean", "character", "integer"):
+			self._DeclareSubprogram(
+				Procedure("write", parameterItems=(
+					line(),
+					constant("VALUE", self._TypeMark(subtype)),
+					*justification()
+				)),
+				self._procedures
+			)
+
+		self._DeclareSubprogram(
+			Procedure("write", parameterItems=(
+				line(),
+				constant("VALUE", self._TypeMark("real")),
+				*justification(),
+				constant("DIGITS", self._TypeMark("natural"), IntegerLiteral(0))
+			)),
+			self._procedures
+		)
+		self._DeclareSubprogram(
+			Procedure("write", parameterItems=(
+				line(),
+				constant("VALUE", self._TypeMark("real")),
+				constant("FORMAT", self._TypeMark("string"))
+			)),
+			self._procedures
+		)
+		self._DeclareSubprogram(
+			Procedure("write", parameterItems=(
+				line(),
+				constant("VALUE", self._TypeMark("string")),
+				*justification()
+			)),
+			self._procedures
+		)
+		self._DeclareSubprogram(
+			Procedure("write", parameterItems=(
+				line(),
+				constant("VALUE", self._TypeMark("time")),
+				*justification(),
+				constant("UNIT", self._TypeMark("time"), SimpleObjectOrFunctionCallSymbol(SimpleName("ns")))
+			)),
+			self._procedures
+		)
+		for identifier in ("owrite", "hwrite"):
+			self._DeclareSubprogram(
+				Procedure(identifier, parameterItems=(
+					line(),
+					constant("VALUE", self._TypeMark("bit_vector")),
+					*justification()
+				)),
+				self._procedures
+			)
 
 
 @export

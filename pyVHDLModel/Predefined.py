@@ -38,11 +38,11 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
                                    PackageMemberReferenceSymbol
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, ExpressionUnion, Mode
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, Mode
 from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol     import LibraryReferenceSymbol, PackageSymbol, SimpleSubtypeSymbol, \
                                    SimpleObjectOrFunctionCallSymbol
-from pyVHDLModel.Expression import IntegerLiteral
+from pyVHDLModel.Expression import Literal, IntegerLiteral
 from pyVHDLModel.DesignUnit import LibraryClause, UseClause
 from pyVHDLModel.Interface  import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
 from pyVHDLModel.Subprogram import Subprogram
@@ -189,14 +189,15 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 	def _InParameter(
 		identifiers:       Iterable[str],
 		subtype:           SimpleSubtypeSymbol,
-		defaultExpression: Nullable[ExpressionUnion] = None
+		defaultExpression: Nullable[Literal | SimpleObjectOrFunctionCallSymbol] = None
 	) -> ParameterConstantInterfaceItem:
 		"""
 		Create a constant parameter of mode ``in`` of a subprogram of a predefined package.
 
 		:param identifiers:       The parameter's identifiers.
 		:param subtype:           The parameter's type mark.
-		:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+		:param defaultExpression: Optional, the default value: a literal or a name, e.g. of an enumeration literal.
+		                          Default: ``None``, no default value.
 		:returns:                 The parameter.
 		"""
 		return ParameterConstantInterfaceItem(identifiers, Mode.In, subtype, defaultExpression)

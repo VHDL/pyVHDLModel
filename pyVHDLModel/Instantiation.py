@@ -362,12 +362,11 @@ class PackageInstantiation(Package, GenericInstantiationMixin, GenericMapAspectM
 		"""
 		return self._packageReference
 
-	def IterateDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+	def IterateDeclarations(self) -> Generator[ModelEntity, None, None]:
 		"""
 		Iterate the declarations of the instantiated generic package a use clause can make potentially visible.
 
-		:returns:                                   A generator to iterate (normalized designator, declaration) pairs, in
-		                                            declaration order.
+		:returns:                                   A generator to iterate the declarations, in declaration order.
 		:raises PackageInstantiationNotLinkedError: If this package instantiation isn't linked to its generic package. |br|
 		                                            Call :meth:`~pyVHDLModel.Design.LinkPackageInstances` before linking use
 		                                            clauses.

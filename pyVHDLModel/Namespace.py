@@ -36,7 +36,7 @@ A helper class to implement namespaces and scopes.
 """
 from __future__            import annotations
 
-from typing                import TYPE_CHECKING, TypeVar, Generic, Optional as Nullable
+from typing                import TYPE_CHECKING, Generic, Iterable, TypeVar, Optional as Nullable
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly
@@ -494,6 +494,26 @@ class Namespace(Generic[K, O]):
 		imports = self._imports.setdefault(normalizedIdentifier, [])
 		if not any(existing._element is element and existing._useClause is useClause for existing in imports):
 			imports.append(Import(element, useClause))
+
+	def AddImports(self, declarations: Iterable[ModelEntity], useClause: Nullable[_UseClause]) -> None:
+		"""
+		Add declarations imported by a use clause to this namespace, each with the declarations it implies.
+
+		A declaration is imported by each of its normalized identifiers (:func:`~pyVHDLModel.Base.normalizedIdentifiersOf`),
+		an implied declaration (:meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations`), e.g. an enumeration
+		literal, by its normalized designator.
+
+		:param declarations: The imported declarations, e.g. of a package
+		                     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateDeclarations`).
+		:param useClause:    The use clause importing the declarations, or ``None`` for the implicit
+		                     ``use std.standard.all;``.
+		"""
+		for declaration in declarations:
+			for normalizedIdentifier in normalizedIdentifiersOf(declaration):
+				self.AddImport(normalizedIdentifier, declaration, useClause)
+
+			for implicitDeclaration in declaration.IterateImplicitDeclarations():
+				self.AddImport(implicitDeclaration.NormalizedDesignator, implicitDeclaration, useClause)
 
 	def RemoveImport(self, normalizedIdentifier: K, element: O) -> None:
 		"""

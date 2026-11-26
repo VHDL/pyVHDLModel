@@ -55,9 +55,11 @@ from pyVHDLModel.Exception     import InstantiationNotLinkedError, \
                                       PackageNotFoundError, ContextNotFoundError, NotLinkedError, \
                                       LibraryReferenceNotLinkedError, UnknownKindError, UnknownSymbolKindError, \
                                       NotAGenericPackageError
+from pyVHDLModel.Expression    import IntegerLiteral
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
+from pyVHDLModel.Object        import Constant
 from pyVHDLModel.Symbol        import ContextReferenceSymbol, EntityInstantiationSymbol, LibraryReferenceSymbol, \
                                       PackageReferenceSymbol
 from pyVHDLModel.Type          import Subtype
@@ -1093,34 +1095,50 @@ class PackageDeclarations(Testcase):
 	"""The declarations of a package a use clause can make potentially visible."""
 
 	def test_IterateDeclarations(self) -> None:
-		"""A declared item, then the enumeration literals and operations of an enumerated type."""
+		"""The declared items; their implied declarations come from each item."""
 		constant =   _constant("K", "integer")
 		enumerated = _enumeration("T", "a", "'b'")
 		package =    Package("p", declaredItems=[constant, enumerated])
 
 		self.assertListEqual(
-			[
-				("k", constant),
-				("t", enumerated),
-				("a", enumerated.Literals[0]),
-				("'b'", enumerated.Literals[1]),
-				*((operation.NormalizedIdentifier, operation) for operation in enumerated.ImplicitOperations)
-			],
+			[constant, enumerated],
 			list(package.IterateDeclarations())
 		)
 
 	def test_IterateMemberDeclarations(self) -> None:
-		"""The member with its identifier, and the enumeration literals and operations of a type."""
+		"""The declarations with the member's identifier."""
 		enumerated = _enumeration("T", "a")
 		package =    Package("p", declaredItems=[_constant("K", "integer"), enumerated])
 
+		self.assertListEqual([enumerated], list(package.IterateMemberDeclarations("t")))
+
+	def test_IterateMemberDeclarations_MultipleNamed(self) -> None:
+		"""A member of a multiple-named declaration (``constant A, B : integer``) is found by each of its identifiers."""
+		constant = Constant(("A", "B"), _subtypeSymbol("integer"), IntegerLiteral(1))
+		package =  Package("p", declaredItems=[constant])
+
+		self.assertListEqual([constant], list(package.IterateMemberDeclarations("b")))
+
+	def test_IterateMemberImplicitDeclarations(self) -> None:
+		"""A type brings its enumeration literals and operations along."""
+		enumerated = _enumeration("T", "a")
+		package =    Package("p", declaredItems=[enumerated])
+
 		self.assertListEqual(
-			[
-				("t", enumerated),
-				("a", enumerated.Literals[0]),
-				*((operation.NormalizedIdentifier, operation) for operation in enumerated.ImplicitOperations)
-			],
-			list(package.IterateMemberDeclarations("t"))
+			[enumerated.Literals[0], *enumerated.ImplicitOperations],
+			list(package.IterateMemberImplicitDeclarations(enumerated))
+		)
+
+	def test_IterateMemberImplicitDeclarations_Subtype(self) -> None:
+		"""A subtype brings those of its base type along, found by simple names in the package."""
+		enumerated = _enumeration("T", "a")
+		subtype =    Subtype("S", _subtypeSymbol("T"))
+		package =    Package("p", declaredItems=[enumerated, subtype])
+		package.IndexDeclaredItems()
+
+		self.assertListEqual(
+			[enumerated.Literals[0], *enumerated.ImplicitOperations],
+			list(package.IterateMemberImplicitDeclarations(subtype))
 		)
 
 

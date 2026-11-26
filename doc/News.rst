@@ -41,6 +41,12 @@ Version 0.45.0 (2026)
      namespace takes the key from the new property ``NormalizedDesignator`` of
      :class:`~pyVHDLModel.Type.PhysicalUnit` and :class:`~pyVHDLModel.Subprogram.Subprogram` (as
      :class:`~pyVHDLModel.Expression.EnumerationLiteral` already had).
+   * Breaking change: :meth:`Package.IterateDeclarations() <pyVHDLModel.DesignUnit.Package.IterateDeclarations>` and
+     :meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations` yield the declared items, no longer (key,
+     declaration) pairs, and no implied declarations: :meth:`~pyVHDLModel.Namespace.Namespace.AddImports` (new) imports
+     a declaration by its identifiers with the declarations it implies;
+     :meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberImplicitDeclarations` (new) iterates those a member brings
+     along.
 
    .. rubric:: Bug Fixes
 

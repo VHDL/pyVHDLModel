@@ -913,54 +913,60 @@ class Package(
 		"""
 		return self._components
 
-	def IterateDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+	def IterateDeclarations(self) -> Generator[ModelEntity, None, None]:
 		"""
 		Iterate the declarations of this package a use clause can make potentially visible.
 
-		A declared item contributes its normalized identifiers; an enumerated type its enumeration literals too, a physical
-		type its units. An incomplete type is completed by its full type declaration, so it's skipped.
+		These are the declared items; an incomplete type is completed by its full type declaration, so it's skipped. Each
+		declaration is visible by its normalized identifiers (:func:`~pyVHDLModel.Base.normalizedIdentifiersOf`) and brings
+		the declarations it implies along (:meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations`), e.g. the
+		enumeration literals of a type (:meth:`~pyVHDLModel.Namespace.Namespace.AddImports`).
 
-		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		:returns: A generator to iterate the declarations, in declaration order.
 		"""
 		for item in self._declaredItems:
 			if isinstance(item, AnonymousType):
 				continue
 			elif isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
-				for normalizedIdentifier in normalizedIdentifiersOf(item):
-					yield normalizedIdentifier, item
+				yield item
 
-				for declaration in item.IterateImplicitDeclarations():
-					yield declaration.NormalizedDesignator, declaration
-
-	def IterateMemberDeclarations(self, memberIdentifier: str) -> Generator[tuple[str, ModelEntity], None, None]:
+	def IterateMemberDeclarations(self, memberIdentifier: str) -> Generator[ModelEntity, None, None]:
 		"""
 		Iterate the declarations of this package a use clause naming one package member makes potentially visible.
 
-		These are the declarations of the package with the member's identifier, e.g. all overloads of a subprogram. A type
-		brings its enumeration literals or physical units along (IEEE Std 1076-2008, 12.4), a subtype those of its base
-		type: the known base type, else the type its type marks lead to, followed by simple names in the package.
+		These are the declarations of the package with the member's identifier, e.g. all overloads of a subprogram. Each is
+		visible by the member's identifier and brings the declarations of :meth:`IterateMemberImplicitDeclarations` along.
 
 		:param memberIdentifier: The normalized (lower case) identifier of the package member.
-		:returns:                A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		:returns:                A generator to iterate the declarations, in declaration order.
 		"""
-		for normalizedIdentifier, declaration in self.IterateDeclarations():
-			if normalizedIdentifier == memberIdentifier:
-				yield normalizedIdentifier, declaration
+		for declaration in self.IterateDeclarations():
+			if memberIdentifier in normalizedIdentifiersOf(declaration):
+				yield declaration
 
-				# A subtype's base type: known for a predefined subtype, else follow the type marks by simple names.
-				baseType = declaration
-				while isinstance(baseType, Subtype):
-					if baseType._baseType is not None:
-						baseType = baseType._baseType
-					elif (typeMark := baseType._type._name)._prefix is None:
-						result =   baseType._parent._namespace.Lookup(typeMark._normalizedIdentifier, baseType)
-						baseType = result._declarations[0] if len(result._declarations) == 1 else None
-					else:
-						baseType = None
+	def IterateMemberImplicitDeclarations(self, member: ModelEntity) -> Generator[ModelEntity, None, None]:
+		"""
+		Iterate the declarations a use clause naming a package member makes potentially visible along with the member.
 
-				if baseType is not None:
-					for implicitDeclaration in baseType.IterateImplicitDeclarations():
-						yield implicitDeclaration.NormalizedDesignator, implicitDeclaration
+		A type brings its enumeration literals or physical units along (IEEE Std 1076-2008, 12.4), a subtype those of its
+		base type: the known base type, else the type its type marks lead to, followed by simple names in the package.
+
+		:param member: A declaration of this package (:meth:`IterateMemberDeclarations`).
+		:returns:      A generator to iterate the implied declarations, in declaration order.
+		"""
+		# A subtype's base type: known for a predefined subtype, else follow the type marks by simple names.
+		baseType = member
+		while isinstance(baseType, Subtype):
+			if baseType._baseType is not None:
+				baseType = baseType._baseType
+			elif (typeMark := baseType._type._name)._prefix is None:
+				result =   baseType._parent._namespace.Lookup(typeMark._normalizedIdentifier, baseType)
+				baseType = result._declarations[0] if len(result._declarations) == 1 else None
+			else:
+				baseType = None
+
+		if baseType is not None:
+			yield from baseType.IterateImplicitDeclarations()
 
 	def DenoteBy(
 		self,

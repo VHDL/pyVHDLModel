@@ -40,7 +40,7 @@ from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVar
 from pyVHDLModel.Declaration import Attribute
 from pyVHDLModel.Subprogram  import Procedure, Function
 from pyVHDLModel.Type        import EnumeratedType, ArrayType, AccessType, FileType, Subtype
-from pyVHDLModel.STD         import Standard, TextIO, Boolean, Bit
+from pyVHDLModel.STD         import Standard, TextIO, Env, Boolean, Bit
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -394,3 +394,39 @@ class TextIOs(Testcase):
 				["line", "bit_vector", "side", "width"],
 				[item.Subtype.Name.Identifier for item in write.ParameterItems]
 			)
+
+
+class Envs(Testcase):
+	"""Package ``std.env`` (IEEE Std 1076-2008, 16.5)."""
+
+	def test_Declarations(self) -> None:
+		"""The declarations in the order of the standard, each with the package as parent."""
+		env = Env()
+
+		self.assertListEqual(
+			["stop", "stop", "finish", "finish", "resolution_limit"],
+			[declaration.Identifier for declaration in env.DeclaredItems]
+		)
+		for declaration in env.DeclaredItems:
+			self.assertIs(env, declaration.Parent)
+
+	def test_StopFinish(self) -> None:
+		"""``procedure STOP (STATUS: INTEGER);`` and ``procedure STOP;`` - also ``FINISH``."""
+		env = Env()
+		for identifier in ("stop", "finish"):
+			withStatus, withoutStatus = env.Procedures[identifier]
+			status, = withStatus.ParameterItems
+			self.assertIsInstance(status, ParameterConstantInterfaceItem)
+			self.assertIs(Mode.In, status.Mode)
+			self.assertTupleEqual(("STATUS",), status.Identifiers)
+			self.assertEqual("integer", status.Subtype.Name.Identifier)
+			self.assertListEqual([], withoutStatus.ParameterItems)
+
+	def test_ResolutionLimit(self) -> None:
+		"""``function RESOLUTION_LIMIT return DELAY_LENGTH;``"""
+		resolutionLimit, = Env().Functions["resolution_limit"]
+
+		self.assertIsInstance(resolutionLimit, Function)
+		self.assertTrue(resolutionLimit.IsPure)
+		self.assertEqual("delay_length", resolutionLimit.ReturnType.Name.Identifier)
+		self.assertListEqual([], resolutionLimit.ParameterItems)

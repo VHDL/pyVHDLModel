@@ -28,6 +28,8 @@ Version 0.45.0 (2026)
      ``side``, the subtype ``width``, the function ``justify``, the files ``input`` and ``output``, and the procedures
      ``readline``, ``read``, ``sread``, ``oread``, ``hread``, ``writeline``, ``tee``, ``write``, ``owrite`` and
      ``hwrite`` with all their overloads. The aliases (``bread``, ``swrite``, ...) aren't declared yet.
+   * Package ``std.env`` declares what IEEE Std 1076-2008, 16.5 lists: the procedures ``stop`` and ``finish``, each
+     with and without a ``STATUS`` parameter, and the function ``resolution_limit``.
 
    .. rubric:: Bug Fixes
 

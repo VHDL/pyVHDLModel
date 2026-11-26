@@ -36,7 +36,7 @@ from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel.Base        import SimpleRange, Direction
 from pyVHDLModel.Name        import SimpleName
-from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
+from pyVHDLModel.Symbol      import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
 from pyVHDLModel.Expression  import EnumerationLiteral, CharacterEnumerationLiteral, IntegerLiteral, \
                                     FloatingPointLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, PhysicalUnit, ArrayType, \
@@ -236,13 +236,14 @@ class Standard(PredefinedPackage):
 		)
 		self._DeclareItem(time, self._types)
 
-		delayLength =           Subtype("delay_length", self._TypeMark("time"))
-		delayLength._baseType = time
-		delayLength._range =     SimpleRange(
+		delayLengthRange =      SimpleRange(
 			PhysicalIntegerLiteral(0, "fs"),
 			PhysicalIntegerLiteral(2**63 - 1, "fs"),
 			Direction.To
 		)
+		delayLengthSymbol =     ConstrainedScalarSubtypeSymbol(SimpleName("time"), delayLengthRange)
+		delayLength =           Subtype("delay_length", delayLengthSymbol)
+		delayLength._baseType = time
 		self._DeclareItem(delayLength, self._subtypes)
 
 		now =                    Function("now", self._TypeMark("delay_length"), isPure=False)
@@ -252,9 +253,9 @@ class Standard(PredefinedPackage):
 			("natural",  0),
 			("positive", 1)
 		):
-			subtype =           Subtype(identifier, self._TypeMark("integer"))
+			subtypeRange =      SimpleRange(IntegerLiteral(low), IntegerLiteral(2**31 - 1), Direction.To)
+			subtype =           Subtype(identifier, ConstrainedScalarSubtypeSymbol(SimpleName("integer"), subtypeRange))
 			subtype._baseType = integer
-			subtype._range =    SimpleRange(IntegerLiteral(low), IntegerLiteral(2**31 - 1), Direction.To)
 			self._DeclareItem(subtype, self._subtypes)
 
 		self._DeclareItem(ArrayType("string", (self._TypeMark("positive"),), self._TypeMark("character")), self._types)

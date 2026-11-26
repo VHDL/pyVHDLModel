@@ -32,6 +32,7 @@
 from pyTooling.Testing       import Testcase
 
 from pyVHDLModel.Base        import Direction
+from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol
 from pyVHDLModel.Declaration import Attribute
 from pyVHDLModel.Subprogram  import Function
 from pyVHDLModel.Type        import EnumeratedType, ArrayType, AccessType
@@ -92,6 +93,8 @@ class Standards(Testcase):
 		):
 			subtype = standard.Subtypes[identifier]
 			self.assertIs(standard.Types["integer"], subtype.BaseType)
+			self.assertIsInstance(subtype.Type, ConstrainedScalarSubtypeSymbol)
+			self.assertEqual("integer", subtype.Type.Name.Identifier)
 			self.assertEqual(left, subtype.Range.LeftBound.Value)
 			self.assertEqual(2**31 - 1, subtype.Range.RightBound.Value)
 
@@ -100,6 +103,8 @@ class Standards(Testcase):
 		delayLength = Standard().Subtypes["delay_length"]
 
 		self.assertEqual("time", delayLength.BaseType.Identifier)
+		self.assertIsInstance(delayLength.Type, ConstrainedScalarSubtypeSymbol)
+		self.assertEqual("time", delayLength.Type.Name.Identifier)
 		self.assertEqual(0, delayLength.Range.LeftBound.Value)
 		self.assertEqual(2**63 - 1, delayLength.Range.RightBound.Value)
 

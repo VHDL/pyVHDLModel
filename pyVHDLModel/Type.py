@@ -49,7 +49,7 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedE
                                    Range, ReservedWord, Mode
 from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
 from pyVHDLModel.Name       import Name, SimpleName
-from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarationRegionMixin, \
                                    SequentialDeclarationRegionMixin, WithoutStatementsMixin
@@ -370,9 +370,9 @@ class Subtype(BaseType):
 	"""
 	Represents a subtype declaration.
 
-	A subtype is a named entity (:data:`Identifier`, :data:`NormalizedIdentifier`) referencing a type
-	(:data:`Type`). Optionally, the subtype can be narrowed by a constraint (:data:`Range`) and/or
-	resolved by a resolution function (:data:`ResolutionFunction`).
+	A subtype is a named entity (:data:`Identifier`, :data:`NormalizedIdentifier`) with a subtype indication
+	(:data:`Type`): a type mark, optionally narrowed by a constraint. A range constraint is available as
+	:data:`Range`. Optionally, the subtype is resolved by a resolution function (:data:`ResolutionFunction`).
 
 	.. admonition:: Example
 
@@ -384,12 +384,13 @@ class Subtype(BaseType):
 	      --      ^^^^                  <- Identifier
 	      --              ^^^^^^^^^^    <- Type
 
-	   With a constraint:
+	   With a range constraint:
 
 	   .. code-block:: VHDL
 
-	      subtype nibble is bit_vector(3 downto 0);
-	      --                          ^^^^^^^^^^^^    <- Range
+	      subtype nibble is integer range 0 to 15;
+	      --                ^^^^^^^^^^^^^^^^^^^^^    <- Type (constrained scalar subtype symbol)
+	      --                              ^^^^^^^    <- Range
 
 	   With a resolution function:
 
@@ -404,7 +405,6 @@ class Subtype(BaseType):
 	"""
 	_type:               Symbol    #: Reference to the type or subtype this subtype is derived from.
 	_baseType:           BaseType  #: The resolved base type of this subtype.
-	_range:              Range     #: The constraint narrowing the base type, or ``None`` if unconstrained.
 	_resolutionFunction: Function  #: The resolution function, or ``None`` if the subtype is unresolved.
 
 	def __init__(self, identifier: str, symbol: Symbol, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
@@ -419,9 +419,8 @@ class Subtype(BaseType):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		self._type = symbol
-		self._baseType = None
-		self._range = None
+		self._type =               symbol
+		self._baseType =           None
 		self._resolutionFunction = None
 
 	@readonly
@@ -445,13 +444,16 @@ class Subtype(BaseType):
 		return self._baseType
 
 	@readonly
-	def Range(self) -> Range:
+	def Range(self) -> Nullable[Range]:
 		"""
-		Read-only property to access the range (:attr:`_range`).
+		Read-only property to return the range constraint of the subtype indication (:attr:`_type`).
 
-		:returns: The range.
+		:returns: The range, or ``None`` if the subtype indication has no range constraint.
 		"""
-		return self._range
+		if isinstance(self._type, ConstrainedScalarSubtypeSymbol):
+			return self._type._constraint
+
+		return None
 
 	@readonly
 	def ResolutionFunction(self) -> Function:

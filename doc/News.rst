@@ -119,6 +119,10 @@ Version 0.45.0 (2026)
    * Synopsys package ``ieee.std_logic_textio`` (:class:`~pyVHDLModel.IEEE.StdLogicTextIO.Std_Logic_TextIO_Synopsys`)
      declares its 21 procedures (``read``, ``write`` of ``std_ulogic``, ``std_ulogic_vector`` and ``std_logic_vector``,
      ``hread``, ``hwrite``, ``oread``, ``owrite``), with Synopsys' copyright notice.
+   * Synopsys package ``ieee.std_logic_arith`` (:class:`~pyVHDLModel.IEEE.StdLogicArith.Std_Logic_Arith_Synopsys`)
+     declares the types ``unsigned`` and ``signed``, the subtype ``small_int`` and its 134 functions (arithmetic and
+     relational operators, ``shl``, ``shr``, the ``conv_*`` conversions, ``ext``, ``sxt``), with Synopsys' copyright
+     notice.
 
    .. rubric:: Changes
 

@@ -35,6 +35,7 @@ Copy tests for interface items and mode view elements (:mod:`pyVHDLModel.Interfa
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel                 import Interface as InterfaceModule
+from pyVHDLModel.Association     import GenericAssociationItem
 from pyVHDLModel.Base            import Mode
 from pyVHDLModel.DesignUnit      import Entity
 from pyVHDLModel.Expression      import IntegerLiteral
@@ -46,10 +47,10 @@ from pyVHDLModel.Interface       import SimpleModeViewElement, CompositeModeView
                                         ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
                                         ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
                                         ParameterFileInterfaceItem, ModeViewDeclaration, InterfaceGroup, GenericGroup, \
-                                        PortGroup, ParameterGroup
-from pyVHDLModel.Name            import SimpleName
+                                        PortGroup, ParameterGroup, InterfacePackageGenericMap
+from pyVHDLModel.Name            import SelectedName, SimpleName
 from pyVHDLModel.Subprogram      import Procedure
-from pyVHDLModel.Symbol          import ModeViewSymbol
+from pyVHDLModel.Symbol          import ModeViewSymbol, PackageReferenceSymbol
 
 from tests.unit                  import _Element, _subtypeSymbol
 from tests.unit.Copy             import _concreteModelClasses, _copyAboveConstructor
@@ -216,6 +217,27 @@ class GenericItems(Testcase):
 		self.assertIsNone(copy.Parent)
 		self.assertEqual("pkg", copy.Identifier)
 		self.assertEqual("Documentation.", copy.Documentation)
+		self.assertIsNone(copy.PackageReference)
+
+	def test_Package_PackageReference(self) -> None:
+		"""The package reference and the generic associations are copied, with the copy as parent."""
+		association = GenericAssociationItem(SimpleName("N"), IntegerLiteral(1))
+		original =    GenericPackageInterfaceItem(
+			"pkg",
+			genericPackage=PackageReferenceSymbol(SelectedName("gp", SimpleName("work"))),
+			genericMap=InterfacePackageGenericMap.Associations,
+			genericAssociationItems=[association]
+		)
+
+		copy = original.Copy()
+
+		self.assertIsNot(original.PackageReference, copy.PackageReference)
+		self.assertEqual("work.gp", str(copy.PackageReference.Name))
+		self.assertIs(copy, copy.PackageReference.Parent)
+		self.assertIs(InterfacePackageGenericMap.Associations, copy.GenericMap)
+		self.assertEqual(1, len(copy.GenericAssociationItems))
+		self.assertIsNot(association, copy.GenericAssociationItems[0])
+		self.assertIs(copy, copy.GenericAssociationItems[0].Parent)
 
 	def test_Procedure(self) -> None:
 		parameter = ParameterConstantInterfaceItem(("msg", ), Mode.In, _subtypeSymbol("string"))

@@ -70,8 +70,10 @@ Version 0.45.0 (2026)
    * Package ``ieee.fixed_generic_pkg`` (:class:`~pyVHDLModel.IEEE.FixedGenericPkg.Fixed_Generic_Pkg`) declares the
      generics ``fixed_round_style``, ``fixed_overflow_style``, ``fixed_guard_bits`` and ``no_warning``, the constant
      ``CopyRightNotice``, the types ``unresolved_ufixed`` and ``unresolved_sfixed``, the aliases ``u_ufixed`` and
-     ``u_sfixed``, the subtypes ``ufixed`` and ``sfixed``, and the arithmetic operators and functions (``divide``,
-     ``reciprocal``, ``remainder``, ``modulo``, ``add_carry``, ``scalb``, ``is_negative``).
+     ``u_sfixed``, the subtypes ``ufixed`` and ``sfixed``, the arithmetic operators and functions (``divide``,
+     ``reciprocal``, ``remainder``, ``modulo``, ``add_carry``, ``scalb``, ``is_negative``), the relational and matching
+     operators, ``std_match``, ``maximum``, ``minimum``, the shift operators, ``shift_left``, ``shift_right`` and the
+     logical operators.
 
    .. rubric:: Changes
 

@@ -76,7 +76,7 @@ class FixedGenericPkgs(Testcase):
 		self.assertEqual("false", generics[3].DefaultExpression.Name.Identifier)
 
 	def test_Declarations(self) -> None:
-		"""The constant, types, aliases and subtypes first, then 77 subprograms; all with the package as parent."""
+		"""The constant, types, aliases and subtypes first, then 285 subprograms; all with the package as parent."""
 		fixedGenericPkg = Fixed_Generic_Pkg()
 		declarations =    fixedGenericPkg.DeclaredItems
 
@@ -94,9 +94,9 @@ class FixedGenericPkgs(Testcase):
 			["unresolved_ufixed", "unresolved_sfixed", "u_ufixed", "u_sfixed", "ufixed", "sfixed"],
 			[declaration.Identifier for declaration in declarations[1:7]]
 		)
-		self.assertEqual(75, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
+		self.assertEqual(283, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
 		self.assertEqual(2, len([declaration for declaration in declarations if isinstance(declaration, Procedure)]))
-		self.assertEqual(84, len(declarations))
+		self.assertEqual(292, len(declarations))
 		for declaration in declarations:
 			self.assertIs(fixedGenericPkg, declaration.Parent)
 
@@ -107,7 +107,11 @@ class FixedGenericPkgs(Testcase):
 		self.assertDictEqual(
 			{
 				"abs": 1, "-": 11, "+": 10, "*": 10, "/": 10, "rem": 10, "mod": 10, "divide": 2, "reciprocal": 2,
-				"remainder": 2, "modulo": 2, "scalb": 4, "is_negative": 1
+				"remainder": 2, "modulo": 2, "scalb": 4, "is_negative": 1,
+				">": 10, "<": 10, "<=": 10, ">=": 10, "=": 10, "/=": 10,
+				"?=": 10, "?/=": 10, "?>": 10, "?>=": 10, "?<": 10, "?<=": 10, "std_match": 2, "maximum": 10, "minimum": 10,
+				"sll": 2, "srl": 2, "rol": 2, "ror": 2, "sla": 2, "sra": 2, "shift_left": 2, "shift_right": 2,
+				"not": 2, "and": 8, "or": 8, "nand": 8, "nor": 8, "xor": 8, "xnor": 8
 			},
 			{identifier: len(overloads) for identifier, overloads in fixedGenericPkg.Functions.items()}
 		)
@@ -120,11 +124,11 @@ class FixedGenericPkgs(Testcase):
 		"""A function with an operator symbol is an :class:`Operator`, the others aren't."""
 		fixedGenericPkg = Fixed_Generic_Pkg()
 
-		for identifier in ("abs", "+", "rem", "mod"):
+		for identifier in ("abs", "+", "rem", "mod", ">", "?=", "sll", "not", "xnor"):
 			for function in fixedGenericPkg.Functions[identifier]:
 				self.assertIsInstance(function, Operator)
 
-		for identifier in ("divide", "reciprocal", "modulo", "scalb", "is_negative"):
+		for identifier in ("divide", "reciprocal", "modulo", "scalb", "is_negative", "std_match", "maximum", "shift_left"):
 			for function in fixedGenericPkg.Functions[identifier]:
 				self.assertNotIsInstance(function, Operator)
 
@@ -182,6 +186,72 @@ class FixedGenericPkgs(Testcase):
 			[Mode.In, Mode.In, Mode.Out, Mode.Out],
 			[item.Mode for item in addCarry.ParameterItems]
 		)
+
+	def test_Relational(self) -> None:
+		"""``">"`` returns ``BOOLEAN``, ``"?>"`` returns ``STD_ULOGIC``; both also with ``NATURAL`` or ``REAL``."""
+		fixedGenericPkg = Fixed_Generic_Pkg()
+
+		for function in fixedGenericPkg.Functions[">"]:
+			self.assertEqual("boolean", function.ReturnType.Name.Identifier)
+
+		for function in fixedGenericPkg.Functions["?>"]:
+			self.assertEqual("std_ulogic", function.ReturnType.Name.Identifier)
+
+		equalities = fixedGenericPkg.Functions["="]
+		self.assertListEqual(
+			[
+				["unresolved_ufixed"], ["unresolved_sfixed"],
+				["unresolved_ufixed", "natural"], ["natural", "unresolved_ufixed"],
+				["unresolved_ufixed", "real"], ["real", "unresolved_ufixed"],
+				["unresolved_sfixed", "integer"], ["integer", "unresolved_sfixed"],
+				["unresolved_sfixed", "real"], ["real", "unresolved_sfixed"]
+			],
+			[[item.Subtype.Name.Identifier for item in function.ParameterItems] for function in equalities]
+		)
+
+	def test_MaximumMinimum(self) -> None:
+		"""With ``NATURAL``, ``maximum`` and ``minimum`` alternate; with ``REAL``, the two ``maximum`` come first."""
+		declarations = Fixed_Generic_Pkg().DeclaredItems
+		functions =    [(index, item) for index, item in enumerate(declarations) if isinstance(item, Function)]
+		maximum =      [index for index, function in functions if function.Identifier == "maximum"]
+		minimum =      [index for index, function in functions if function.Identifier == "minimum"]
+
+		self.assertEqual(minimum[2] - 1, maximum[2])
+		self.assertEqual(maximum[3] - 1, minimum[2])
+		self.assertEqual(maximum[5] - 1, maximum[4])
+		self.assertEqual(
+			["real", "unresolved_ufixed"],
+			[item.Subtype.Name.Identifier for item in declarations[maximum[5]].ParameterItems]
+		)
+
+	def test_Shift(self) -> None:
+		"""``"sll" (ARG : UNRESOLVED_ufixed; COUNT : INTEGER)``; ``shift_left`` with ``COUNT : NATURAL``."""
+		fixedGenericPkg = Fixed_Generic_Pkg()
+		operator =        fixedGenericPkg.Functions["sll"][1]
+		function =        fixedGenericPkg.Functions["shift_left"][0]
+
+		self.assertListEqual(["ARG", "COUNT"], [item.Identifiers[0] for item in operator.ParameterItems])
+		self.assertListEqual(
+			["unresolved_sfixed", "integer"],
+			[item.Subtype.Name.Identifier for item in operator.ParameterItems]
+		)
+		self.assertEqual("natural", function.ParameterItems[1].Subtype.Name.Identifier)
+
+	def test_Logical(self) -> None:
+		"""``"and"`` of two values, with a ``STD_ULOGIC`` operand on either side, and as reduction to ``STD_ULOGIC``."""
+		operators = Fixed_Generic_Pkg().Functions["and"]
+
+		self.assertTupleEqual(("l", "r"), operators[0].ParameterItems[0].Identifiers)
+		self.assertListEqual(
+			["std_ulogic", "unresolved_ufixed"],
+			[item.Subtype.Name.Identifier for item in operators[2].ParameterItems]
+		)
+		self.assertListEqual(
+			["unresolved_ufixed", "std_ulogic"],
+			[item.Subtype.Name.Identifier for item in operators[3].ParameterItems]
+		)
+		self.assertEqual(1, len(operators[6].ParameterItems))
+		self.assertEqual("std_ulogic", operators[6].ReturnType.Name.Identifier)
 
 	def test_Analyze(self) -> None:
 		"""Every type mark resolves, e.g. ``UNRESOLVED_SIGNED`` of ``numeric_std``; ``u_ufixed`` names its type."""

@@ -31,12 +31,13 @@
 """Tests for pyVHDLModel.Subprogram."""
 from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Base        import Mode
+from pyVHDLModel.Base        import Direction, Mode, SimpleRange
+from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, GenericTypeInterfaceItem
 from pyVHDLModel.Name        import SelectedName, SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
 from pyVHDLModel.Sequential  import NullStatement
-from pyVHDLModel.Type        import ProtectedType, RecordType, Subtype
+from pyVHDLModel.Type        import IntegerType, ProtectedType, RecordType, Subtype
 from pyVHDLModel.Subprogram  import Procedure, Function, Operator, PredefinedOperator, PredefinedFunction, \
                                     PredefinedSubprogramMixin, ProcedureMethod, FunctionMethod, SubprogramSignature
 
@@ -449,3 +450,79 @@ class SignatureComparisons(Testcase):
 			_ = signature != "[]"
 
 		self.assertEqual("Second operand is not supported by != operator.", str(context.exception))
+
+
+class TypeProfiles(Testcase):
+	"""Two signatures have the same parameter and result type profile, if their base types match (4.5.1)."""
+
+	def setUp(self) -> None:
+		self._bit =     IntegerType("bit_like", SimpleRange(IntegerLiteral(0), IntegerLiteral(1), Direction.To))
+		self._integer = IntegerType("int_like", SimpleRange(IntegerLiteral(0), IntegerLiteral(9), Direction.To))
+
+	def _typeMark(self, fullType: IntegerType) -> SimpleSubtypeSymbol:
+		typeMark =         _returnType(fullType.Identifier)
+		typeMark.Subtype = fullType
+
+		return typeMark
+
+	def test_Same(self) -> None:
+		"""Type marks written differently, referencing the same types, have the same profile."""
+		selected =         SimpleSubtypeSymbol(SelectedName("bit_like", SimpleName("p")))
+		selected.Subtype = self._bit
+		first =            SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._integer))
+		second =           SubprogramSignature([selected], self._typeMark(self._integer))
+
+		self.assertNotEqual(first, second)
+		self.assertTrue(first.HasSameTypeProfile(second))
+
+	def test_Same_Procedure(self) -> None:
+		first =  SubprogramSignature([self._typeMark(self._bit), self._typeMark(self._integer)])
+		second = SubprogramSignature([self._typeMark(self._bit), self._typeMark(self._integer)])
+
+		self.assertTrue(first.HasSameTypeProfile(second))
+
+	def test_Different_ParameterType(self) -> None:
+		first =  SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._integer))
+		second = SubprogramSignature([self._typeMark(self._integer)], self._typeMark(self._integer))
+
+		self.assertFalse(first.HasSameTypeProfile(second))
+
+	def test_Different_ReturnType(self) -> None:
+		first =  SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._integer))
+		second = SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._bit))
+
+		self.assertFalse(first.HasSameTypeProfile(second))
+
+	def test_Different_ParameterCount(self) -> None:
+		first =  SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._integer))
+		second = SubprogramSignature([self._typeMark(self._bit), self._typeMark(self._bit)], self._typeMark(self._integer))
+
+		self.assertFalse(first.HasSameTypeProfile(second))
+
+	def test_Different_ProcedureFunction(self) -> None:
+		procedure = SubprogramSignature([self._typeMark(self._bit)])
+		function =  SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._bit))
+
+		self.assertFalse(procedure.HasSameTypeProfile(function))
+		self.assertFalse(function.HasSameTypeProfile(procedure))
+
+	def test_Unresolved(self) -> None:
+		"""A signature with an unresolved type mark has no profile to compare."""
+		resolved =   SubprogramSignature([self._typeMark(self._bit)])
+		unresolved = SubprogramSignature([_returnType("bit_like")])
+
+		self.assertFalse(resolved.HasSameTypeProfile(unresolved))
+		self.assertFalse(unresolved.HasSameTypeProfile(resolved))
+
+	def test_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			SubprogramSignature([]).HasSameTypeProfile(None)
+
+		self.assertEqual("Parameter 'other' is None.", str(context.exception))
+
+	def test_OtherType(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			SubprogramSignature([]).HasSameTypeProfile("[]")
+
+		self.assertEqual("Parameter 'other' is not of type 'SubprogramSignature'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)

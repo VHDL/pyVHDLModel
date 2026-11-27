@@ -177,6 +177,11 @@ Version 0.45.0 (2026)
      (:meth:`~pyVHDLModel.Type.FullType.ResolveImplicitOperationTypeMarks`, new). Before, they had no reference.
      :meth:`~pyVHDLModel.Design.IndexImplicitOperations` raises :exc:`~pyVHDLModel.Exception.LibraryNotFoundError`
      without library ``std``.
+   * An implicit operation is hidden by an explicitly declared homograph in the type's declarative region (IEEE Std
+     1076-2008, 12.3), e.g. the implicit ``"="`` of ``unresolved_unsigned`` by the one ``ieee.numeric_std`` declares: a
+     lookup doesn't find it, a use clause doesn't import it (:attr:`~pyVHDLModel.Namespace.Namespace.HiddenOperations`,
+     new). New :meth:`~pyVHDLModel.Subprogram.SubprogramSignature.HasSameTypeProfile` compares the base types of two
+     signatures (4.5.1).
 
    .. rubric:: Bug Fixes
 

@@ -275,6 +275,42 @@ class SubprogramSignature(ModelEntity):
 		"""
 		return self._hash
 
+	def HasSameTypeProfile(self, other: SubprogramSignature) -> bool:
+		"""
+		Check if two signatures have the same parameter and result type profile (IEEE Std 1076-2008, 4.5.1).
+
+		Both have the same number of parameters, the parameters at each position have the same base type, and so have the
+		return values of two functions. The base types are the ones the resolved type marks reference
+		(:meth:`~pyVHDLModel.Design.ResolveTypeMarks`), not the names compared by :meth:`__eq__`. A signature with an
+		unresolved type mark has no type profile to compare: the result is ``False``.
+
+		:param other:       The other signature.
+		:returns:           ``True``, if both signatures have the same parameter and result type profile.
+		:raises ValueError: If parameter ``other`` is None.
+		:raises TypeError:  If parameter ``other`` is not of type :class:`SubprogramSignature`.
+		"""
+		if other is None:
+			raise ValueError("Parameter 'other' is None.")
+		elif not isinstance(other, SubprogramSignature):
+			ex = TypeError("Parameter 'other' is not of type 'SubprogramSignature'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(other)}'.")
+			raise ex
+
+		if len(self._parameterTypes) != len(other._parameterTypes):
+			return False
+		elif (self._returnType is None) is not (other._returnType is None):
+			return False
+
+		typeMarks =      self._parameterTypes if self._returnType is None else (*self._parameterTypes, self._returnType)
+		otherTypeMarks = other._parameterTypes if other._returnType is None else (*other._parameterTypes, other._returnType)
+		for typeMark, otherTypeMark in zip(typeMarks, otherTypeMarks):
+			if (reference := typeMark._reference) is None or (otherReference := otherTypeMark._reference) is None:
+				return False
+			elif (baseType := reference.BaseType) is None or baseType is not otherReference.BaseType:
+				return False
+
+		return True
+
 	def __str__(self) -> str:
 		"""
 		Return the signature in VHDL's notation: the parameters' type marks, comma separated, and a function's return type

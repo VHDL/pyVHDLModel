@@ -34,10 +34,14 @@ Implicit operations in namespaces: indexed by the analysis after the type marks 
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel            import Design
-from pyVHDLModel.Base       import Direction, SimpleRange
-from pyVHDLModel.DesignUnit import Entity, Package
+from pyVHDLModel.Base       import Direction, Mode, SimpleRange
+from pyVHDLModel.DesignUnit import DesignUnit, Entity, LibraryClause, Package
 from pyVHDLModel.Exception  import LibraryNotFoundError
 from pyVHDLModel.Expression import IntegerLiteral
+from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
+from pyVHDLModel.Name       import SimpleName
+from pyVHDLModel.Subprogram import Operator
+from pyVHDLModel.Symbol     import LibraryReferenceSymbol
 from pyVHDLModel.Type       import IntegerType, Subtype
 
 from tests.unit             import _subtypeSymbol
@@ -230,3 +234,84 @@ class PredefinedTypeMarks(Testcase):
 
 		self.assertEqual("Library 'std' not found in design.", str(context.exception))
 		self.assertListEqual(["Call 'LoadStdLibrary()' before analyzing a design."], context.exception.__notes__)
+
+
+class Hidden(Testcase):
+	"""An explicitly declared homograph hides the implicit operation in the type's region (IEEE Std 1076-2008, 12.3)."""
+
+	def _analyze(self, left: str, right: str, *designUnits: DesignUnit) -> None:
+		parameters = [
+			ParameterConstantInterfaceItem(("L", ), Mode.In, _subtypeSymbol(left)),
+			ParameterConstantInterfaceItem(("R", ), Mode.In, _subtypeSymbol(right))
+		]
+		self._type =     _integerType("I")
+		self._equality = Operator("=", _subtypeSymbol("boolean"), parameterItems=parameters)
+		self._package =  Package("p", declaredItems=[self._type, Subtype("S", _subtypeSymbol("I")), self._equality])
+		_design(self._package, *designUnits)
+
+	def test_Hidden(self) -> None:
+		"""The implicit ``"="`` of ``I`` is hidden; a lookup finds the explicit one only."""
+		self._analyze("I", "I")
+		namespace = self._package._namespace
+		implicit =  _operationsOf(self._type, "=")[0]
+
+		self.assertSetEqual({implicit}, namespace.HiddenOperations)
+		self.assertNotIn(implicit, namespace.ImplicitOperations.get("=", ()))
+		self.assertIn(self._equality, namespace.Lookup("=").Declarations)
+		self.assertNotIn(implicit, namespace.Lookup("=").Declarations)
+
+	def test_Subtype(self) -> None:
+		"""Parameters of a subtype of ``I`` have the base type ``I``: the same profile."""
+		self._analyze("S", "I")
+
+		self.assertSetEqual(set(_operationsOf(self._type, "=")), self._package._namespace.HiddenOperations)
+
+	def test_OtherProfile(self) -> None:
+		"""An explicit ``"="`` of another parameter type profile hides nothing."""
+		self._analyze("I", "integer")
+		declarations = self._package._namespace.Lookup("=").Declarations
+
+		self.assertSetEqual(set(), self._package._namespace.HiddenOperations)
+		self.assertIn(self._equality, declarations)
+		self.assertIn(_operationsOf(self._type, "=")[0], declarations)
+
+	def test_OtherDesignator(self) -> None:
+		"""The implicit ``"/="`` stays visible."""
+		self._analyze("I", "I")
+
+		self.assertIn(_operationsOf(self._type, "/=")[0], self._package._namespace.Lookup("/=").Declarations)
+
+	def test_Imported(self) -> None:
+		"""A use clause imports the explicit ``"="``, but not the hidden implicit one."""
+		entity = Entity("e", [_use("work.p.all")])
+		self._analyze("I", "I", entity)
+		declarations = entity._namespace.Lookup("=").Declarations
+
+		self.assertIn(self._equality, declarations)
+		self.assertNotIn(_operationsOf(self._type, "=")[0], declarations)
+
+	def test_Reset(self) -> None:
+		"""Resetting the analysis forgets the hidden operations; the next analysis finds them again."""
+		self._analyze("I", "I")
+		design = self._package.Library._parent
+
+		design.ResetAnalysis()
+
+		self.assertSetEqual(set(), self._package._namespace.HiddenOperations)
+
+		design.Analyze()
+
+		self.assertSetEqual(set(_operationsOf(self._type, "=")), self._package._namespace.HiddenOperations)
+
+	def test_NumericStd(self) -> None:
+		"""``ieee.numeric_std`` declares ``"="`` of ``unresolved_unsigned``: the implicit one isn't imported."""
+		library =    LibraryClause([LibraryReferenceSymbol(SimpleName("ieee"))])
+		entity =     Entity("e", [library, _use("ieee.numeric_std.all")])
+		design =     _design(entity)
+		numericStd = design.Libraries["ieee"].Packages["numeric_std"]
+		unsigned =   numericStd.Types["unresolved_unsigned"]
+		implicit =   [operation for operation in unsigned.ImplicitOperations if operation.NormalizedDesignator == "="]
+
+		self.assertEqual(1, len(implicit))
+		self.assertIn(implicit[0], numericStd._namespace.HiddenOperations)
+		self.assertNotIn(implicit[0], entity._namespace.Lookup("=").Declarations)

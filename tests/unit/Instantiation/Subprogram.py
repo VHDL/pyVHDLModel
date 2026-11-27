@@ -304,7 +304,7 @@ class Signatures(Testcase):
 		with self.assertRaises(TypeError) as context:
 			SubprogramSignature([], parent=ProtectedType("pt"))
 
-		self.assertEqual("Parameter 'parent' is not of type 'Subprogram'.", str(context.exception))
+		self.assertEqual("Parameter 'parent' is not of type 'Subprogram' or 'Alias'.", str(context.exception))
 
 	def test_Checks(self) -> None:
 		for parameterTypes, returnType, exception in (

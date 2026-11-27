@@ -30,15 +30,16 @@
 #
 """Tests for pyVHDLModel.STD."""
 from pyTooling.Testing       import Testcase
+from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel             import VHDLVersion
+from pyVHDLModel             import Design, VHDLVersion
 from pyVHDLModel.Base        import Direction, Mode
 from pyVHDLModel.Expression  import IntegerLiteral, StringLiteral, ConcatenationExpression
 from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Object      import File, DeferredConstant
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
                                     ParameterFileInterfaceItem
-from pyVHDLModel.Declaration import Attribute
+from pyVHDLModel.Declaration import Alias, Attribute
 from pyVHDLModel.Subprogram  import Procedure, Function, Operator
 from pyVHDLModel.Type        import EnumeratedType, ArrayType, AccessType, FileType, Subtype, RecordType
 from pyVHDLModel.STD         import Standard, TextIO, Env, Boolean, Bit
@@ -241,8 +242,10 @@ class TextIOs(Testcase):
 
 		self.assertListEqual(
 			[
-				"line", "text", "side", "width", "justify", "input", "output", "readline", *(["read"] * 16), "sread", "oread",
-				"oread", "hread", "hread", "writeline", "tee", *(["write"] * 9), "owrite", "hwrite"
+				"line", "text", "side", "width", "justify", "input", "output", "readline", *(["read"] * 16), "sread",
+				"string_read", "bread", "bread", "binary_read", "binary_read", "oread", "oread", "octal_read", "octal_read",
+				"hread", "hread", "hex_read", "hex_read", "writeline", "tee", *(["write"] * 9), "swrite", "string_write",
+				"bwrite", "binary_write", "owrite", "octal_write", "hwrite", "hex_write"
 			],
 			[
 				declaration.Identifiers[0] if isinstance(declaration, File) else declaration.Identifier
@@ -438,6 +441,61 @@ class TextIOs(Testcase):
 				["line", "bit_vector", "side", "width"],
 				[item.Subtype.Name.Identifier for item in write.ParameterItems]
 			)
+
+	def test_Aliases(self) -> None:
+		"""``alias STRING_READ is SREAD [LINE, STRING, NATURAL];``: 15 aliases of procedures, each with a signature."""
+		aliases = [declaration for declaration in TextIO().DeclaredItems if isinstance(declaration, Alias)]
+
+		self.assertListEqual(
+			[
+				"string_read", "bread", "bread", "binary_read", "binary_read", "octal_read", "octal_read", "hex_read",
+				"hex_read", "swrite", "string_write", "bwrite", "binary_write", "octal_write", "hex_write"
+			],
+			[alias.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				"sread", "read", "read", "read", "read", "oread", "oread", "hread", "hread", "write", "write", "write",
+				"write", "owrite", "hwrite"
+			],
+			[alias.Name.Name.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				"[line, string, natural]",
+				*(["[line, bit_vector, boolean]", "[line, bit_vector]"] * 4),
+				"[line, string, side, width]",
+				"[line, string, side, width]",
+				*(["[line, bit_vector, side, width]"] * 4)
+			],
+			[str(alias.Signature) for alias in aliases]
+		)
+		for alias in aliases:
+			self.assertIsNone(alias.Subtype)
+			self.assertIsNone(alias.Signature.ReturnType)
+			self.assertIs(alias, alias.Signature.Parent)
+			self.assertTrue(alias.IsOverloadable)
+
+	def test_AnalyzeAliases(self) -> None:
+		"""
+		The analysis resolves the name of each alias to the procedure of the signature's type profile, e.g.
+		``BINARY_READ [LINE, BIT_VECTOR]`` to ``READ`` of ``BIT_VECTOR`` without ``GOOD``.
+		"""
+		design = Design("design")
+		design.LoadStdLibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		textio =  design.Libraries["std"].Packages["textio"]
+		aliases = [declaration for declaration in textio.DeclaredItems if isinstance(declaration, Alias)]
+		self.assertEqual(15, len(aliases))
+		for alias in aliases:
+			self.assertIsNotNone(alias.Name.Reference)
+			self.assertEqual(alias.Name.Name.Identifier, alias.Name.Reference.NormalizedDesignator)
+			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
+
+		self.assertIs(textio.Procedures["read"][3], aliases[4].Name.Reference)
 
 
 class Envs(Testcase):

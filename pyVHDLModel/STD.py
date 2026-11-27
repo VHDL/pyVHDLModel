@@ -304,10 +304,12 @@ class TextIO(PredefinedPackage):
 
 	* types ``line``, ``text`` and ``side``, subtype ``width`` and function ``justify``
 	* files ``input`` and ``output``
-	* the input procedures ``readline``, ``read``, ``sread``, ``oread`` and ``hread``
-	* the output procedures ``writeline``, ``tee``, ``write``, ``owrite`` and ``hwrite``
+	* the input procedures ``readline``, ``read``, ``sread``, ``oread`` and ``hread``, and their aliases
+	  (``string_read``, ``bread``, ``binary_read``, ``octal_read``, ``hex_read``)
+	* the output procedures ``writeline``, ``tee``, ``write``, ``owrite`` and ``hwrite``, and their aliases (``swrite``,
+	  ``string_write``, ``bwrite``, ``binary_write``, ``octal_write``, ``hex_write``)
 
-	The aliases of the standard (``string_read``, ``bread``, ``swrite``, ``hex_write``, ...) aren't declared.
+	Each alias selects an overload by a signature, e.g. ``alias BREAD is READ [LINE, BIT_VECTOR];``.
 
 	With :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`, it declares the addition of IEEE Std
 	1076-2019, 16.4: the type ``line_vector`` after ``line``.
@@ -381,7 +383,23 @@ class TextIO(PredefinedPackage):
 			)),
 			self._procedures
 		)
-		for identifier in ("oread", "hread"):
+		self._DeclareAlias(
+			"string_read",
+			"sread",
+			(self._TypeMark("line"), self._TypeMark("string"), self._TypeMark("natural"))
+		)
+		for identifier in ("bread", "binary_read"):
+			self._DeclareAlias(
+				identifier,
+				"read",
+				(self._TypeMark("line"), self._TypeMark("bit_vector"), self._TypeMark("boolean"))
+			)
+			self._DeclareAlias(identifier, "read", (self._TypeMark("line"), self._TypeMark("bit_vector")))
+
+		for identifier, aliasIdentifier in (
+			("oread", "octal_read"),
+			("hread", "hex_read")
+		):
 			self._DeclareSubprogram(
 				Procedure(identifier, parameterItems=(
 					self._LineParameter(),
@@ -397,6 +415,12 @@ class TextIO(PredefinedPackage):
 				)),
 				self._procedures
 			)
+			self._DeclareAlias(
+				aliasIdentifier,
+				identifier,
+				(self._TypeMark("line"), self._TypeMark("bit_vector"), self._TypeMark("boolean"))
+			)
+			self._DeclareAlias(aliasIdentifier, identifier, (self._TypeMark("line"), self._TypeMark("bit_vector")))
 
 		for identifier in ("writeline", "tee"):
 			self._DeclareSubprogram(
@@ -451,7 +475,22 @@ class TextIO(PredefinedPackage):
 			)),
 			self._procedures
 		)
-		for identifier in ("owrite", "hwrite"):
+		for identifier, subtype in (
+			("swrite",       "string"),
+			("string_write", "string"),
+			("bwrite",       "bit_vector"),
+			("binary_write", "bit_vector")
+		):
+			self._DeclareAlias(
+				identifier,
+				"write",
+				(self._TypeMark("line"), self._TypeMark(subtype), self._TypeMark("side"), self._TypeMark("width"))
+			)
+
+		for identifier, aliasIdentifier in (
+			("owrite", "octal_write"),
+			("hwrite", "hex_write")
+		):
 			self._DeclareSubprogram(
 				Procedure(identifier, parameterItems=(
 					self._LineParameter(),
@@ -459,6 +498,11 @@ class TextIO(PredefinedPackage):
 					*self._JustificationParameters()
 				)),
 				self._procedures
+			)
+			self._DeclareAlias(
+				aliasIdentifier,
+				identifier,
+				(self._TypeMark("line"), self._TypeMark("bit_vector"), self._TypeMark("side"), self._TypeMark("width"))
 			)
 
 

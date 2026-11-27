@@ -742,6 +742,37 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		return library
 
+	def LoadVITALPackages(self) -> Library:
+		"""
+		Load the predefined VITAL packages (IEEE Std 1076.4) into the design's library ``ieee``.
+
+		The packages ``VITAL_Timing``, ``VITAL_Primitives`` and ``VITAL_Memory`` and their package bodies are added to the
+		library and registered to its virtual source code file ``ieee.vhdl``, with the library's VHDL version. The flavor
+		:data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>` of :meth:`LoadIEEELibrary` does the same while
+		loading the library.
+
+		:returns:                      The library object of library ``ieee``.
+		:raises LibraryNotFoundError:  If the design has no predefined library ``ieee``. |br|
+		                               Call :meth:`LoadIEEELibrary` before.
+		:raises IEEEFlavorChangeError: If the library has the VITAL packages already.
+		"""
+		from pyVHDLModel.IEEE import Ieee
+
+		if not isinstance(library := self._libraries.get("ieee"), Ieee):
+			ex = LibraryNotFoundError("Library 'ieee' not found in design.", libraryName="ieee")
+			ex.add_note("Call 'LoadIEEELibrary()' before loading the VITAL packages.")
+			raise ex
+
+		designUnits = set(library.IterateDesignUnits())
+		document =    next(iter(designUnits))._document
+		library.LoadVITALPackages()
+
+		for designUnit in library.IterateDesignUnits():
+			if designUnit not in designUnits:
+				document._AddDesignUnit(designUnit)
+
+		return library
+
 	def AddLibrary(self, library: Library) -> None:
 		"""
 		Add a VHDL library to the design.

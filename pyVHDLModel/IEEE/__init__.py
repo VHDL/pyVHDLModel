@@ -193,6 +193,21 @@ class Ieee(PredefinedLibrary):
 		self.AddPackages(MENTOR_GRAPHICS_PACKAGES)
 
 	def LoadVITALPackages(self) -> None:
+		"""
+		Add the VITAL packages (IEEE Std 1076.4) to this library.
+
+		To add them to a design's ``ieee`` library and its virtual document, use
+		:meth:`Design.LoadVITALPackages() <pyVHDLModel.Design.LoadVITALPackages>`.
+
+		:raises IEEEFlavorChangeError: If the library has the VITAL packages already.
+		"""
+		if IEEEFlavor.WithVITAL in self._flavor:
+			raise IEEEFlavorChangeError(
+				f"IEEE library flavor is '{self._flavor}' and has the VITAL packages already.",
+				currentFlavor=self._flavor,
+				flavor=IEEEFlavor.WithVITAL
+			)
+
 		self._flavor |= IEEEFlavor.WithVITAL
 		self.AddPackages(VITAL_PACKAGES)
 

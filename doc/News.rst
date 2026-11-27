@@ -129,6 +129,10 @@ Version 0.45.0 (2026)
      ``use ieee.std_logic_1164.all;``, the types ``signed`` and ``unsigned`` and 139 functions (conversions,
      arithmetic, shift and logical operators, the comparison functions ``eq`` ... ``ge``), with Mentor Graphics'
      copyright notice.
+   * VITAL package ``ieee.VITAL_Timing`` (:class:`~pyVHDLModel.IEEE.VITALTiming.VITAL_Timing`, loaded with
+     :data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>`) declares its types (transitions, delays, maps,
+     records of timing, period, glitch, path and skew data, table and edge symbols), constants (zero delays, default
+     maps, initial values), the attributes ``VITAL_Level0`` and ``VITAL_Level1`` and ``VitalTimingDataInit``.
 
    .. rubric:: Changes
 

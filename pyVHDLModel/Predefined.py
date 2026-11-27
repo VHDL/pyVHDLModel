@@ -38,10 +38,13 @@ from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
 from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
                                    PackageMemberReferenceSymbol
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin
+from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, Mode
 from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
-from pyVHDLModel.Symbol     import LibraryReferenceSymbol, PackageSymbol, SimpleSubtypeSymbol
+from pyVHDLModel.Symbol     import LibraryReferenceSymbol, PackageSymbol, SimpleSubtypeSymbol, \
+                                   SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Expression import Literal, IntegerLiteral
 from pyVHDLModel.DesignUnit import LibraryClause, UseClause
+from pyVHDLModel.Interface  import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
 from pyVHDLModel.Subprogram import Subprogram
 
 
@@ -181,6 +184,54 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 		:returns:          The type mark.
 		"""
 		return SimpleSubtypeSymbol(SimpleName(identifier))
+
+	@staticmethod
+	def _InParameter(
+		identifiers:       Iterable[str],
+		subtype:           SimpleSubtypeSymbol,
+		defaultExpression: Nullable[Literal | SimpleObjectOrFunctionCallSymbol] = None
+	) -> ParameterConstantInterfaceItem:
+		"""
+		Create a constant parameter of mode ``in`` of a subprogram of a predefined package.
+
+		:param identifiers:       The parameter's identifiers.
+		:param subtype:           The parameter's type mark.
+		:param defaultExpression: Optional, the default value: a literal or a name, e.g. of an enumeration literal.
+		                          Default: ``None``, no default value.
+		:returns:                 The parameter.
+		"""
+		return ParameterConstantInterfaceItem(identifiers, Mode.In, subtype, defaultExpression)
+
+	@staticmethod
+	def _OutParameter(identifiers: Iterable[str], subtype: SimpleSubtypeSymbol) -> ParameterVariableInterfaceItem:
+		"""
+		Create a variable parameter of mode ``out`` of a subprogram of a predefined package.
+
+		:param identifiers: The parameter's identifiers.
+		:param subtype:     The parameter's type mark.
+		:returns:           The parameter.
+		"""
+		return ParameterVariableInterfaceItem(identifiers, Mode.Out, subtype)
+
+	def _LineParameter(self) -> ParameterVariableInterfaceItem:
+		"""
+		Create the parameter ``L : inout LINE`` of the ``READ`` and ``WRITE`` procedures (IEEE Std 1076-2008, 16.4).
+
+		:returns: The parameter.
+		"""
+		return ParameterVariableInterfaceItem(("L",), Mode.InOut, self._TypeMark("line"))
+
+	def _JustificationParameters(self) -> tuple[ParameterConstantInterfaceItem, ParameterConstantInterfaceItem]:
+		"""
+		Create the parameters ``JUSTIFIED : SIDE := RIGHT`` and ``FIELD : WIDTH := 0`` of the ``WRITE`` procedures
+		(IEEE Std 1076-2008, 16.4).
+
+		:returns: The two parameters.
+		"""
+		return (
+			self._InParameter(("JUSTIFIED",), self._TypeMark("side"), SimpleObjectOrFunctionCallSymbol(SimpleName("right"))),
+			self._InParameter(("FIELD",), self._TypeMark("width"), IntegerLiteral(0))
+		)
 
 
 @export

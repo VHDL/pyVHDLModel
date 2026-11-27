@@ -77,6 +77,10 @@ Version 0.45.0 (2026)
      procedures, ``to_string`` and ``from_string`` with their octal and hexadecimal variants: 401 declarations in the
      package's order. The aliases of subprograms (``to_stdlogicvector``, ``bread``, ``to_bstring``, ...) aren't declared
      yet.
+   * Package ``ieee.fixed_pkg`` (:class:`~pyVHDLModel.IEEE.FixedPkg.Fixed_Pkg`) instantiates ``ieee.fixed_generic_pkg``
+     with the generic map of IEEE Std 1076-2008, 16.10: a use clause ``use ieee.fixed_pkg.all;`` makes ``ufixed``,
+     ``to_ufixed``, ... visible. New base class :class:`~pyVHDLModel.Predefined.PredefinedPackageInstantiation` for
+     predefined package instantiations.
 
    .. rubric:: Changes
 

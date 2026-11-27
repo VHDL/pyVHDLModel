@@ -65,6 +65,8 @@ Version 0.45.0 (2026)
      declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 81 functions
      (arithmetic, relational, matching, shift and conversion operators and functions on ``bit_vector``). The aliases
      (``to_bit_vector``, ``to_bv``) aren't declared yet. Its declarations have the package as parent.
+   * Package ``ieee.fixed_float_types`` (:class:`~pyVHDLModel.IEEE.FixedFloatTypes.Fixed_Float_Types`) declares the
+     enumerated types ``fixed_round_style_type``, ``fixed_overflow_style_type`` and ``round_type``.
 
    .. rubric:: Changes
 

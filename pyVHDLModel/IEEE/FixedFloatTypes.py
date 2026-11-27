@@ -33,11 +33,36 @@
 
 from pyTooling.Decorators   import export
 
+from pyVHDLModel.Expression import EnumerationLiteral
+from pyVHDLModel.Type       import EnumeratedType
 from pyVHDLModel.Predefined import PredefinedPackage
 
 
 @export
 class Fixed_Float_Types(PredefinedPackage):
 	"""
-	Predefined package ``ieee.fixed_float_types``.
+	Predefined package ``ieee.fixed_float_types`` (IEEE Std 1076-2008, 16.10 and 16.11).
+
+	It declares the types of the generics of ``fixed_generic_pkg`` and ``float_generic_pkg``, in the order of the
+	package:
+
+	* ``fixed_round_style_type`` with the literals ``fixed_round`` and ``fixed_truncate``
+	* ``fixed_overflow_style_type`` with the literals ``fixed_saturate`` and ``fixed_wrap``
+	* ``round_type`` with the literals ``round_nearest``, ``round_inf``, ``round_neginf`` and ``round_zero``
 	"""
+
+	def __init__(self) -> None:
+		"""
+		Initializes the ``fixed_float_types`` package.
+		"""
+		super().__init__()
+
+		for identifier, literals in (
+			("fixed_round_style_type",    ("fixed_round", "fixed_truncate")),
+			("fixed_overflow_style_type", ("fixed_saturate", "fixed_wrap")),
+			("round_type",                ("round_nearest", "round_inf", "round_neginf", "round_zero"))
+		):
+			self._DeclareItem(
+				EnumeratedType(identifier, [EnumerationLiteral(literal) for literal in literals]),
+				self._types
+			)

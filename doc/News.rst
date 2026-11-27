@@ -116,6 +116,9 @@ Version 0.45.0 (2026)
      types ``strength`` and ``minomax`` and its 29 functions (``strength_map``, ``drive``, ``sense``, the conversions to
      ``bit``/``bit_vector``, the reduction functions ``and_reduce`` ..., ``fun_buf3s`` ...), with Synopsys' copyright
      notice.
+   * Synopsys package ``ieee.std_logic_textio`` (:class:`~pyVHDLModel.IEEE.StdLogicTextIO.Std_Logic_TextIO_Synopsys`)
+     declares its 21 procedures (``read``, ``write`` of ``std_ulogic``, ``std_ulogic_vector`` and ``std_logic_vector``,
+     ``hread``, ``hwrite``, ``oread``, ``owrite``), with Synopsys' copyright notice.
 
    .. rubric:: Changes
 

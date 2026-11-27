@@ -109,6 +109,9 @@ Version 0.45.0 (2026)
      loaded with :data:`IEEEFlavor.Synopsys <pyVHDLModel.IEEEFlavor.Synopsys>`) declares its 33 operators and functions
      (arithmetic and relational operators on ``std_logic_vector``, ``shl``, ``shr``, ``conv_integer``). The module
      carries Synopsys' copyright notice, as the package requires for derivative work.
+   * Synopsys package ``ieee.std_logic_signed`` (:class:`~pyVHDLModel.IEEE.StdLogicSigned.Std_Logic_Signed`) declares
+     its 35 operators and functions (as ``std_logic_unsigned``, and the unary ``"-"`` and ``"abs"``), with Synopsys'
+     copyright notice.
 
    .. rubric:: Changes
 

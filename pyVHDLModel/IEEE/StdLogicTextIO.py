@@ -28,15 +28,27 @@
 #                                                                                                                      #
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
+# Derived from the package declaration of STD_LOGIC_TEXTIO by Synopsys, Inc.:                                          #
+#                                                                                                                      #
+#   Copyright (c) 1990, 1991, 1992 by Synopsys, Inc.  All rights reserved.                                             #
+#                                                                                                                      #
+#   This source file may be used and distributed without restriction                                                   #
+#   provided that this copyright statement is not removed from the file                                                #
+#   and that any derivative work contains this copyright notice.                                                       #
+# ==================================================================================================================== #
 #
 """
 This module contains the predefined package ``ieee.std_logic_textio`` and its Synopsys variant of VHDL library
 ``IEEE``.
 """
 
+from typing                 import Iterable
+
 from pyTooling.Decorators   import export
 
 from pyVHDLModel            import VHDLVersion
+from pyVHDLModel.Interface  import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
+from pyVHDLModel.Subprogram import Procedure
 from pyVHDLModel.Predefined import PredefinedPackage
 
 
@@ -66,6 +78,9 @@ class Std_Logic_TextIO(PredefinedPackage):
 class Std_Logic_TextIO_Synopsys(PredefinedPackage):
 	"""
 	Predefined Synopsys package ``ieee.std_logic_textio``.
+
+	It overloads the procedures ``read`` and ``write`` of ``std.textio`` for ``std_ulogic``, ``std_ulogic_vector`` and
+	``std_logic_vector``, and declares ``hread``, ``hwrite``, ``oread`` and ``owrite`` for the vectors: 21 procedures.
 	"""
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
@@ -83,3 +98,53 @@ class Std_Logic_TextIO_Synopsys(PredefinedPackage):
 
 		self._AddLibraryClause(("IEEE", ))
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
+
+		def procedure(
+			identifier:     str,
+			parameterItems: Iterable[ParameterConstantInterfaceItem | ParameterVariableInterfaceItem]
+		) -> None:
+			"""
+			Nested function declaring a procedure of this package.
+
+			:param identifier:     The procedure's identifier.
+			:param parameterItems: The parameters, in declaration order.
+			"""
+			self._DeclareSubprogram(Procedure(identifier, parameterItems=parameterItems), self._procedures)
+
+		def reads(identifier: str, typeName: str) -> None:
+			"""
+			Nested function declaring a read procedure without and with parameter ``GOOD``.
+
+			:param identifier: The procedure's identifier, e.g. ``read`` or ``hread``.
+			:param typeName:   The name of the type of parameter ``VALUE``.
+			"""
+			procedure(identifier, (self._LineParameter(), self._OutParameter(("VALUE", ), self._TypeMark(typeName))))
+			procedure(identifier, (
+				self._LineParameter(),
+				self._OutParameter(("VALUE", ), self._TypeMark(typeName)),
+				self._OutParameter(("GOOD", ), self._TypeMark("boolean"))
+			))
+
+		def write(identifier: str, typeName: str) -> None:
+			"""
+			Nested function declaring a write procedure.
+
+			:param identifier: The procedure's identifier, e.g. ``write`` or ``hwrite``.
+			:param typeName:   The name of the type of parameter ``VALUE``.
+			"""
+			procedure(identifier, (
+				self._LineParameter(),
+				self._InParameter(("VALUE", ), self._TypeMark(typeName)),
+				*self._JustificationParameters()
+			))
+
+		reads("read", "std_ulogic")
+		reads("read", "std_ulogic_vector")
+		write("write", "std_ulogic")
+		write("write", "std_ulogic_vector")
+		reads("read", "std_logic_vector")
+		write("write", "std_logic_vector")
+		for readIdentifier, writeIdentifier in (("hread", "hwrite"), ("oread", "owrite")):
+			for vectorType in ("std_ulogic_vector", "std_logic_vector"):
+				reads(readIdentifier, vectorType)
+				write(writeIdentifier, vectorType)

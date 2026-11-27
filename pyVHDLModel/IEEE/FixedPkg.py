@@ -31,26 +31,67 @@
 #
 """This module contains the predefined package ``ieee.fixed_pkg`` of VHDL library ``IEEE``."""
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators    import export
 
-from pyVHDLModel            import VHDLVersion
-from pyVHDLModel.Predefined import PredefinedPackage
+from pyVHDLModel             import VHDLVersion
+from pyVHDLModel.Name        import SimpleName, SelectedName
+from pyVHDLModel.Symbol      import PackageReferenceSymbol, SimpleObjectOrFunctionCallSymbol, \
+                                    IndexedObjectOrFunctionCallSymbol
+from pyVHDLModel.Expression  import IntegerLiteral
+from pyVHDLModel.Association import GenericAssociationItem
+from pyVHDLModel.Predefined  import PredefinedPackageInstantiation
 
 
 @export
-class Fixed_Pkg(PredefinedPackage):
+class Fixed_Pkg(PredefinedPackageInstantiation):
 	"""
-	Predefined package ``ieee.fixed_pkg``.
+	Predefined package ``ieee.fixed_pkg`` (IEEE Std 1076-2008, 16.10).
+
+	It instantiates ``ieee.fixed_generic_pkg``:
+
+	.. code-block:: VHDL
+
+	   package fixed_pkg is new IEEE.fixed_generic_pkg
+	     generic map (
+	       fixed_round_style    => IEEE.fixed_float_types.fixed_round,
+	       fixed_overflow_style => IEEE.fixed_float_types.fixed_saturate,
+	       fixed_guard_bits     => 3,
+	       no_warning           => false
+	     );
 	"""
+
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
-		Initializes the ``fixed_pkg`` package.
+		Initializes the ``fixed_pkg`` package instantiation.
 
 		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
 		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__(vhdlVersion)
+		def fixedFloatTypes(identifier: str) -> IndexedObjectOrFunctionCallSymbol:
+			"""
+			Nested function creating the name of an enumeration literal of ``ieee.fixed_float_types``.
+
+			:param identifier: The literal's identifier.
+			:returns:          The name ``IEEE.fixed_float_types.<identifier>``.
+			"""
+			return IndexedObjectOrFunctionCallSymbol(
+				SelectedName(identifier, SelectedName("fixed_float_types", SimpleName("IEEE")))
+			)
+
+		super().__init__(
+			vhdlVersion,
+			PackageReferenceSymbol(SelectedName("fixed_generic_pkg", SimpleName("IEEE"))),
+			(
+				GenericAssociationItem(SimpleName("fixed_round_style"),    fixedFloatTypes("fixed_round")),
+				GenericAssociationItem(SimpleName("fixed_overflow_style"), fixedFloatTypes("fixed_saturate")),
+				GenericAssociationItem(SimpleName("fixed_guard_bits"),     IntegerLiteral(3)),
+				GenericAssociationItem(
+					SimpleName("no_warning"),
+					SimpleObjectOrFunctionCallSymbol(SimpleName("false"))
+				)
+			)
+		)
 
 		self._AddLibraryClause(("IEEE", ))

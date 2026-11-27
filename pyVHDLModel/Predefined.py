@@ -30,22 +30,24 @@
 # ==================================================================================================================== #
 #
 """This module contains base-classes for predefined library and package declarations."""
-from typing                 import Iterable, Optional as Nullable
+from typing                    import Iterable, Optional as Nullable
 
-from pyTooling.Common       import getFullyQualifiedName, getTypeName
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType, abstractclass
+from pyTooling.Common          import getFullyQualifiedName, getTypeName
+from pyTooling.Decorators      import export, readonly
+from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
-from pyVHDLModel            import VHDLVersion, Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
-                                   PackageMemberReferenceSymbol
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, Mode
-from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
-from pyVHDLModel.Symbol     import LibraryReferenceSymbol, PackageSymbol, SimpleSubtypeSymbol, \
-                                   SimpleObjectOrFunctionCallSymbol
-from pyVHDLModel.Expression import Literal, IntegerLiteral
-from pyVHDLModel.DesignUnit import LibraryClause, UseClause
-from pyVHDLModel.Interface  import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
-from pyVHDLModel.Subprogram import Subprogram
+from pyVHDLModel               import VHDLVersion, Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
+                                      PackageMemberReferenceSymbol
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, Mode
+from pyVHDLModel.Name          import SimpleName, SelectedName, AllName
+from pyVHDLModel.Symbol        import LibraryReferenceSymbol, PackageSymbol, PackageReferenceSymbol, \
+                                      SimpleSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Expression    import Literal, IntegerLiteral
+from pyVHDLModel.DesignUnit    import LibraryClause, UseClause
+from pyVHDLModel.Interface     import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
+from pyVHDLModel.Subprogram    import Subprogram
+from pyVHDLModel.Association   import GenericAssociationItem
+from pyVHDLModel.Instantiation import PackageInstantiation
 
 
 @export
@@ -330,4 +332,35 @@ class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 		identifier = getTypeName(self)[:-5] if packageIdentifier is None else packageIdentifier
 		packageSymbol = PackageSymbol(SimpleName(identifier))
 		super().__init__(packageSymbol)
+		PredefinedPackageMixin.__init__(self, vhdlVersion)
+
+
+@export
+@abstractclass
+class PredefinedPackageInstantiation(PackageInstantiation, PredefinedPackageMixin):
+	"""
+	A base-class for predefined VHDL package instantiations.
+
+	An example is ``ieee.fixed_pkg``, an instantiation of ``ieee.fixed_generic_pkg``.
+	"""
+
+	def __init__(
+		self,
+		vhdlVersion:             VHDLVersion,
+		genericPackage:          PackageReferenceSymbol,
+		genericAssociationItems: Iterable[GenericAssociationItem]
+	) -> None:
+		"""
+		Initializes a predefined package instantiation.
+
+		The VHDL package name is the Python class name.
+
+		:param vhdlVersion:             The VHDL version of the declarations.
+		:param genericPackage:          Reference to the instantiated generic package.
+		:param genericAssociationItems: The generic associations of the generic map aspect.
+		:raises ValueError:             If parameter 'vhdlVersion' is None.
+		:raises TypeError:              If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError:             If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		"""
+		super().__init__(getTypeName(self), genericPackage, genericAssociationItems=genericAssociationItems)
 		PredefinedPackageMixin.__init__(self, vhdlVersion)

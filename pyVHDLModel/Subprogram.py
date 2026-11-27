@@ -433,13 +433,13 @@ class Subprogram(
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> tuple[ModelEntity, ...]:
+	def _InterfaceDeclarations(self) -> tuple[ModelEntity, ...]:
 		"""
-		Return all declarations of this subprogram: its generics and parameters share the declarative region.
+		Return the interface items of this subprogram: its generics and parameters share the declarative region.
 
-		:returns: Tuple of declarations: the generics, the parameters, then the declared items.
+		:returns: Tuple of the generics, then the parameters.
 		"""
-		return (*self._genericItems, *self._parameterItems, *super()._Declarations())
+		return (*self._genericItems, *self._parameterItems)
 
 	def _LabelRegion(self) -> Subprogram:
 		"""

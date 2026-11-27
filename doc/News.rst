@@ -45,6 +45,8 @@ Version 0.45.0 (2026)
 
    .. rubric:: Changes
 
+   * Adding a declared item finds clashing declarations by an index of the declared items by name instead of visiting
+     every declaration of the region: filling a package with n declarations took quadratic time.
    * :mod:`pyVHDLModel.IEEE` is a package with one module per VHDL package, e.g.
      :mod:`~pyVHDLModel.IEEE.StdLogic1164` for ``ieee.std_logic_1164``. The classes are importable from
      :mod:`pyVHDLModel.IEEE` as before.

@@ -1261,7 +1261,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			entity.Library = library
 
 		for entityIdentifier, architectures in document._architectures.items():
-			architecturesPerEntity = library._architectures.setdefault(entityIdentifier, {})
+			if (architecturesPerEntity := library._architectures.get(entityIdentifier)) is None:
+				library._architectures[entityIdentifier] = architecturesPerEntity = {}
+
 			for architectureIdentifier, architecture in architectures.items():
 				architecturesPerEntity[architectureIdentifier] = architecture
 				architecture.Library = library
@@ -2363,7 +2365,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					raise ex from cause
 
 				if isContextItem:
-					designUnit._referencedPackages.setdefault(libraryIdentifier, {})[packageIdentifier] = package
+					if (referencedPackages := designUnit._referencedPackages.get(libraryIdentifier)) is None:
+						designUnit._referencedPackages[libraryIdentifier] = {packageIdentifier: package}
+					else:
+						referencedPackages[packageIdentifier] = package
 
 				dependency =         designUnit._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=useClause)
 				dependency["kind"] = DependencyGraphEdgeKind.UseClause
@@ -2506,7 +2511,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					contextSymbol.Context = referencedContext
 
-					designUnit._referencedContexts.setdefault(libraryIdentifier, {})[contextIdentifier] = referencedContext
+					if (referencedContexts := designUnit._referencedContexts.get(libraryIdentifier)) is None:
+						designUnit._referencedContexts[libraryIdentifier] = {contextIdentifier: referencedContext}
+					else:
+						referencedContexts[contextIdentifier] = referencedContext
 
 					dependency = designUnit._dependencyVertex.EdgeToVertex(referencedContext._dependencyVertex, edgeValue=contextReference)
 					dependency["kind"] = DependencyGraphEdgeKind.ContextReference
@@ -2520,7 +2528,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					# 	raise VHDLModelException(f"Referenced library '{library.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
 
 					designUnit._referencedLibraries[libraryIdentifier] = library
-					designUnit._referencedPackages.setdefault(libraryIdentifier, {})
+					if libraryIdentifier not in designUnit._referencedPackages:
+						designUnit._referencedPackages[libraryIdentifier] = {}
 
 				for libraryIdentifier, packages in context._referencedPackages.items():
 					for packageIdentifier, package in packages.items():
@@ -4200,9 +4209,16 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.insert(index, designUnit)
 		designUnit._document = self
 		if isinstance(designUnit, Architecture):
-			self._architectures.setdefault(entityIdentifier, {})[identifier] = designUnit
+			if (architectures := self._architectures.get(entityIdentifier)) is None:
+				self._architectures[entityIdentifier] = {identifier: designUnit}
+			else:
+				architectures[identifier] = designUnit
+
 			if library is not None:
-				library._architectures.setdefault(entityIdentifier, {})[identifier] = designUnit
+				if (architectures := library._architectures.get(entityIdentifier)) is None:
+					library._architectures[entityIdentifier] = {identifier: designUnit}
+				else:
+					architectures[identifier] = designUnit
 		else:
 			documentUnits[identifier] = designUnit
 			if libraryUnits is not None:

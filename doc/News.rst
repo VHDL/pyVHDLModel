@@ -67,6 +67,11 @@ Version 0.45.0 (2026)
      (``to_bit_vector``, ``to_bv``) aren't declared yet. Its declarations have the package as parent.
    * Package ``ieee.fixed_float_types`` (:class:`~pyVHDLModel.IEEE.FixedFloatTypes.Fixed_Float_Types`) declares the
      enumerated types ``fixed_round_style_type``, ``fixed_overflow_style_type`` and ``round_type``.
+   * Package ``ieee.fixed_generic_pkg`` (:class:`~pyVHDLModel.IEEE.FixedGenericPkg.Fixed_Generic_Pkg`) declares the
+     generics ``fixed_round_style``, ``fixed_overflow_style``, ``fixed_guard_bits`` and ``no_warning``, the constant
+     ``CopyRightNotice``, the types ``unresolved_ufixed`` and ``unresolved_sfixed``, the aliases ``u_ufixed`` and
+     ``u_sfixed``, the subtypes ``ufixed`` and ``sfixed``, and the arithmetic operators and functions (``divide``,
+     ``reciprocal``, ``remainder``, ``modulo``, ``add_carry``, ``scalb``, ``is_negative``).
 
    .. rubric:: Changes
 

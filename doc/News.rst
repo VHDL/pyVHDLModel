@@ -156,8 +156,7 @@ Version 0.45.0 (2026)
      with their signatures, at their places in the package's order: the string conversions (``to_bstring``,
      ``to_binary_string``, ``to_octal_string``, ``to_hex_string``) and the ``read``/``write`` procedures (``bread``,
      ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ``binary_write``, ``octal_write``, ``hex_write``) of
-     ``unsigned`` and ``signed``. The analysis resolves each alias. The aliases ``rising_edge`` and ``falling_edge`` of
-     ``numeric_bit`` aren't declared yet.
+     ``unsigned`` and ``signed``. The analysis resolves each alias.
    * Packages ``ieee.numeric_std_unsigned`` and ``ieee.numeric_bit_unsigned`` declare the aliases of their conversion
      functions with their signatures, after the functions: ``to_std_logic_vector``, ``to_slv``,
      ``to_std_ulogic_vector`` and ``to_sulv`` (8), ``to_bit_vector`` and ``to_bv`` (4). The analysis resolves each alias
@@ -173,6 +172,12 @@ Version 0.45.0 (2026)
      procedures (``bread``, ``bwrite``, ``binary_read``, ``octal_read``, ``hex_write``, ...), of ``to_string``,
      ``to_hstring`` and ``to_ostring`` (``to_bstring``, ...) and of ``from_string`` (``from_bstring``, ...). The
      analysis resolves each alias.
+   * Types ``boolean`` and ``bit`` of ``std.standard`` (:class:`~pyVHDLModel.STD.Boolean`,
+     :class:`~pyVHDLModel.STD.Bit`) declare the functions ``rising_edge`` and ``falling_edge`` (``signal S``) of IEEE
+     Std 1076-2008, 16.3 as implicit operations (new :class:`~pyVHDLModel.STD.EdgeFunctionsMixin`). Package
+     ``ieee.numeric_bit`` declares its aliases ``rising_edge`` and ``falling_edge`` of
+     ``STD.STANDARD.RISING_EDGE [STD.STANDARD.BIT return STD.STANDARD.BOOLEAN]``; the analysis resolves the expanded
+     names.
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

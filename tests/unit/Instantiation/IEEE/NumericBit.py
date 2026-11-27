@@ -53,7 +53,7 @@ class NumericBits(Testcase):
 	"""Package ``ieee.numeric_bit`` (IEEE Std 1076-2008, 16.8)."""
 
 	def test_Declarations(self) -> None:
-		"""The constant and types first, then 218 functions, 18 procedures and 32 aliases."""
+		"""The constant and types first, then 218 functions, 18 procedures and 34 aliases."""
 		numericBit =   Numeric_Bit()
 		declarations = numericBit.DeclaredItems
 
@@ -62,8 +62,8 @@ class NumericBits(Testcase):
 		self.assertListEqual(["unsigned", "signed"], [declaration.Identifier for declaration in declarations[1:3]])
 		self.assertEqual(218, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
 		self.assertEqual(18, len([declaration for declaration in declarations if isinstance(declaration, Procedure)]))
-		self.assertEqual(32, len([declaration for declaration in declarations if isinstance(declaration, Alias)]))
-		self.assertEqual(271, len(declarations))
+		self.assertEqual(34, len([declaration for declaration in declarations if isinstance(declaration, Alias)]))
+		self.assertEqual(273, len(declarations))
 		for declaration in declarations:
 			self.assertIs(numericBit, declaration.Parent)
 
@@ -176,26 +176,28 @@ class NumericBits(Testcase):
 		self.assertIsNotNone(numericBit.Procedures["read"][0].ParameterItems[0].Subtype.Reference)
 
 	def test_Aliases(self) -> None:
-		"""``alias BREAD is READ [LINE, UNSIGNED, BOOLEAN];``: 32 aliases with a signature."""
+		"""``alias BREAD is READ [LINE, UNSIGNED, BOOLEAN];``: 34 aliases with a signature."""
 		aliases = [declaration for declaration in Numeric_Bit().DeclaredItems if isinstance(declaration, Alias)]
 
 		self.assertListEqual(
 			[
-				*(["to_bstring"] * 2), *(["to_binary_string"] * 2), *(["to_octal_string"] * 2), *(["to_hex_string"] * 2),
-				*(["bread"] * 4), *(["binary_read"] * 4), *(["octal_read"] * 4), *(["hex_read"] * 4), *(["bwrite"] * 2),
-				*(["binary_write"] * 2), *(["octal_write"] * 2), *(["hex_write"] * 2)
+				"rising_edge", "falling_edge", *(["to_bstring"] * 2), *(["to_binary_string"] * 2),
+				*(["to_octal_string"] * 2), *(["to_hex_string"] * 2), *(["bread"] * 4), *(["binary_read"] * 4),
+				*(["octal_read"] * 4), *(["hex_read"] * 4), *(["bwrite"] * 2), *(["binary_write"] * 2), *(["octal_write"] * 2),
+				*(["hex_write"] * 2)
 			],
 			[alias.Identifier for alias in aliases]
 		)
 		self.assertListEqual(
 			[
-				*(["to_string"] * 4), *(["to_ostring"] * 2), *(["to_hstring"] * 2), *(["read"] * 8), *(["oread"] * 4),
-				*(["hread"] * 4), *(["write"] * 4), *(["owrite"] * 2), *(["hwrite"] * 2)
+				"rising_edge", "falling_edge", *(["to_string"] * 4), *(["to_ostring"] * 2), *(["to_hstring"] * 2),
+				*(["read"] * 8), *(["oread"] * 4), *(["hread"] * 4), *(["write"] * 4), *(["owrite"] * 2), *(["hwrite"] * 2)
 			],
 			[alias.Name.Name.Identifier for alias in aliases]
 		)
 		self.assertListEqual(
 			[
+				*(["[std.standard.bit return std.standard.boolean]"] * 2),
 				*(["[unsigned return string]", "[signed return string]"] * 4),
 				*([
 					"[line, unsigned, boolean]",
@@ -215,7 +217,8 @@ class NumericBits(Testcase):
 	def test_AnalyzeAliases(self) -> None:
 		"""
 		The analysis resolves the name of each alias to the subprogram of the signature's type profile, e.g.
-		``TO_BSTRING [UNSIGNED return STRING]`` to the implicit ``TO_STRING`` of ``UNSIGNED``.
+		``TO_BSTRING [UNSIGNED return STRING]`` to the implicit ``TO_STRING`` of ``UNSIGNED``, ``RISING_EDGE`` to the
+		implicit ``RISING_EDGE`` of ``STD.STANDARD.BIT``.
 		"""
 		design = Design("design")
 		design.LoadStdLibrary()
@@ -226,11 +229,12 @@ class NumericBits(Testcase):
 		self.assertListEqual([], list(collector.Warnings))
 		numericBit = design.Libraries["ieee"].Packages["numeric_bit"]
 		aliases =    [declaration for declaration in numericBit.DeclaredItems if isinstance(declaration, Alias)]
-		self.assertEqual(32, len(aliases))
+		self.assertEqual(34, len(aliases))
 		for alias in aliases:
 			self.assertIsNotNone(alias.Name.Reference)
 			self.assertEqual(alias.Name.Name.Identifier, alias.Name.Reference.NormalizedDesignator)
 			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
 
-		self.assertIs(numericBit.Types["unsigned"], aliases[0].Name.Reference.Parent)
-		self.assertIs(numericBit.Procedures["read"][3], aliases[11].Name.Reference)
+		self.assertIs(design.Libraries["std"].Packages["standard"].Types["bit"], aliases[0].Name.Reference.Parent)
+		self.assertIs(numericBit.Types["unsigned"], aliases[2].Name.Reference.Parent)
+		self.assertIs(numericBit.Procedures["read"][3], aliases[13].Name.Reference)

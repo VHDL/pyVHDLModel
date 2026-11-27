@@ -62,7 +62,7 @@ from pathlib                   import Path
 
 from typing                    import TYPE_CHECKING, Union, cast, Generator, Optional as Nullable
 
-from pyTooling.Common          import getFullyQualifiedName, getTypeName
+from pyTooling.Common          import getFullyQualifiedName, getTypeName, firstValue
 from pyTooling.Decorators      import export, readonly
 from pyTooling.Graph           import Graph, Vertex, Edge
 from pyTooling.Warning         import WarningCollector
@@ -763,13 +763,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			ex.add_note("Call 'LoadIEEELibrary()' before loading the VITAL packages.")
 			raise ex
 
-		designUnits = set(library.IterateDesignUnits())
-		document =    next(iter(designUnits))._document
-		library.LoadVITALPackages()
-
-		for designUnit in library.IterateDesignUnits():
-			if designUnit not in designUnits:
-				document._AddDesignUnit(designUnit)
+		document = firstValue(library._packages)._document
+		for designUnit in library.LoadVITALPackages():
+			document._AddDesignUnit(designUnit)
 
 		return library
 

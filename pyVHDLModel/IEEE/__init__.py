@@ -39,7 +39,7 @@ from typing                              import Optional as Nullable
 
 from pyTooling.Decorators                import export, readonly
 
-from pyVHDLModel                         import VHDLVersion, IEEEFlavor
+from pyVHDLModel                         import VHDLVersion, IEEEFlavor, Package, PackageBody
 from pyVHDLModel.Exception               import UnknownIEEEFlavorError, IEEEFlavorChangeError
 from pyVHDLModel.Predefined              import PredefinedLibrary
 from pyVHDLModel.IEEE.MathReal           import Math_Real, Math_Real_Body
@@ -192,13 +192,14 @@ class Ieee(PredefinedLibrary):
 		self._flavor = (self._flavor & ~IEEEFlavor.IEEE) | IEEEFlavor.MentorGraphics
 		self.AddPackages(MENTOR_GRAPHICS_PACKAGES)
 
-	def LoadVITALPackages(self) -> None:
+	def LoadVITALPackages(self) -> tuple[Package | PackageBody, ...]:
 		"""
 		Add the VITAL packages (IEEE Std 1076.4) to this library.
 
 		To add them to a design's ``ieee`` library and its virtual document, use
 		:meth:`Design.LoadVITALPackages() <pyVHDLModel.Design.LoadVITALPackages>`.
 
+		:returns:                      Tuple of the added packages and package bodies, each package followed by its body.
 		:raises IEEEFlavorChangeError: If the library has the VITAL packages already.
 		"""
 		if IEEEFlavor.WithVITAL in self._flavor:
@@ -209,7 +210,7 @@ class Ieee(PredefinedLibrary):
 			)
 
 		self._flavor |= IEEEFlavor.WithVITAL
-		self.AddPackages(VITAL_PACKAGES)
+		return self.AddPackages(VITAL_PACKAGES)
 
 
 PACKAGES = (

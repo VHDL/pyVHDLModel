@@ -37,7 +37,7 @@ from pyTooling.Graph           import Graph
 from pyTooling.Testing         import Testcase
 
 from pyVHDLModel               import Design, Library, Document, IEEEFlavor, ObjectClass, LibraryExistsInDesignError, \
-                                      VHDLModelException
+                                      VHDLModelException, VHDLVersion
 from pyVHDLModel.Base          import Direction, SimpleRange
 from pyVHDLModel.Name          import SelectedName, SimpleName, AllName, AttributeName
 from pyVHDLModel.Object        import Constant, Signal
@@ -59,7 +59,7 @@ from pyVHDLModel.Exception     import IEEEFlavorError, UnknownIEEEFlavorError, I
 from pyVHDLModel.Instantiation import PackageInstantiation, FunctionInstantiation, ProcedureInstantiation
 from pyVHDLModel.PSLModel      import DefaultClock
 from pyVHDLModel.STD           import Std, Standard
-from pyVHDLModel.IEEE          import Std_Logic_1164
+from pyVHDLModel.IEEE          import Ieee, Std_Logic_1164
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -993,6 +993,23 @@ class VHDLLibrary(Testcase):
 			self.assertIs(document, ieeeLibrary.PackageBodies[identifier].Document)
 
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
+
+	def test_Ieee_LoadVITALPackages(self) -> None:
+		"""``Ieee.LoadVITALPackages()`` returns the added packages, each followed by its package body."""
+		ieeeLibrary = Ieee(VHDLVersion.VHDL2008, IEEEFlavor.IEEE)
+		designUnits = ieeeLibrary.LoadVITALPackages()
+
+		self.assertTupleEqual(
+			(
+				ieeeLibrary.Packages["vital_timing"],
+				ieeeLibrary.PackageBodies["vital_timing"],
+				ieeeLibrary.Packages["vital_primitives"],
+				ieeeLibrary.PackageBodies["vital_primitives"],
+				ieeeLibrary.Packages["vital_memory"],
+				ieeeLibrary.PackageBodies["vital_memory"]
+			),
+			designUnits
+		)
 
 	def test_LoadVITALPackages_Twice(self) -> None:
 		"""Loading the VITAL packages a second time is an error."""

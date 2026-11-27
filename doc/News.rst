@@ -137,7 +137,8 @@ Version 0.45.0 (2026)
      (IEEE Std 1076.4) to the design's library ``ieee`` and its virtual document, after
      :meth:`~pyVHDLModel.Design.LoadIEEELibrary`; the flavor
      :data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>` stays as shortcut. ``Ieee.LoadVITALPackages()``
-     raises :exc:`~pyVHDLModel.Exception.IEEEFlavorChangeError`, if the library has them already.
+     returns the added packages and package bodies; it raises :exc:`~pyVHDLModel.Exception.IEEEFlavorChangeError`, if
+     the library has them already.
 
    .. rubric:: Changes
 

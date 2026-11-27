@@ -129,16 +129,32 @@ class PredefinedLibrary(Library):
 			context.Library =                              self
 			self._contexts[context.NormalizedIdentifier] = context
 
-	def AddPackages(self, packages) -> None:
+	def AddPackages(
+		self,
+		packages: Iterable[tuple[type["PredefinedPackage"], Nullable[type["PredefinedPackageBody"]]]]
+	) -> tuple[Package | PackageBody, ...]:
+		"""
+		Create the predefined packages and package bodies of this library with the library's VHDL version and add them to
+		the library.
+
+		:param packages: Pairs of a predefined package's class and its package body's class, or ``None`` for a package
+		                 without body.
+		:returns:        Tuple of the added packages and package bodies, each package followed by its body.
+		"""
+		designUnits = []
 		for packageType, packageBodyType in packages:
 			package: Package = packageType(self._vhdlVersion)
 			package.Library = self
 			self._packages[package.NormalizedIdentifier] = package
+			designUnits.append(package)
 
 			if packageBodyType is not None:
 				packageBody: PackageBody = packageBodyType(self._vhdlVersion)
 				packageBody.Library = self
 				self._packageBodies[packageBody.NormalizedIdentifier] = packageBody
+				designUnits.append(packageBody)
+
+		return tuple(designUnits)
 
 
 @export

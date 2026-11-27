@@ -36,8 +36,8 @@ from pyTooling.Common          import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators      import export, readonly
 from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
-from pyVHDLModel               import VHDLVersion, Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
-                                      PackageMemberReferenceSymbol
+from pyVHDLModel               import VHDLVersion, Library, Package, PackageBody, Context, \
+                                      AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, Mode
 from pyVHDLModel.Name          import SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol        import LibraryReferenceSymbol, PackageSymbol, PackageReferenceSymbol, \
@@ -117,6 +117,17 @@ class PredefinedLibrary(Library):
 		:returns: ``True``
 		"""
 		return True
+
+	def AddContexts(self, contexts: Iterable[type["PredefinedContext"]]) -> None:
+		"""
+		Create the predefined contexts of this library with the library's VHDL version and add them to the library.
+
+		:param contexts: The classes of the predefined contexts.
+		"""
+		for contextType in contexts:
+			context: Context = contextType(self._vhdlVersion)
+			context.Library =                              self
+			self._contexts[context.NormalizedIdentifier] = context
 
 	def AddPackages(self, packages) -> None:
 		for packageType, packageBodyType in packages:
@@ -363,4 +374,30 @@ class PredefinedPackageInstantiation(PackageInstantiation, PredefinedPackageMixi
 		:raises ValueError:             If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
 		super().__init__(getTypeName(self), genericPackage, genericAssociationItems=genericAssociationItems)
+		PredefinedPackageMixin.__init__(self, vhdlVersion)
+
+
+@export
+@abstractclass
+class PredefinedContext(Context, PredefinedPackageMixin):
+	"""
+	A base-class for predefined VHDL context declarations.
+
+	An example is ``ieee.ieee_std_context``. The context items are added by the derived class with
+	:meth:`_AddLibraryClause` and :meth:`_AddPackageClause`.
+	"""
+
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008, identifier: Nullable[str] = None) -> None:
+		"""
+		Initializes a predefined context declaration.
+
+		By default the VHDL context name is the Python class name.
+
+		:param vhdlVersion: Optional, the VHDL version of the context items. Default: ``VHDLVersion.VHDL2008``.
+		:param identifier:  Optional, the VHDL context name. Default: ``None``, the class name.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		"""
+		super().__init__(getTypeName(self) if identifier is None else identifier)
 		PredefinedPackageMixin.__init__(self, vhdlVersion)

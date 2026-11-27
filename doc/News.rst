@@ -100,6 +100,11 @@ Version 0.45.0 (2026)
    * Package ``ieee.float_pkg`` (:class:`~pyVHDLModel.IEEE.FloatPkg.Float_Pkg`) instantiates ``ieee.float_generic_pkg``
      with the generic map of IEEE Std 1076-2008, 16.11, ``fixed_pkg => IEEE.fixed_pkg`` included: a use clause
      ``use ieee.float_pkg.all;`` makes ``float32``, ``to_float``, ... visible.
+   * Library ``ieee`` declares the contexts ``ieee_std_context``
+     (:class:`~pyVHDLModel.IEEE.IeeeStdContext.Ieee_Std_Context`) and ``ieee_bit_context``
+     (:class:`~pyVHDLModel.IEEE.IeeeBitContext.Ieee_Bit_Context`) of IEEE Std 1076-2008, 16.9.
+     New base class :class:`~pyVHDLModel.Predefined.PredefinedContext` and
+     :meth:`PredefinedLibrary.AddContexts() <pyVHDLModel.Predefined.PredefinedLibrary.AddContexts>`.
 
    .. rubric:: Changes
 

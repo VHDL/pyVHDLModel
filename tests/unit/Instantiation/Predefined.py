@@ -47,7 +47,7 @@ class VHDLVersions(Testcase):
 	"""The VHDL version of the predefined libraries, packages and package bodies."""
 
 	def test_Default(self) -> None:
-		"""Without a parameter, a library, its packages and package bodies are VHDL-2008."""
+		"""Without a parameter, a library, its packages, package bodies and contexts are VHDL-2008."""
 		ieee = Ieee()
 
 		self.assertIs(VHDLVersion.VHDL2008, ieee.VHDLVersion)
@@ -56,6 +56,10 @@ class VHDLVersions(Testcase):
 
 		for packageBody in ieee.PackageBodies.values():
 			self.assertIs(VHDLVersion.VHDL2008, packageBody.VHDLVersion)
+
+		for context in ieee.Contexts.values():
+			self.assertIs(VHDLVersion.VHDL2008, context.VHDLVersion)
+			self.assertIs(ieee, context.Library)
 
 	def test_Std(self) -> None:
 		"""``Std(VHDLVersion.VHDL2008)`` passes the version on to its packages."""

@@ -63,6 +63,8 @@ from pyVHDLModel.IEEE.VITALMemory        import VITAL_Memory, VITAL_Memory_Body
 from pyVHDLModel.IEEE.StdLogicMisc       import Std_Logic_Misc, Std_Logic_Misc_Body
 from pyVHDLModel.IEEE.StdLogicSigned     import Std_Logic_Signed
 from pyVHDLModel.IEEE.StdLogicUnsigned   import Std_Logic_Unsigned
+from pyVHDLModel.IEEE.IeeeStdContext     import Ieee_Std_Context
+from pyVHDLModel.IEEE.IeeeBitContext     import Ieee_Bit_Context
 
 
 @export
@@ -96,6 +98,11 @@ class Ieee(PredefinedLibrary):
 	  * :class:`~pyVHDLModel.IEEE.FixedPkg.Fixed_Pkg`
 	  * :class:`~pyVHDLModel.IEEE.FloatGenericPkg.Float_Generic_Pkg`
 	  * :class:`~pyVHDLModel.IEEE.FloatPkg.Float_Pkg`
+
+	* Contexts
+
+	  * :class:`~pyVHDLModel.IEEE.IeeeStdContext.Ieee_Std_Context`
+	  * :class:`~pyVHDLModel.IEEE.IeeeBitContext.Ieee_Bit_Context`
 
 	* Synopsys packages
 
@@ -137,6 +144,7 @@ class Ieee(PredefinedLibrary):
 		:raises UnknownIEEEFlavorError: If the given IEEE library flavor is unknown.
 		"""
 		super().__init__(PACKAGES, vhdlVersion)
+		self.AddContexts(CONTEXTS)
 
 		self._flavor = IEEEFlavor.IEEE
 		if flavor is None:
@@ -203,6 +211,12 @@ PACKAGES = (
 	(Fixed_Pkg,            None),
 	(Float_Generic_Pkg,    Float_Generic_Pkg_Body),
 	(Float_Pkg,            None),
+)
+
+
+CONTEXTS = (
+	Ieee_Std_Context,
+	Ieee_Bit_Context
 )
 
 

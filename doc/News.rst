@@ -86,6 +86,13 @@ Version 0.45.0 (2026)
      (:class:`~pyVHDLModel.Interface.InterfacePackageGenericMap`: ``<>``, ``default`` or associations). The analysis
      links the package, and a use clause naming the interface package (``use fixed_pkg.all;``) imports the declarations
      of the generic package.
+   * Package ``ieee.float_generic_pkg`` (:class:`~pyVHDLModel.IEEE.FloatGenericPkg.Float_Generic_Pkg`) declares the
+     generics (``float_exponent_width`` ... ``no_warning`` and the package generic ``fixed_pkg``), the constant
+     ``CopyRightNotice``, the use clause ``use fixed_pkg.all;``, the type ``unresolved_float``, the subtypes ``float``,
+     ``float32``, ``float64``, ``float128`` (and their unresolved forms and aliases), the type ``valid_fpstate``, the
+     deferred constant ``fphdlsynth_or_real``, ``classfp``, the arithmetic operators and functions, the comparison
+     functions and relational operators, ``resize``, the conversion functions, ``to_01``, ``is_x``, ``break_number`` and
+     ``normalize``.
 
    .. rubric:: Changes
 

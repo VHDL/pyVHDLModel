@@ -192,6 +192,7 @@ class VHDLLibrary(Testcase):
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
+		design.IndexPackages()
 		design.LinkArchitectures()
 		design.LinkPackageBodies()
 		design.LinkLibraryReferences()
@@ -201,6 +202,7 @@ class VHDLLibrary(Testcase):
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
+		design.IndexPackages()
 		design.LinkContexts()
 		design.LinkArchitectures()
 		design.LinkPackageBodies()

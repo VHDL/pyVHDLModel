@@ -61,6 +61,10 @@ Version 0.45.0 (2026)
      declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 79 functions
      (arithmetic, relational, matching, shift and conversion operators and functions on ``std_ulogic_vector``). The
      aliases (``to_slv``, ``to_sulv``, ...) aren't declared yet. Its declarations have the package as parent.
+   * Package ``ieee.numeric_bit_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericBitUnsigned.Numeric_Bit_Unsigned`)
+     declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 81 functions
+     (arithmetic, relational, matching, shift and conversion operators and functions on ``bit_vector``). The aliases
+     (``to_bit_vector``, ``to_bv``) aren't declared yet. Its declarations have the package as parent.
 
    .. rubric:: Changes
 

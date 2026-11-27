@@ -305,6 +305,9 @@ class TextIO(PredefinedPackage):
 
 	The aliases of the standard (``string_read``, ``bread``, ``swrite``, ``hex_write``, ...) aren't declared.
 
+	With :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`, it declares the addition of IEEE Std
+	1076-2019, 16.4: the type ``line_vector`` after ``line``.
+
 	.. seealso::
 
 	   Matching :class:`Package Body <pyVHDLModel.STD.TextIO_Body>` declaration.
@@ -322,6 +325,10 @@ class TextIO(PredefinedPackage):
 		super().__init__(vhdlVersion)
 
 		self._DeclareItem(AccessType("line", self._TypeMark("string")), self._types)
+		if vhdlVersion is VHDLVersion.VHDL2019:
+			lineVector = ArrayType("line_vector", (self._TypeMark("natural"),), self._TypeMark("line"))
+			self._DeclareItem(lineVector, self._types)
+
 		self._DeclareItem(FileType("text", self._TypeMark("string")), self._types)
 		self._DeclareItem(EnumeratedType("side", (EnumerationLiteral("right"), EnumerationLiteral("left"))), self._types)
 		self._DeclareItem(Subtype("width", self._TypeMark("natural")), self._subtypes)

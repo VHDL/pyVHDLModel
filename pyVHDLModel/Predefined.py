@@ -172,7 +172,11 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 		:param subprogram: The subprogram.
 		:param table:      The lookup table of the subprogram's kind, :attr:`_procedures` or :attr:`_functions`.
 		"""
-		table.setdefault(subprogram._normalizedIdentifier, []).append(subprogram)
+		if (overloads := table.get(subprogram._normalizedIdentifier)) is None:
+			table[subprogram._normalizedIdentifier] = [subprogram]
+		else:
+			overloads.append(subprogram)
+
 		self.AddDeclaredItem(subprogram)
 
 	@staticmethod

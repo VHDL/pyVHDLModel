@@ -3470,12 +3470,20 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		elif isinstance(item, Function):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._functions.get(item._normalizedIdentifier)) is None:
+				self._functions[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		elif isinstance(item, Procedure):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._procedures.get(item._normalizedIdentifier)) is None:
+				self._procedures[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		elif isinstance(item, Constant):
 			for normalizedIdentifier in item._normalizedIdentifiers:
@@ -3745,12 +3753,20 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		elif isinstance(item, Function):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._functions.get(item._normalizedIdentifier)) is None:
+				self._functions[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		elif isinstance(item, Procedure):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._procedures.get(item._normalizedIdentifier)) is None:
+				self._procedures[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		elif isinstance(item, Constant):
 			for normalizedIdentifier in item._normalizedIdentifiers:
@@ -3914,12 +3930,20 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		if isinstance(item, Function):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._functions.get(item._normalizedIdentifier)) is None:
+				self._functions[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		elif isinstance(item, Procedure):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._procedures.get(item._normalizedIdentifier)) is None:
+				self._procedures[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		else:
 			self._IndexOtherDeclaredItem(item)

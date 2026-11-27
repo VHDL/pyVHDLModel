@@ -436,8 +436,10 @@ class Namespace(Generic[K, O]):
 		self._elements[normalizedIdentifier] = element
 
 		for declaration in element.IterateImplicitDeclarations():
-			declarations = self._implicitDeclarations.setdefault(declaration.NormalizedDesignator, [])
-			if not any(existing is declaration for existing in declarations):
+			normalizedDesignator = declaration.NormalizedDesignator
+			if (declarations := self._implicitDeclarations.get(normalizedDesignator)) is None:
+				self._implicitDeclarations[normalizedDesignator] = [declaration]
+			elif not any(existing is declaration for existing in declarations):
 				declarations.append(declaration)
 
 	def RemoveElement(self, normalizedIdentifier: K, element: O) -> None:
@@ -500,8 +502,9 @@ class Namespace(Generic[K, O]):
 		:param useClause:            The use clause importing the item, or ``None`` for the implicit
 		                             ``use std.standard.all;``.
 		"""
-		imports = self._imports.setdefault(normalizedIdentifier, [])
-		if not any(existing._element is element and existing._useClause is useClause for existing in imports):
+		if (imports := self._imports.get(normalizedIdentifier)) is None:
+			self._imports[normalizedIdentifier] = [Import(element, useClause)]
+		elif not any(existing._element is element and existing._useClause is useClause for existing in imports):
 			imports.append(Import(element, useClause))
 
 	def AddImports(self, declarations: Iterable[ModelEntity], useClause: Nullable[_UseClause]) -> None:
@@ -577,8 +580,10 @@ class Namespace(Generic[K, O]):
 		:param fullType: The full type declaring the operations (:attr:`~pyVHDLModel.Type.FullType.ImplicitOperations`).
 		"""
 		for operation in fullType.ImplicitOperations:
-			operations = self._implicitOperations.setdefault(operation.NormalizedDesignator, [])
-			if not any(existing is operation for existing in operations):
+			normalizedDesignator = operation.NormalizedDesignator
+			if (operations := self._implicitOperations.get(normalizedDesignator)) is None:
+				self._implicitOperations[normalizedDesignator] = [operation]
+			elif not any(existing is operation for existing in operations):
 				operations.append(operation)
 
 	def ImportImplicitOperations(self) -> None:

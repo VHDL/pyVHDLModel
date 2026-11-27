@@ -56,7 +56,6 @@ Version 0.45.0 (2026)
      ``std_ulogic_vector``, the function ``resolved``, the subtypes ``std_logic``, ``std_logic_vector``, ``x01``,
      ``x01z``, ``ux01``, ``ux01z``, the logical and shift operators, the conversion functions, ``"??"``,
      ``rising_edge``, ``falling_edge``, ``is_x``, ``to_ostring``, ``to_hstring`` and the ``read``/``write`` procedures.
-     The aliases (``to_slv``, ``to_bstring``, ``bread``, ...) aren't declared yet.
    * Package ``ieee.numeric_std_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericStdUnsigned.Numeric_Std_Unsigned`)
      declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 79 functions
      (arithmetic, relational, matching, shift and conversion operators and functions on ``std_ulogic_vector``). The
@@ -148,6 +147,13 @@ Version 0.45.0 (2026)
      ``octal_read``, ``hex_read``, ``swrite``, ``string_write``, ``bwrite``, ``binary_write``, ``octal_write``,
      ``hex_write``) with their signatures, at their places in the order of IEEE Std 1076-2008, 16.4, e.g.
      ``alias BREAD is READ [LINE, BIT_VECTOR];``. The analysis resolves each alias to its procedure.
+   * Package ``ieee.std_logic_1164`` declares its 26 aliases of functions and procedures with their signatures, at
+     their places in the order of IEEE Std 1076-2008, 16.7: the conversions (``to_bit_vector``, ``to_bv``,
+     ``to_std_logic_vector``, ``to_slv``, ``to_std_ulogic_vector``, ``to_sulv``), the string conversions
+     (``to_bstring``, ``to_binary_string``, ``to_octal_string``, ``to_hex_string``) and the ``read``/``write``
+     procedures (``bread``, ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ``binary_write``,
+     ``octal_write``, ``hex_write``). The analysis resolves each alias, ``to_bstring`` to the implicit ``to_string`` of
+     ``std_ulogic_vector``.
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

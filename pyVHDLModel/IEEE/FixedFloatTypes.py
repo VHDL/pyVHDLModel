@@ -33,6 +33,7 @@
 
 from pyTooling.Decorators   import export
 
+from pyVHDLModel            import VHDLVersion
 from pyVHDLModel.Expression import EnumerationLiteral
 from pyVHDLModel.Type       import EnumeratedType
 from pyVHDLModel.Predefined import PredefinedPackage
@@ -51,11 +52,16 @@ class Fixed_Float_Types(PredefinedPackage):
 	* ``round_type`` with the literals ``round_nearest``, ``round_inf``, ``round_neginf`` and ``round_zero``
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``fixed_float_types`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		for identifier, literals in (
 			("fixed_round_style_type",    ("fixed_round", "fixed_truncate")),

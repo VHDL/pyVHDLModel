@@ -36,6 +36,7 @@ This module contains the predefined package ``ieee.std_logic_textio`` and its Sy
 
 from pyTooling.Decorators   import export
 
+from pyVHDLModel            import VHDLVersion
 from pyVHDLModel.Predefined import PredefinedPackage
 
 
@@ -45,11 +46,16 @@ class Std_Logic_TextIO(PredefinedPackage):
 	Predefined package ``ieee.std_logic_textio``.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``std_logic_textio`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		self._AddPackageClause(("STD.TEXTIO.all", ))
 		self._AddLibraryClause(("IEEE", ))
@@ -62,11 +68,16 @@ class Std_Logic_TextIO_Synopsys(PredefinedPackage):
 	Predefined Synopsys package ``ieee.std_logic_textio``.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``std_logic_textio`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__("Std_Logic_TextIO")
+		super().__init__(vhdlVersion, "Std_Logic_TextIO")
 
 		self._AddPackageClause(("STD.textio.all", ))
 

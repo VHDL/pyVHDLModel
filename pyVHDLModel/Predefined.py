@@ -32,11 +32,11 @@
 """This module contains base-classes for predefined library and package declarations."""
 from typing                 import Iterable, Optional as Nullable
 
-from pyTooling.Common       import getTypeName
+from pyTooling.Common       import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.MetaClasses  import ExtendedType, abstractclass
 
-from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
+from pyVHDLModel            import VHDLVersion, Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
                                    PackageMemberReferenceSymbol
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, Mode
 from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
@@ -65,18 +65,47 @@ class PredefinedLibrary(Library):
 	   * :class:`Std <pyVHDLModel.STD.Std>`
 	"""
 
-	def __init__(self, packages, documentation: Nullable[str] = None) -> None:
+	_vhdlVersion: VHDLVersion  #: The VHDL version of the library's packages.
+
+	def __init__(self, packages, vhdlVersion: VHDLVersion, documentation: Nullable[str] = None) -> None:
 		"""
 		Initializes a predefined library.
 
 		:param packages:      Dictionary of all packages defined in a library.
+		:param vhdlVersion:   The VHDL version of the library's packages.
 		:param documentation: Optional, documentation of this library, if the caller has one to supply. VHDL defines none
 		                      for a predefined library, so it is empty unless supplied from outside.
 		                      Default: ``None``, no documentation.
+		:raises ValueError:   If parameter 'vhdlVersion' is None.
+		:raises TypeError:    If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError:   If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
 		super().__init__(getTypeName(self), documentation)
 
+		if vhdlVersion is None:
+			raise ValueError("Parameter 'vhdlVersion' is None.")
+		elif not isinstance(vhdlVersion, VHDLVersion):
+			ex = TypeError("Parameter 'vhdlVersion' is not of type 'VHDLVersion'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(vhdlVersion)}'.")
+			raise ex
+		elif vhdlVersion is not VHDLVersion.VHDL2008:
+			ex = ValueError("Parameter 'vhdlVersion' is not a supported VHDL version.")
+			ex.add_note(f"Got value '{vhdlVersion}'.")
+			ex.add_note("Supported VHDL versions: VHDL2008")
+			raise ex
+
+		self._vhdlVersion = vhdlVersion
+
 		self.AddPackages(packages)
+
+	@readonly
+	def VHDLVersion(self) -> VHDLVersion:
+		"""
+		Read-only property to access the VHDL version of the library's packages (:attr:`_vhdlVersion`).
+
+		:returns: The VHDL version.
+		"""
+		return self._vhdlVersion
 
 	@readonly
 	def IsPredefined(self) -> bool:
@@ -89,12 +118,12 @@ class PredefinedLibrary(Library):
 
 	def AddPackages(self, packages) -> None:
 		for packageType, packageBodyType in packages:
-			package: Package = packageType()
+			package: Package = packageType(self._vhdlVersion)
 			package.Library = self
 			self._packages[package.NormalizedIdentifier] = package
 
 			if packageBodyType is not None:
-				packageBody: PackageBody = packageBodyType()
+				packageBody: PackageBody = packageBodyType(self._vhdlVersion)
 				packageBody.Library = self
 				self._packageBodies[packageBody.NormalizedIdentifier] = packageBody
 
@@ -115,6 +144,40 @@ class PredefinedPackageMixin(
 	   * :class:`Predefined package <pyVHDLModel.Predefined.PredefinedPackage>`
 	   * :class:`Predefined package body <pyVHDLModel.Predefined.PredefinedPackageBody>`
 	"""
+
+	_vhdlVersion: VHDLVersion  #: The VHDL version of the declarations.
+
+	def __init__(self, vhdlVersion: VHDLVersion) -> None:
+		"""
+		Initializes the VHDL version of a predefined package or package body.
+
+		:param vhdlVersion: The VHDL version of the declarations.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		"""
+		if vhdlVersion is None:
+			raise ValueError("Parameter 'vhdlVersion' is None.")
+		elif not isinstance(vhdlVersion, VHDLVersion):
+			ex = TypeError("Parameter 'vhdlVersion' is not of type 'VHDLVersion'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(vhdlVersion)}'.")
+			raise ex
+		elif vhdlVersion is not VHDLVersion.VHDL2008:
+			ex = ValueError("Parameter 'vhdlVersion' is not a supported VHDL version.")
+			ex.add_note(f"Got value '{vhdlVersion}'.")
+			ex.add_note("Supported VHDL versions: VHDL2008")
+			raise ex
+
+		self._vhdlVersion = vhdlVersion
+
+	@readonly
+	def VHDLVersion(self) -> VHDLVersion:
+		"""
+		Read-only property to access the VHDL version of the declarations (:attr:`_vhdlVersion`).
+
+		:returns: The VHDL version.
+		"""
+		return self._vhdlVersion
 
 	def _AddLibraryClause(self, libraries: Iterable[str]) -> None:
 		symbols = [LibraryReferenceSymbol(SimpleName(libName)) for libName in libraries]
@@ -144,16 +207,21 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 	A base-class for predefined VHDL packages.
 	"""
 
-	def __init__(self, identifier: Nullable[str] = None) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008, identifier: Nullable[str] = None) -> None:
 		"""
 		Initializes a predefined package.
 
 		By default the VHDL package name is the Python class name. Pass ``identifier`` when the two must
 		differ - e.g. when two vendor flavors of the same VHDL package need distinct Python classes.
 
-		:param identifier: Optional, the VHDL package name. Default: ``None``, the class name.
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:param identifier:  Optional, the VHDL package name. Default: ``None``, the class name.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
 		super().__init__(getTypeName(self) if identifier is None else identifier)
+		PredefinedPackageMixin.__init__(self, vhdlVersion)
 
 	def _DeclareItem(self, declaration: NamedEntityMixin, table: dict[str, ModelEntity]) -> None:
 		"""
@@ -245,16 +313,21 @@ class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 	A base-class for predefined VHDL package bodies.
 	"""
 
-	def __init__(self, packageIdentifier: Nullable[str] = None) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008, packageIdentifier: Nullable[str] = None) -> None:
 		"""
 		Initializes a predefined package body.
 
 		By default the VHDL package name is the Python class name with the trailing ``_Body`` removed.
 		Pass ``packageIdentifier`` when the two must differ.
 
+		:param vhdlVersion:       Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:param packageIdentifier: Optional, the VHDL name of the package this body implements.
 		                          Default: ``None``, derived from the class name.
+		:raises ValueError:       If parameter 'vhdlVersion' is None.
+		:raises TypeError:        If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError:       If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
 		identifier = getTypeName(self)[:-5] if packageIdentifier is None else packageIdentifier
 		packageSymbol = PackageSymbol(SimpleName(identifier))
 		super().__init__(packageSymbol)
+		PredefinedPackageMixin.__init__(self, vhdlVersion)

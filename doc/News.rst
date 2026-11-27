@@ -91,8 +91,12 @@ Version 0.45.0 (2026)
      ``CopyRightNotice``, the use clause ``use fixed_pkg.all;``, the type ``unresolved_float``, the subtypes ``float``,
      ``float32``, ``float64``, ``float128`` (and their unresolved forms and aliases), the type ``valid_fpstate``, the
      deferred constant ``fphdlsynth_or_real``, ``classfp``, the arithmetic operators and functions, the comparison
-     functions and relational operators, ``resize``, the conversion functions, ``to_01``, ``is_x``, ``break_number`` and
-     ``normalize``.
+     functions and relational operators, ``resize``, the conversion functions, ``to_01``, ``is_x``, ``break_number``,
+     ``normalize``, the operators with ``real`` and ``integer`` operands, the logical operators, ``copysign``,
+     ``scalb``, ``logb``, ``nextafter``, the special values (``zerofp``, ``nanfp``, ...), the ``read``/``write``
+     procedures, ``to_string`` and ``from_string`` with their octal and hexadecimal variants: 247 declarations in the
+     package's order. The aliases of subprograms (``to_stdlogicvector``, ``bread``, ``to_bstring``, ...) aren't declared
+     yet.
 
    .. rubric:: Changes
 

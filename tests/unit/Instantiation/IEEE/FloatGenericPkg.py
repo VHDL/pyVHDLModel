@@ -77,7 +77,7 @@ class FloatGenericPkgs(Testcase):
 		self.assertEqual("IEEE.fixed_generic_pkg", str(generics[7].PackageReference.Name))
 
 	def test_Declarations(self) -> None:
-		"""The constant, the use clause, types, subtypes, aliases and the deferred constant, then 87 subprograms."""
+		"""The constant, the use clause, types, subtypes, aliases and the deferred constant, then 231 subprograms."""
 		floatGenericPkg = Float_Generic_Pkg()
 		declarations =    floatGenericPkg.DeclaredItems
 
@@ -94,9 +94,9 @@ class FloatGenericPkgs(Testcase):
 		)
 		self.assertIsInstance(declarations[14], EnumeratedType)
 		self.assertIsInstance(declarations[15], DeferredConstant)
-		self.assertEqual(85, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
-		self.assertEqual(2, len([declaration for declaration in declarations if isinstance(declaration, Procedure)]))
-		self.assertEqual(103, len(declarations))
+		self.assertEqual(220, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
+		self.assertEqual(11, len([declaration for declaration in declarations if isinstance(declaration, Procedure)]))
+		self.assertEqual(247, len(declarations))
 		for declaration in declarations:
 			self.assertIs(floatGenericPkg, declaration.Parent)
 
@@ -148,20 +148,23 @@ class FloatGenericPkgs(Testcase):
 
 		self.assertDictEqual(
 			{
-				"classfp": 1, "abs": 1, "-": 2, "+": 1, "*": 1, "/": 1, "rem": 1, "mod": 1, "add": 1, "subtract": 1,
+				"classfp": 1, "abs": 1, "-": 6, "+": 5, "*": 5, "/": 5, "rem": 5, "mod": 5, "add": 1, "subtract": 1,
 				"multiply": 1, "divide": 1, "remainder": 1, "modulo": 1, "reciprocal": 1, "dividebyp2": 1, "mac": 1,
 				"sqrt": 1, "is_negative": 1, "eq": 1, "ne": 1, "lt": 1, "gt": 1, "le": 1, "ge": 1,
-				"=": 1, "/=": 1, ">=": 1, "<=": 1, ">": 1, "<": 1, "?=": 1, "?/=": 1, "?>": 1, "?>=": 1, "?<": 1, "?<=": 1,
-				"std_match": 1, "find_rightmost": 1, "find_leftmost": 1, "maximum": 1, "minimum": 1, "resize": 2,
+				"=": 5, "/=": 5, ">=": 5, "<=": 5, ">": 5, "<": 5, "?=": 5, "?/=": 5, "?>": 5, "?>=": 5, "?<": 5, "?<=": 5,
+				"std_match": 1, "find_rightmost": 1, "find_leftmost": 1, "maximum": 5, "minimum": 5, "resize": 2,
 				"to_float32": 1, "to_float64": 1, "to_float128": 1, "to_slv": 1, "to_sulv": 1, "to_float": 14,
 				"to_unsigned": 2, "to_signed": 2, "to_ufixed": 2, "to_sfixed": 2, "to_real": 1, "to_integer": 1,
 				"realtobits": 1, "bitstoreal": 1, "to_01": 1, "is_x": 1, "to_x01": 1, "to_x01z": 1, "to_ux01": 1,
-				"normalize": 4
+				"normalize": 4, "not": 1, "and": 4, "or": 4, "nand": 4, "nor": 4, "xor": 4, "xnor": 4, "copysign": 1,
+				"scalb": 2, "logb": 2, "nextafter": 1, "unordered": 1, "finite": 1, "isnan": 1, "zerofp": 2, "nanfp": 2,
+				"qnanfp": 2, "pos_inffp": 2, "neg_inffp": 2, "neg_zerofp": 2, "to_string": 1, "to_hstring": 1,
+				"to_ostring": 1, "from_string": 2, "from_ostring": 2, "from_hstring": 2
 			},
 			{identifier: len(overloads) for identifier, overloads in floatGenericPkg.Functions.items()}
 		)
 		self.assertDictEqual(
-			{"break_number": 2},
+			{"break_number": 2, "write": 1, "read": 2, "owrite": 1, "oread": 2, "hwrite": 1, "hread": 2},
 			{identifier: len(overloads) for identifier, overloads in floatGenericPkg.Procedures.items()}
 		)
 
@@ -233,6 +236,67 @@ class FloatGenericPkgs(Testcase):
 			[Mode.In, Mode.In, Mode.In, Mode.Out, Mode.Out, Mode.Out],
 			[item.Mode for item in breakNumber.ParameterItems]
 		)
+
+	def test_MixedOperands(self) -> None:
+		"""``"+"`` with ``REAL``/``INTEGER`` on either side; ``"?="`` returns ``STD_ULOGIC``; ``maximum`` pairs."""
+		floatGenericPkg = Float_Generic_Pkg()
+
+		additions = floatGenericPkg.Functions["+"]
+		self.assertListEqual(
+			[
+				["unresolved_float"], ["unresolved_float", "real"], ["real", "unresolved_float"],
+				["unresolved_float", "integer"], ["integer", "unresolved_float"]
+			],
+			[[item.Subtype.Name.Identifier for item in function.ParameterItems] for function in additions]
+		)
+		for function in floatGenericPkg.Functions["?="][1:]:
+			self.assertEqual("std_ulogic", function.ReturnType.Name.Identifier)
+
+		declarations = floatGenericPkg.DeclaredItems
+		maximum =      floatGenericPkg.Functions["maximum"][1]
+		self.assertIs(floatGenericPkg.Functions["minimum"][1], declarations[declarations.index(maximum) + 1])
+
+	def test_Logical(self) -> None:
+		"""``"and"`` of two values, with a ``STD_ULOGIC`` operand on either side, and as reduction to ``STD_ULOGIC``."""
+		operators = Float_Generic_Pkg().Functions["and"]
+
+		self.assertTupleEqual(("l", "r"), operators[0].ParameterItems[0].Identifiers)
+		self.assertEqual("std_ulogic", operators[1].ParameterItems[0].Subtype.Name.Identifier)
+		self.assertEqual("std_ulogic", operators[2].ParameterItems[1].Subtype.Name.Identifier)
+		self.assertEqual(1, len(operators[3].ParameterItems))
+		self.assertEqual("std_ulogic", operators[3].ReturnType.Name.Identifier)
+
+	def test_SpecialValues(self) -> None:
+		"""``zerofp (exponent_width, fraction_width)`` with the generics as defaults, and ``zerofp (size_res)``."""
+		zerofp = Float_Generic_Pkg().Functions["zerofp"]
+
+		self.assertListEqual(
+			["float_exponent_width", "float_fraction_width"],
+			[item.DefaultExpression.Name.Identifier for item in zerofp[0].ParameterItems]
+		)
+		self.assertEqual("size_res", zerofp[1].ParameterItems[0].Identifiers[0])
+
+	def test_ReadWrite(self) -> None:
+		"""``WRITE (L; VALUE; JUSTIFIED; FIELD)``, ``READ (L; VALUE)`` and with ``GOOD``; ``hread`` too."""
+		floatGenericPkg = Float_Generic_Pkg()
+		write =           floatGenericPkg.Procedures["write"][0]
+		read =            floatGenericPkg.Procedures["hread"][1]
+
+		self.assertListEqual(
+			[("L", ), ("VALUE", ), ("JUSTIFIED", ), ("FIELD", )],
+			[item.Identifiers for item in write.ParameterItems]
+		)
+		self.assertListEqual([Mode.InOut, Mode.Out, Mode.Out], [item.Mode for item in read.ParameterItems])
+
+	def test_FromString(self) -> None:
+		"""``from_string (bstring : STRING; exponent_width; fraction_width)`` and with ``size_res``."""
+		fromString = Float_Generic_Pkg().Functions["from_string"]
+
+		self.assertListEqual(
+			[("bstring", ), ("exponent_width", ), ("fraction_width", )],
+			[item.Identifiers for item in fromString[0].ParameterItems]
+		)
+		self.assertEqual("size_res", fromString[1].ParameterItems[1].Identifiers[0])
 
 	def test_Analyze(self) -> None:
 		"""``fixed_pkg`` is linked; ``use fixed_pkg.all;`` resolves ``UNRESOLVED_ufixed`` of ``fixed_generic_pkg``."""

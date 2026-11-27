@@ -71,6 +71,11 @@ class Float_Generic_Pkg(PredefinedPackage):
 	* ``resize``, the conversion functions (``to_float32`` ..., ``to_slv``, ``to_sulv``, ``to_float``, ``to_unsigned``,
 	  ``to_ufixed``, ``to_real``, ``to_integer``, ``realtobits``, ``bitstoreal``), ``to_01``, ``is_x``, ``to_x01``,
 	  ``to_x01z``, ``to_ux01``, ``break_number`` and ``normalize``
+	* the arithmetic, relational and matching operators, ``maximum`` and ``minimum`` with ``real`` or ``integer``, the
+	  logical and logical reduction operators
+	* ``copysign``, ``scalb``, ``logb``, ``nextafter``, ``unordered``, ``finite``, ``isnan``, the functions returning
+	  special values (``zerofp``, ``nanfp``, ...), the procedures ``write``, ``read``, ``owrite``, ``oread``, ``hwrite``,
+	  ``hread``, ``to_string``, ``to_hstring``, ``to_ostring``, ``from_string``, ``from_ostring`` and ``from_hstring``
 
 	The aliases of subprograms (``to_stdlogicvector``, ...) aren't declared.
 
@@ -501,6 +506,106 @@ class Float_Generic_Pkg(PredefinedPackage):
 				*normalizeParameters(fractionType),
 				self._InParameter(("size_res", ), self._TypeMark(floatType)),
 				*styles("round_style", "denormalize", "nguard")
+			), self._TypeMark(floatType))
+
+		# Arithmetic, relational and matching operators, maximum and minimum with real and integer
+		mixedOperands = ((floatType, "real"), ("real", floatType), (floatType, "integer"), ("integer", floatType))
+		for operatorSymbol in ("+", "-", "*", "/", "rem", "mod"):
+			for left, right in mixedOperands:
+				operator(operatorSymbol, operands(self._TypeMark(left), self._TypeMark(right)), self._TypeMark(floatType))
+
+		for left, right in mixedOperands:
+			for operatorSymbol in ("=", "/=", ">=", "<=", ">", "<"):
+				operator(operatorSymbol, operands(self._TypeMark(left), self._TypeMark(right)), self._TypeMark("boolean"))
+
+		for left, right in mixedOperands:
+			for operatorSymbol in ("?=", "?/=", "?>", "?>=", "?<", "?<="):
+				operator(operatorSymbol, operands(self._TypeMark(left), self._TypeMark(right)), self._TypeMark("std_ulogic"))
+
+		for left, right in mixedOperands:
+			for identifier in ("maximum", "minimum"):
+				function(identifier, operands(self._TypeMark(left), self._TypeMark(right)), self._TypeMark(floatType))
+
+		# Logical operators and logical reduction operators
+		operator("not", (self._InParameter(("l", ), self._TypeMark(floatType)), ), self._TypeMark(floatType))
+		for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+			operator(
+				operatorSymbol,
+				operands(self._TypeMark(floatType), self._TypeMark(floatType)),
+				self._TypeMark(floatType)
+			)
+
+		for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+			for left, right in (("std_ulogic", floatType), (floatType, "std_ulogic")):
+				operator(operatorSymbol, operands(self._TypeMark(left), self._TypeMark(right)), self._TypeMark(floatType))
+
+		for operatorSymbol in ("and", "nand", "or", "nor", "xor", "xnor"):
+			operator(
+				operatorSymbol,
+				(self._InParameter(("l", ), self._TypeMark(floatType)), ),
+				self._TypeMark("std_ulogic")
+			)
+
+		# copysign, scalb, logb, nextafter, unordered, finite, isnan
+		function("copysign", (self._InParameter(("x", "y"), self._TypeMark(floatType)), ), self._TypeMark(floatType))
+		for countType in ("integer", "unresolved_signed"):
+			function("scalb", (
+				self._InParameter(("y", ), self._TypeMark(floatType)),
+				self._InParameter(("N", ), self._TypeMark(countType)),
+				*styles("round_style", "check_error", "denormalize")
+			), self._TypeMark(floatType))
+
+		for returnType in ("integer", "unresolved_signed"):
+			function("logb", (self._InParameter(("x", ), self._TypeMark(floatType)), ), self._TypeMark(returnType))
+
+		function("nextafter", (
+			self._InParameter(("x", "y"), self._TypeMark(floatType)),
+			*styles("check_error", "denormalize")
+		), self._TypeMark(floatType))
+		function("unordered", (self._InParameter(("x", "y"), self._TypeMark(floatType)), ), self._TypeMark("boolean"))
+		for identifier in ("finite", "isnan"):
+			function(identifier, (self._InParameter(("x", ), self._TypeMark(floatType)), ), self._TypeMark("boolean"))
+
+		# Special values
+		specialValues = ("zerofp", "nanfp", "qnanfp", "pos_inffp", "neg_inffp", "neg_zerofp")
+		for identifier in specialValues:
+			function(identifier, styles("exponent_width", "fraction_width"), self._TypeMark(floatType))
+
+		for identifier in specialValues:
+			function(
+				identifier,
+				(self._InParameter(("size_res", ), self._TypeMark(floatType)), ),
+				self._TypeMark(floatType)
+			)
+
+		# Procedures read and write, to_string, from_string
+		for writeIdentifier, readIdentifier in (("write", "read"), ("owrite", "oread"), ("hwrite", "hread")):
+			procedure(writeIdentifier, (
+				self._LineParameter(),
+				self._InParameter(("VALUE", ), self._TypeMark(floatType)),
+				*self._JustificationParameters()
+			))
+			procedure(readIdentifier, (self._LineParameter(), self._OutParameter(("VALUE", ), self._TypeMark(floatType))))
+			procedure(readIdentifier, (
+				self._LineParameter(),
+				self._OutParameter(("VALUE", ), self._TypeMark(floatType)),
+				self._OutParameter(("GOOD", ), self._TypeMark("boolean"))
+			))
+
+		for identifier in ("to_string", "to_hstring", "to_ostring"):
+			function(identifier, (self._InParameter(("value", ), self._TypeMark(floatType)), ), self._TypeMark("string"))
+
+		stringConversions = (("from_string", "bstring"), ("from_ostring", "ostring"), ("from_hstring", "hstring"))
+		for identifier, stringParameter in stringConversions:
+			function(identifier, (
+				self._InParameter((stringParameter, ), self._TypeMark("string")),
+				*styles("exponent_width", "fraction_width")
+			), self._TypeMark(floatType))
+
+		for identifier, stringParameter in stringConversions:
+			function(identifier, (
+				self._InParameter((stringParameter, ), self._TypeMark("string")),
+				self._InParameter(("size_res", ), self._TypeMark(floatType))
 			), self._TypeMark(floatType))
 
 

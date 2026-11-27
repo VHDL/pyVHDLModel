@@ -160,7 +160,7 @@ class VHDLLibrary(Testcase):
 
 		design.CreateDependencyGraph()
 
-		self.assertEqual(39, design.DependencyGraph.VertexCount)
+		self.assertEqual(41, design.DependencyGraph.VertexCount)
 
 	def test_LinkContexts(self) -> None:
 		design = self.CreateDesign()

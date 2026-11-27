@@ -61,10 +61,14 @@ class Numeric_Std(PredefinedPackage):
 	* the shift and rotate functions and operators, ``resize``, the conversion functions ``to_integer``,
 	  ``to_unsigned`` and ``to_signed``
 	* the logical and logical reduction operators, ``std_match``, ``to_01``, ``to_x01``, ``to_x01z``, ``to_ux01``,
-	  ``is_x``, ``to_ostring`` and ``to_hstring``
-	* the procedures ``read``, ``write``, ``oread``, ``hread``, ``owrite`` and ``hwrite``
+	  ``is_x``, the string conversions ``to_ostring`` and ``to_hstring`` and their aliases (``to_bstring``,
+	  ``to_binary_string``, ``to_octal_string``, ``to_hex_string``)
+	* the procedures ``read``, ``write``, ``oread``, ``hread``, ``owrite`` and ``hwrite`` and their aliases (``bread``,
+	  ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ``binary_write``, ``octal_write``, ``hex_write``)
 
-	The aliases of the package (``to_bstring``, ``bread``, ``hex_write``, ...) aren't declared.
+	Each alias selects an overload by a signature, e.g. ``alias BREAD is READ [LINE, UNRESOLVED_UNSIGNED];``.
+	``to_bstring`` and ``to_binary_string`` alias the implicit ``to_string`` of ``unresolved_unsigned`` and
+	``unresolved_signed``.
 
 	With :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`, ``u_unsigned`` and ``u_signed`` are aliases of
 	``unresolved_unsigned`` and ``unresolved_signed``, as in the package of IEEE Std 1076-2019.
@@ -353,9 +357,19 @@ class Numeric_Std(PredefinedPackage):
 		for typeName in (unsignedType, signedType):
 			function("is_x", (self._InParameter(("S", ), self._TypeMark(typeName)), ), self._TypeMark("boolean"))
 
-		for identifier in ("to_ostring", "to_hstring"):
+		for identifier in ("to_bstring", "to_binary_string"):
+			for typeName in (unsignedType, signedType):
+				self._DeclareAlias(identifier, "to_string", (self._TypeMark(typeName), ), self._TypeMark("string"))
+
+		for identifier, aliasIdentifier in (
+			("to_ostring", "to_octal_string"),
+			("to_hstring", "to_hex_string")
+		):
 			for typeName in (unsignedType, signedType):
 				function(identifier, (self._InParameter(("value", ), self._TypeMark(typeName)), ), self._TypeMark("string"))
+
+			for typeName in (unsignedType, signedType):
+				self._DeclareAlias(aliasIdentifier, identifier, (self._TypeMark(typeName), ), self._TypeMark("string"))
 
 		# Textio procedures
 		for typeName in (unsignedType, signedType):
@@ -373,7 +387,21 @@ class Numeric_Std(PredefinedPackage):
 				*self._JustificationParameters()
 			))
 
-		for identifier in ("oread", "hread"):
+		for identifier in ("bread", "binary_read"):
+			for typeName in (unsignedType, signedType):
+				self._DeclareAlias(
+					identifier,
+					"read",
+					(self._TypeMark("line"), self._TypeMark(typeName), self._TypeMark("boolean"))
+				)
+
+			for typeName in (unsignedType, signedType):
+				self._DeclareAlias(identifier, "read", (self._TypeMark("line"), self._TypeMark(typeName)))
+
+		for identifier, aliasIdentifier in (
+			("oread", "octal_read"),
+			("hread", "hex_read")
+		):
 			for typeName in (unsignedType, signedType):
 				procedure(identifier, (
 					self._LineParameter(),
@@ -384,13 +412,41 @@ class Numeric_Std(PredefinedPackage):
 			for typeName in (unsignedType, signedType):
 				procedure(identifier, (self._LineParameter(), self._OutParameter(("VALUE", ), self._TypeMark(typeName))))
 
-		for identifier in ("owrite", "hwrite"):
+			for typeName in (unsignedType, signedType):
+				self._DeclareAlias(
+					aliasIdentifier,
+					identifier,
+					(self._TypeMark("line"), self._TypeMark(typeName), self._TypeMark("boolean"))
+				)
+
+			for typeName in (unsignedType, signedType):
+				self._DeclareAlias(aliasIdentifier, identifier, (self._TypeMark("line"), self._TypeMark(typeName)))
+
+		for identifier in ("bwrite", "binary_write"):
+			for typeName in (unsignedType, signedType):
+				self._DeclareAlias(
+					identifier,
+					"write",
+					(self._TypeMark("line"), self._TypeMark(typeName), self._TypeMark("side"), self._TypeMark("width"))
+				)
+
+		for identifier, aliasIdentifier in (
+			("owrite", "octal_write"),
+			("hwrite", "hex_write")
+		):
 			for typeName in (unsignedType, signedType):
 				procedure(identifier, (
 					self._LineParameter(),
 					self._InParameter(("VALUE", ), self._TypeMark(typeName)),
 					*self._JustificationParameters()
 				))
+
+			for typeName in (unsignedType, signedType):
+				self._DeclareAlias(
+					aliasIdentifier,
+					identifier,
+					(self._TypeMark("line"), self._TypeMark(typeName), self._TypeMark("side"), self._TypeMark("width"))
+				)
 
 
 @export

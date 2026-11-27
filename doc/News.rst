@@ -44,13 +44,13 @@ Version 0.45.0 (2026)
    * Package ``ieee.numeric_std`` (:class:`~pyVHDLModel.IEEE.NumericStd.Numeric_Std`) declares what the VHDL-2008
      package lists, in its order: the constant ``CopyRightNotice``, the subtypes ``u_unsigned`` and ``u_signed``, 232
      functions (arithmetic, relational, matching, shift, conversion and logical operators and functions) and 18
-     procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). The aliases (``to_bstring``,
-     ``bread``, ...) aren't declared yet. Its declarations have the package as parent.
+     procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). Its declarations have the package
+     as parent.
    * Package ``ieee.numeric_bit`` (:class:`~pyVHDLModel.IEEE.NumericBit.Numeric_Bit`) declares what the VHDL-2008
      package lists, in its order: the constant ``CopyRightNotice``, the types ``unsigned`` and ``signed``, 218
      functions (arithmetic, relational, matching, shift, conversion and logical operators and functions) and 18
-     procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). The aliases (``rising_edge``,
-     ``to_bstring``, ``bread``, ...) aren't declared yet. Its declarations have the package as parent.
+     procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). Its declarations have the package
+     as parent.
    * Package ``ieee.std_logic_1164`` declares what IEEE Std 1076-2008, 16.7 lists, in its order: the types
      ``std_ulogic`` (:class:`~pyVHDLModel.IEEE.StdLogic1164.StdULogic`, with the matching relational operators) and
      ``std_ulogic_vector``, the function ``resolved``, the subtypes ``std_logic``, ``std_logic_vector``, ``x01``,
@@ -154,6 +154,12 @@ Version 0.45.0 (2026)
      procedures (``bread``, ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ``binary_write``,
      ``octal_write``, ``hex_write``). The analysis resolves each alias, ``to_bstring`` to the implicit ``to_string`` of
      ``std_ulogic_vector``.
+   * Packages ``ieee.numeric_std`` and ``ieee.numeric_bit`` declare their 32 aliases of functions and procedures each,
+     with their signatures, at their places in the package's order: the string conversions (``to_bstring``,
+     ``to_binary_string``, ``to_octal_string``, ``to_hex_string``) and the ``read``/``write`` procedures (``bread``,
+     ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ``binary_write``, ``octal_write``, ``hex_write``) of
+     ``unsigned`` and ``signed``. The analysis resolves each alias. The aliases ``rising_edge`` and ``falling_edge`` of
+     ``numeric_bit`` aren't declared yet.
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

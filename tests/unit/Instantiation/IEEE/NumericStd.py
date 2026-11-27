@@ -53,7 +53,7 @@ class NumericStds(Testcase):
 	"""Package ``ieee.numeric_std`` (IEEE Std 1076-2008, 16.8)."""
 
 	def test_Declarations(self) -> None:
-		"""The constant, types and subtypes first, then 232 functions and 18 procedures; all with the package as parent."""
+		"""The constant, types and subtypes first, then 232 functions, 18 procedures and 32 aliases."""
 		numericStd =   Numeric_Std()
 		declarations = numericStd.DeclaredItems
 
@@ -65,7 +65,8 @@ class NumericStds(Testcase):
 		)
 		self.assertEqual(232, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
 		self.assertEqual(18, len([declaration for declaration in declarations if isinstance(declaration, Procedure)]))
-		self.assertEqual(257, len(declarations))
+		self.assertEqual(32, len([declaration for declaration in declarations if isinstance(declaration, Alias)]))
+		self.assertEqual(289, len(declarations))
 		for declaration in declarations:
 			self.assertIs(numericStd, declaration.Parent)
 
@@ -222,3 +223,63 @@ class NumericStds(Testcase):
 		numericStd = design.Libraries["ieee"].Packages["numeric_std"]
 		self.assertIsNotNone(numericStd.Functions["+"][1].ParameterItems[1].Subtype.Reference)
 		self.assertIsNotNone(numericStd.Procedures["read"][0].ParameterItems[0].Subtype.Reference)
+
+	def test_Aliases(self) -> None:
+		"""``alias BREAD is READ [LINE, UNRESOLVED_UNSIGNED, BOOLEAN];``: 32 aliases with a signature."""
+		aliases = [declaration for declaration in Numeric_Std().DeclaredItems if isinstance(declaration, Alias)]
+
+		self.assertListEqual(
+			[
+				*(["to_bstring"] * 2), *(["to_binary_string"] * 2), *(["to_octal_string"] * 2), *(["to_hex_string"] * 2),
+				*(["bread"] * 4), *(["binary_read"] * 4), *(["octal_read"] * 4), *(["hex_read"] * 4), *(["bwrite"] * 2),
+				*(["binary_write"] * 2), *(["octal_write"] * 2), *(["hex_write"] * 2)
+			],
+			[alias.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				*(["to_string"] * 4), *(["to_ostring"] * 2), *(["to_hstring"] * 2), *(["read"] * 8), *(["oread"] * 4),
+				*(["hread"] * 4), *(["write"] * 4), *(["owrite"] * 2), *(["hwrite"] * 2)
+			],
+			[alias.Name.Name.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				*(["[unresolved_unsigned return string]", "[unresolved_signed return string]"] * 4),
+				*([
+					"[line, unresolved_unsigned, boolean]",
+					"[line, unresolved_signed, boolean]",
+					"[line, unresolved_unsigned]",
+					"[line, unresolved_signed]"
+				] * 4),
+				*(["[line, unresolved_unsigned, side, width]", "[line, unresolved_signed, side, width]"] * 4)
+			],
+			[str(alias.Signature) for alias in aliases]
+		)
+		for alias in aliases:
+			self.assertIsNone(alias.Subtype)
+			self.assertIs(alias, alias.Signature.Parent)
+			self.assertTrue(alias.IsOverloadable)
+
+	def test_AnalyzeAliases(self) -> None:
+		"""
+		The analysis resolves the name of each alias to the subprogram of the signature's type profile, e.g.
+		``TO_BSTRING [UNRESOLVED_UNSIGNED return STRING]`` to the implicit ``TO_STRING`` of ``UNRESOLVED_UNSIGNED``.
+		"""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		numericStd = design.Libraries["ieee"].Packages["numeric_std"]
+		aliases =    [declaration for declaration in numericStd.DeclaredItems if isinstance(declaration, Alias)]
+		self.assertEqual(32, len(aliases))
+		for alias in aliases:
+			self.assertIsNotNone(alias.Name.Reference)
+			self.assertEqual(alias.Name.Name.Identifier, alias.Name.Reference.NormalizedDesignator)
+			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
+
+		self.assertIs(numericStd.Types["unresolved_unsigned"], aliases[0].Name.Reference.Parent)
+		self.assertIs(numericStd.Procedures["read"][3], aliases[11].Name.Reference)

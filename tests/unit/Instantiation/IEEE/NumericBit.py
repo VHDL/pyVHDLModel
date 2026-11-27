@@ -33,6 +33,7 @@ from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel             import Design
 from pyVHDLModel.Base        import Mode
+from pyVHDLModel.Declaration import Alias
 from pyVHDLModel.Expression  import IntegerLiteral, StringLiteral
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
 from pyVHDLModel.Object      import Constant
@@ -52,7 +53,7 @@ class NumericBits(Testcase):
 	"""Package ``ieee.numeric_bit`` (IEEE Std 1076-2008, 16.8)."""
 
 	def test_Declarations(self) -> None:
-		"""The constant and types first, then 218 functions and 18 procedures; all with the package as parent."""
+		"""The constant and types first, then 218 functions, 18 procedures and 32 aliases."""
 		numericBit =   Numeric_Bit()
 		declarations = numericBit.DeclaredItems
 
@@ -61,7 +62,8 @@ class NumericBits(Testcase):
 		self.assertListEqual(["unsigned", "signed"], [declaration.Identifier for declaration in declarations[1:3]])
 		self.assertEqual(218, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
 		self.assertEqual(18, len([declaration for declaration in declarations if isinstance(declaration, Procedure)]))
-		self.assertEqual(239, len(declarations))
+		self.assertEqual(32, len([declaration for declaration in declarations if isinstance(declaration, Alias)]))
+		self.assertEqual(271, len(declarations))
 		for declaration in declarations:
 			self.assertIs(numericBit, declaration.Parent)
 
@@ -172,3 +174,63 @@ class NumericBits(Testcase):
 		numericBit = design.Libraries["ieee"].Packages["numeric_bit"]
 		self.assertIsNotNone(numericBit.Functions["+"][1].ParameterItems[1].Subtype.Reference)
 		self.assertIsNotNone(numericBit.Procedures["read"][0].ParameterItems[0].Subtype.Reference)
+
+	def test_Aliases(self) -> None:
+		"""``alias BREAD is READ [LINE, UNSIGNED, BOOLEAN];``: 32 aliases with a signature."""
+		aliases = [declaration for declaration in Numeric_Bit().DeclaredItems if isinstance(declaration, Alias)]
+
+		self.assertListEqual(
+			[
+				*(["to_bstring"] * 2), *(["to_binary_string"] * 2), *(["to_octal_string"] * 2), *(["to_hex_string"] * 2),
+				*(["bread"] * 4), *(["binary_read"] * 4), *(["octal_read"] * 4), *(["hex_read"] * 4), *(["bwrite"] * 2),
+				*(["binary_write"] * 2), *(["octal_write"] * 2), *(["hex_write"] * 2)
+			],
+			[alias.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				*(["to_string"] * 4), *(["to_ostring"] * 2), *(["to_hstring"] * 2), *(["read"] * 8), *(["oread"] * 4),
+				*(["hread"] * 4), *(["write"] * 4), *(["owrite"] * 2), *(["hwrite"] * 2)
+			],
+			[alias.Name.Name.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				*(["[unsigned return string]", "[signed return string]"] * 4),
+				*([
+					"[line, unsigned, boolean]",
+					"[line, signed, boolean]",
+					"[line, unsigned]",
+					"[line, signed]"
+				] * 4),
+				*(["[line, unsigned, side, width]", "[line, signed, side, width]"] * 4)
+			],
+			[str(alias.Signature) for alias in aliases]
+		)
+		for alias in aliases:
+			self.assertIsNone(alias.Subtype)
+			self.assertIs(alias, alias.Signature.Parent)
+			self.assertTrue(alias.IsOverloadable)
+
+	def test_AnalyzeAliases(self) -> None:
+		"""
+		The analysis resolves the name of each alias to the subprogram of the signature's type profile, e.g.
+		``TO_BSTRING [UNSIGNED return STRING]`` to the implicit ``TO_STRING`` of ``UNSIGNED``.
+		"""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		numericBit = design.Libraries["ieee"].Packages["numeric_bit"]
+		aliases =    [declaration for declaration in numericBit.DeclaredItems if isinstance(declaration, Alias)]
+		self.assertEqual(32, len(aliases))
+		for alias in aliases:
+			self.assertIsNotNone(alias.Name.Reference)
+			self.assertEqual(alias.Name.Name.Identifier, alias.Name.Reference.NormalizedDesignator)
+			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
+
+		self.assertIs(numericBit.Types["unsigned"], aliases[0].Name.Reference.Parent)
+		self.assertIs(numericBit.Procedures["read"][3], aliases[11].Name.Reference)

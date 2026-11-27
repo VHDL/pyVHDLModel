@@ -36,6 +36,15 @@
 #   provided that this copyright statement is not removed from the file                                                #
 #   and that any derivative work contains this copyright notice.                                                       #
 # ==================================================================================================================== #
+# Derived from the package declaration of std_logic_arith by Mentor Graphics:                                          #
+#                                                                                                                      #
+#   Copyright (c) 1993 by Mentor Graphics                                                                              #
+#                                                                                                                      #
+#   This source file is proprietary information of Mentor Graphics,Inc.                                                #
+#   It may be distributed in whole without restriction provided that                                                   #
+#   this copyright statement is not removed from the file and that                                                     #
+#   any derivative work contains this copyright notice.                                                                #
+# ==================================================================================================================== #
 #
 """
 This module contains the Mentor Graphics and Synopsys variants of the package ``ieee.std_logic_arith`` of VHDL
@@ -48,9 +57,10 @@ from pyTooling.Decorators   import export
 
 from pyVHDLModel            import VHDLVersion
 from pyVHDLModel.Base       import Direction, SimpleRange
-from pyVHDLModel.Name       import SimpleName
-from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
+from pyVHDLModel.Name       import AllName, SelectedName, SimpleName
+from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, AllPackageMembersReferenceSymbol
 from pyVHDLModel.Expression import IntegerLiteral
+from pyVHDLModel.DesignUnit import UseClause
 from pyVHDLModel.Type       import ArrayType, Subtype
 from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
 from pyVHDLModel.Subprogram import Function, Operator
@@ -61,6 +71,16 @@ from pyVHDLModel.Predefined import PredefinedPackage, PredefinedPackageBody
 class Std_Logic_Arith_MentorGraphics(PredefinedPackage):
 	"""
 	Predefined Mentor Graphics package ``ieee.std_logic_arith``.
+
+	It declares signed and unsigned arithmetic for ``ieee.std_logic_1164``. Its declarations, in the order of the
+	package:
+
+	* the use clause ``use ieee.std_logic_1164.all;`` in the package, the types ``signed`` and ``unsigned``
+	* ``std_ulogic_wired_or``, ``std_ulogic_wired_and``, the conversion functions (``to_integer``, ``conv_integer``,
+	  ``to_stdlogic``, ``to_unsigned``, ...), ``zero_extend``, ``sign_extend``
+	* the arithmetic operators ``"+"``, ``"-"``, ``"*"``, ``"abs"``, ``"/"``, ``"mod"``, ``"rem"``, ``"**"``, the shift
+	  operators, the comparison functions ``eq`` ... ``ge`` with the relational operators of ``unsigned`` and ``signed``,
+	  the logical operators
 	"""
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
@@ -75,6 +95,146 @@ class Std_Logic_Arith_MentorGraphics(PredefinedPackage):
 		super().__init__(vhdlVersion, "Std_Logic_Arith")
 
 		self._AddLibraryClause(("IEEE", ))
+
+		unsignedType = "unsigned"
+		signedType =   "signed"
+		vectorTypes =  ("std_ulogic_vector", "std_logic_vector")
+
+		def operator(
+			operatorSymbol: str,
+			parameterItems: Iterable[ParameterConstantInterfaceItem],
+			returnType:     SimpleSubtypeSymbol
+		) -> None:
+			"""
+			Nested function declaring an operator of this package.
+
+			:param operatorSymbol: The operator symbol without quotation marks.
+			:param parameterItems: The parameters, in declaration order.
+			:param returnType:     The type mark of the return value.
+			"""
+			self._DeclareSubprogram(Operator(operatorSymbol, returnType, parameterItems=parameterItems), self._functions)
+
+		def function(
+			identifier:     str,
+			parameterItems: Iterable[ParameterConstantInterfaceItem],
+			returnType:     SimpleSubtypeSymbol
+		) -> None:
+			"""
+			Nested function declaring a function of this package.
+
+			:param identifier:     The function's identifier.
+			:param parameterItems: The parameters, in declaration order.
+			:param returnType:     The type mark of the return value.
+			"""
+			self._DeclareSubprogram(Function(identifier, returnType, parameterItems=parameterItems), self._functions)
+
+		def parameter(identifiers: Iterable[str], typeName: str) -> ParameterConstantInterfaceItem:
+			"""
+			Nested function creating a parameter without default value.
+
+			:param identifiers: The parameter's identifiers.
+			:param typeName:    The name of the parameter's type.
+			:returns:           The parameter.
+			"""
+			return self._InParameter(identifiers, self._TypeMark(typeName))
+
+		# Use clause and types
+		self.AddDeclaredItem(UseClause([
+			AllPackageMembersReferenceSymbol(AllName(SelectedName("std_logic_1164", SimpleName("ieee"))))
+		]))
+		for typeName in (signedType, unsignedType):
+			self._DeclareItem(
+				ArrayType(typeName, (self._TypeMark("natural"), ), self._TypeMark("std_logic")),
+				self._types
+			)
+
+		# Wired functions, conversion functions, zero_extend, sign_extend
+		for identifier in ("std_ulogic_wired_or", "std_ulogic_wired_and"):
+			function(identifier, (parameter(("input", ), "std_ulogic_vector"), ), self._TypeMark("std_ulogic"))
+
+		for identifier in ("to_integer", "conv_integer"):
+			for argumentType, resultType in (
+				("std_ulogic_vector", "integer"),
+				("std_logic_vector",  "integer"),
+				("std_logic",         "natural"),
+				(unsignedType,        "natural"),
+				(signedType,          "integer")
+			):
+				function(identifier, (
+					parameter(("arg1", ), argumentType),
+					self._InParameter(("x", ), self._TypeMark("integer"), IntegerLiteral(0))
+				), self._TypeMark(resultType))
+
+		function("to_stdlogic", (parameter(("arg1", ), "boolean"), ), self._TypeMark("std_logic"))
+		for identifier, argumentType, resultType in (
+			("to_stdlogicvector",  "integer", "std_logic_vector"),
+			("to_stdulogicvector", "integer", "std_ulogic_vector"),
+			("to_unsigned",        "natural", unsignedType),
+			("conv_unsigned",      "natural", unsignedType),
+			("to_signed",          "integer", signedType),
+			("conv_signed",        "integer", signedType),
+			("zero_extend",        "std_ulogic_vector", "std_ulogic_vector"),
+			("zero_extend",        "std_logic_vector",  "std_logic_vector"),
+			("zero_extend",        "std_logic",         "std_logic_vector"),
+			("zero_extend",        unsignedType,        unsignedType),
+			("sign_extend",        signedType,          signedType)
+		):
+			function(
+				identifier,
+				(parameter(("arg1", ), argumentType), parameter(("size", ), "natural")),
+				self._TypeMark(resultType)
+			)
+
+		# Arithmetic operators
+		for operatorSymbol in ("+", "-"):
+			for typeName in ("std_logic", *vectorTypes, unsignedType, signedType):
+				operator(operatorSymbol, (parameter(("arg1", "arg2"), typeName), ), self._TypeMark(typeName))
+
+		for operatorSymbol, typeName in (
+			("+", vectorTypes[0]), ("+", vectorTypes[1]), ("+", unsignedType), ("+", signedType), ("-", signedType)
+		):
+			operator(operatorSymbol, (parameter(("arg1", ), typeName), ), self._TypeMark(typeName))
+
+		for typeName in (*vectorTypes, unsignedType, signedType):
+			operator("*", (parameter(("arg1", "arg2"), typeName), ), self._TypeMark(typeName))
+
+		operator("abs", (parameter(("arg1", ), signedType), ), self._TypeMark(signedType))
+		for operatorSymbol, typeNames in (
+			("/",   (*vectorTypes, unsignedType, signedType)),
+			("mod", (*vectorTypes, unsignedType)),
+			("rem", (*vectorTypes, unsignedType)),
+			("**",  (*vectorTypes, unsignedType))
+		):
+			for typeName in typeNames:
+				operator(operatorSymbol, (parameter(("l", "r"), typeName), ), self._TypeMark(typeName))
+
+		# Shift operators
+		for operatorSymbol in ("sla", "sra", "sll", "srl", "rol", "ror"):
+			for typeName in (unsignedType, signedType, *vectorTypes):
+				operator(
+					operatorSymbol,
+					(parameter(("arg1", ), typeName), parameter(("arg2", ), "natural")),
+					self._TypeMark(typeName)
+				)
+
+		# Comparison functions and relational operators
+		for identifier, operatorSymbol in (("eq", "="), ("ne", "/="), ("lt", "<"), ("gt", ">"), ("le", "<="), ("ge", ">=")):
+			for typeName in ("std_logic", *vectorTypes, unsignedType, signedType):
+				function(identifier, (parameter(("l", "r"), typeName), ), self._TypeMark("boolean"))
+
+			for typeName in (unsignedType, signedType):
+				operator(operatorSymbol, (parameter(("l", "r"), typeName), ), self._TypeMark("boolean"))
+
+		# Logical operators
+		for operatorSymbol in ("and", "nand", "or", "nor", "xor"):
+			for typeName in (signedType, unsignedType):
+				operator(operatorSymbol, (parameter(("arg1", "arg2"), typeName), ), self._TypeMark(typeName))
+
+		for typeName in (signedType, unsignedType):
+			operator("not", (parameter(("arg1", ), typeName), ), self._TypeMark(typeName))
+
+		for typeName in (*vectorTypes, signedType, unsignedType):
+			operator("xnor", (parameter(("arg1", "arg2"), typeName), ), self._TypeMark(typeName))
 
 
 @export

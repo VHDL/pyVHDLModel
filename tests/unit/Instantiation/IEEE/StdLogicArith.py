@@ -36,7 +36,8 @@ from pyVHDLModel            import Design, IEEEFlavor
 from pyVHDLModel.Subprogram import Function, Operator
 from pyVHDLModel.Symbol     import ConstrainedScalarSubtypeSymbol
 from pyVHDLModel.Type       import ArrayType, Subtype
-from pyVHDLModel.IEEE       import Std_Logic_Arith_Synopsys
+from pyVHDLModel.DesignUnit import UseClause
+from pyVHDLModel.IEEE       import Std_Logic_Arith_MentorGraphics, Std_Logic_Arith_Synopsys
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -137,3 +138,79 @@ class StdLogicArithSynopsys(Testcase):
 		stdLogicArith = design.Libraries["ieee"].Packages["std_logic_arith"]
 		self.assertIsInstance(stdLogicArith, Std_Logic_Arith_Synopsys)
 		self.assertIs(stdLogicArith.Subtypes["small_int"], stdLogicArith.Functions["conv_integer"][3].ReturnType.Reference)
+
+
+class StdLogicArithMentorGraphics(Testcase):
+	"""Mentor Graphics package ``ieee.std_logic_arith``."""
+
+	def test_Declarations(self) -> None:
+		"""The use clause, the types ``signed`` and ``unsigned``, then 139 functions; the package is the parent."""
+		stdLogicArith = Std_Logic_Arith_MentorGraphics()
+		declarations =  stdLogicArith.DeclaredItems
+
+		self.assertEqual("std_logic_arith", stdLogicArith.NormalizedIdentifier)
+		self.assertIsInstance(declarations[0], UseClause)
+		self.assertEqual("ieee.std_logic_1164.all", str(declarations[0].Symbols[0].Name))
+		self.assertListEqual(["signed", "unsigned"], [declaration.Identifier for declaration in declarations[1:3]])
+		self.assertEqual(139, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
+		self.assertEqual(142, len(declarations))
+		for declaration in declarations:
+			self.assertIs(stdLogicArith, declaration.Parent)
+
+	def test_Overloads(self) -> None:
+		"""The number of overloads per designator."""
+		self.assertDictEqual(
+			{
+				"std_ulogic_wired_or": 1, "std_ulogic_wired_and": 1, "to_integer": 5, "conv_integer": 5, "to_stdlogic": 1,
+				"to_stdlogicvector": 1, "to_stdulogicvector": 1, "to_unsigned": 1, "conv_unsigned": 1, "to_signed": 1,
+				"conv_signed": 1, "zero_extend": 4, "sign_extend": 1, "+": 9, "-": 6, "*": 4, "abs": 1, "/": 4, "mod": 3,
+				"rem": 3, "**": 3, "sla": 4, "sra": 4, "sll": 4, "srl": 4, "rol": 4, "ror": 4, "eq": 5, "=": 2, "ne": 5,
+				"/=": 2, "lt": 5, "<": 2, "gt": 5, ">": 2, "le": 5, "<=": 2, "ge": 5, ">=": 2, "and": 2, "nand": 2,
+				"or": 2, "nor": 2, "xor": 2, "not": 2, "xnor": 4
+			},
+			{identifier: len(overloads) for identifier, overloads in Std_Logic_Arith_MentorGraphics().Functions.items()}
+		)
+
+	def test_ToInteger(self) -> None:
+		"""``to_integer ( arg1 : STD_LOGIC; x : INTEGER := 0 ) RETURN NATURAL``"""
+		toInteger = Std_Logic_Arith_MentorGraphics().Functions["to_integer"][2]
+
+		self.assertListEqual([("arg1", ), ("x", )], [item.Identifiers for item in toInteger.ParameterItems])
+		self.assertEqual(0, toInteger.ParameterItems[1].DefaultExpression.Value)
+		self.assertEqual("natural", toInteger.ReturnType.Name.Identifier)
+
+	def test_Arithmetic(self) -> None:
+		"""``"+" ( arg1, arg2 : STD_LOGIC )`` - one interface item - and the unary ``"+"``; ``"/" ( l, r : SIGNED )``."""
+		stdLogicArith = Std_Logic_Arith_MentorGraphics()
+		additions =     stdLogicArith.Functions["+"]
+
+		self.assertTupleEqual(("arg1", "arg2"), additions[0].ParameterItems[0].Identifiers)
+		self.assertEqual("std_logic", additions[0].ReturnType.Name.Identifier)
+		self.assertEqual(1, len(additions[5].ParameterItems))
+		self.assertTupleEqual(("l", "r"), stdLogicArith.Functions["/"][3].ParameterItems[0].Identifiers)
+
+	def test_Comparisons(self) -> None:
+		"""``eq ( l, r : STD_LOGIC ) RETURN BOOLEAN`` of five types, then ``"="`` of ``UNSIGNED`` and ``SIGNED``."""
+		stdLogicArith = Std_Logic_Arith_MentorGraphics()
+
+		self.assertListEqual(
+			["std_logic", "std_ulogic_vector", "std_logic_vector", "unsigned", "signed"],
+			[function.ParameterItems[0].Subtype.Name.Identifier for function in stdLogicArith.Functions["eq"]]
+		)
+		self.assertNotIsInstance(stdLogicArith.Functions["eq"][0], Operator)
+		self.assertIsInstance(stdLogicArith.Functions["="][0], Operator)
+
+	def test_Analyze(self) -> None:
+		"""With the Mentor Graphics flavor, the use clause in the package makes ``std_logic`` visible."""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary(flavor=IEEEFlavor.MentorGraphics)
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		stdLogicArith = design.Libraries["ieee"].Packages["std_logic_arith"]
+		stdLogic1164 =  design.Libraries["ieee"].Packages["std_logic_1164"]
+		self.assertIsInstance(stdLogicArith, Std_Logic_Arith_MentorGraphics)
+		self.assertIs(stdLogic1164.Subtypes["std_logic"], stdLogicArith.Functions["+"][0].ReturnType.Reference)
+

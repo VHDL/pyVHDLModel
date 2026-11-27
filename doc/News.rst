@@ -123,6 +123,12 @@ Version 0.45.0 (2026)
      declares the types ``unsigned`` and ``signed``, the subtype ``small_int`` and its 134 functions (arithmetic and
      relational operators, ``shl``, ``shr``, the ``conv_*`` conversions, ``ext``, ``sxt``), with Synopsys' copyright
      notice.
+   * Mentor Graphics package ``ieee.std_logic_arith``
+     (:class:`~pyVHDLModel.IEEE.StdLogicArith.Std_Logic_Arith_MentorGraphics`, loaded with
+     :data:`IEEEFlavor.MentorGraphics <pyVHDLModel.IEEEFlavor.MentorGraphics>`) declares its use clause
+     ``use ieee.std_logic_1164.all;``, the types ``signed`` and ``unsigned`` and 139 functions (conversions,
+     arithmetic, shift and logical operators, the comparison functions ``eq`` ... ``ge``), with Mentor Graphics'
+     copyright notice.
 
    .. rubric:: Changes
 

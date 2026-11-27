@@ -75,6 +75,13 @@ Version 0.45.0 (2026)
 
    .. rubric:: Changes
 
+   * Breaking change: the predefined libraries, packages and package bodies take the VHDL version of their declarations
+     as parameter ``vhdlVersion`` (default ``VHDLVersion.VHDL2008``, the only supported version so far), also
+     :meth:`~pyVHDLModel.Design.LoadStdLibrary` and :meth:`~pyVHDLModel.Design.LoadIEEELibrary`, whose virtual
+     documents get it too. Read-only property ``VHDLVersion``. It is the first parameter: ``Ieee(flavor)`` and
+     ``LoadIEEELibrary(flavor)`` need ``flavor=flavor`` now, and the parameter ``identifier`` of
+     :class:`~pyVHDLModel.Predefined.PredefinedPackage` (``packageIdentifier`` of
+     :class:`~pyVHDLModel.Predefined.PredefinedPackageBody`) is the second one.
    * pyTooling 10.3 is required.
    * :data:`VHDLVersion.IsAMS <pyVHDLModel.VHDLVersion.IsAMS>` compares the enumeration members by identity instead of
      building a tuple per call.

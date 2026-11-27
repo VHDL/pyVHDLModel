@@ -39,7 +39,7 @@ from typing                              import Optional as Nullable
 
 from pyTooling.Decorators                import export, readonly
 
-from pyVHDLModel                         import IEEEFlavor
+from pyVHDLModel                         import VHDLVersion, IEEEFlavor
 from pyVHDLModel.Exception               import UnknownIEEEFlavorError, IEEEFlavorChangeError
 from pyVHDLModel.Predefined              import PredefinedLibrary
 from pyVHDLModel.IEEE.MathReal           import Math_Real, Math_Real_Body
@@ -123,15 +123,20 @@ class Ieee(PredefinedLibrary):
 
 	_flavor: IEEEFlavor  #: The flavor of the ``ieee`` library this instance provides.
 
-	def __init__(self, flavor: Nullable[IEEEFlavor] = None) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008, flavor: Nullable[IEEEFlavor] = None) -> None:
 		"""
 		Initializes the ``ieee`` library.
 
+		:param vhdlVersion:             Optional, the VHDL version of the library's packages.
+		                                Default: ``VHDLVersion.VHDL2008``.
 		:param flavor:                  Optional, the flavor of the ``ieee`` library this instance provides.
 		                                Default: ``None``, the IEEE flavor.
+		:raises ValueError:             If parameter 'vhdlVersion' is None.
+		:raises TypeError:              If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError:             If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		:raises UnknownIEEEFlavorError: If the given IEEE library flavor is unknown.
 		"""
-		super().__init__(PACKAGES)
+		super().__init__(PACKAGES, vhdlVersion)
 
 		self._flavor = IEEEFlavor.IEEE
 		if flavor is None:

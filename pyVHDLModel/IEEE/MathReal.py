@@ -33,6 +33,7 @@
 
 from pyTooling.Decorators   import export
 
+from pyVHDLModel            import VHDLVersion
 from pyVHDLModel.Base       import Mode
 from pyVHDLModel.Expression import FloatingPointLiteral, StringLiteral
 from pyVHDLModel.Object     import Constant
@@ -55,11 +56,16 @@ class Math_Real(PredefinedPackage):
 	* the trigonometric and hyperbolic functions and their inverses
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``math_real`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		def real(*identifiers: str) -> ParameterConstantInterfaceItem:
 			"""

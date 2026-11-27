@@ -33,6 +33,7 @@
 
 from pyTooling.Decorators    import export
 
+from pyVHDLModel             import VHDLVersion
 from pyVHDLModel.Base        import SimpleRange, Direction
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
@@ -122,11 +123,16 @@ class Std(PredefinedLibrary):
 	     * Library :class:`~pyVHDLModel.IEEE.Ieee`
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``std`` library.
+
+		:param vhdlVersion: Optional, the VHDL version of the library's packages. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__(PACKAGES)
+		super().__init__(PACKAGES, vhdlVersion)
 
 
 @export
@@ -152,11 +158,16 @@ class Standard(PredefinedPackage):
 	   Matching :class:`Package Body <pyVHDLModel.STD.Standard_Body>` declaration.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``standard`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		self._DeclareItem(Boolean(), self._types)
 		self._DeclareItem(Bit(), self._types)
@@ -278,11 +289,16 @@ class TextIO(PredefinedPackage):
 	   Matching :class:`Package Body <pyVHDLModel.STD.TextIO_Body>` declaration.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``textio`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		self._DeclareItem(AccessType("line", self._TypeMark("string")), self._types)
 		self._DeclareItem(FileType("text", self._TypeMark("string")), self._types)
@@ -438,11 +454,16 @@ class Env(PredefinedPackage):
 	   Matching :class:`Package Body <pyVHDLModel.STD.Env_Body>` declaration.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``env`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		self._AddPackageClause(("work.textio.all",))
 

@@ -33,6 +33,7 @@
 
 from pyTooling.Decorators   import export
 
+from pyVHDLModel            import VHDLVersion
 from pyVHDLModel.Predefined import PredefinedPackage, PredefinedPackageBody
 
 
@@ -42,11 +43,16 @@ class Float_Generic_Pkg(PredefinedPackage):
 	Predefined package ``ieee.float_generic_pkg``.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``float_generic_pkg`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		self._AddPackageClause(("STD.TEXTIO.all", ))
 		self._AddLibraryClause(("IEEE", ))

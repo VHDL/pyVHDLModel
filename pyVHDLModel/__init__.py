@@ -686,19 +686,23 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				topLevels=tuple(root.Value for root in roots)
 			)
 
-	def LoadStdLibrary(self) -> Library:
+	def LoadStdLibrary(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> Library:
 		"""
 		Load the predefined VHDL library ``std`` into the design.
 
 		This will create a virtual source code file ``std.vhdl`` and register VHDL design units of library ``std`` to that file.
 
-		:returns: The library object of library ``std``.
+		:param vhdlVersion: Optional, the VHDL version of the library's packages. Default: ``VHDLVersion.VHDL2008``.
+		:returns:           The library object of library ``std``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
 		from pyVHDLModel.STD import Std
 
-		doc = Document(Path("std.vhdl"), parent=self)
+		library = Std(vhdlVersion)
 
-		library = Std()
+		doc = Document(Path("std.vhdl"), vhdlVersion=vhdlVersion, parent=self)
 		for designUnit in library.IterateDesignUnits():
 			doc._AddDesignUnit(designUnit)
 
@@ -706,21 +710,31 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		return library
 
-	def LoadIEEELibrary(self, flavor: Nullable[IEEEFlavor] = None) -> Library:
+	def LoadIEEELibrary(
+		self,
+		vhdlVersion: VHDLVersion =          VHDLVersion.VHDL2008,
+		flavor:      Nullable[IEEEFlavor] = None
+	) -> Library:
 		"""
 		Load the predefined VHDL library ``ieee`` into the design.
 
 		This will create a virtual source code file ``ieee.vhdl`` and register VHDL design units of library ``ieee`` to that file.
 
-		:param flavor: Optional, select the IEEE library flavor: IEEE, Synopsys, MentorGraphics.
-		               Default: ``None``, the IEEE flavor.
-		:returns:      The library object of library ``ieee``.
+		:param vhdlVersion:             Optional, the VHDL version of the library's packages.
+		                                Default: ``VHDLVersion.VHDL2008``.
+		:param flavor:                  Optional, select the IEEE library flavor: IEEE, Synopsys, MentorGraphics.
+		                                Default: ``None``, the IEEE flavor.
+		:returns:                       The library object of library ``ieee``.
+		:raises ValueError:             If parameter 'vhdlVersion' is None.
+		:raises TypeError:              If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError:             If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises UnknownIEEEFlavorError: If the given IEEE library flavor is unknown.
 		"""
 		from pyVHDLModel.IEEE import Ieee
 
-		doc = Document(Path("ieee.vhdl"), parent=self)
+		library = Ieee(vhdlVersion, flavor)
 
-		library = Ieee(flavor)
+		doc = Document(Path("ieee.vhdl"), vhdlVersion=vhdlVersion, parent=self)
 		for designUnit in library.IterateDesignUnits():
 			doc._AddDesignUnit(designUnit)
 

@@ -36,6 +36,7 @@ library ``IEEE``.
 
 from pyTooling.Decorators   import export
 
+from pyVHDLModel            import VHDLVersion
 from pyVHDLModel.Predefined import PredefinedPackage, PredefinedPackageBody
 
 
@@ -45,11 +46,16 @@ class Std_Logic_Arith_MentorGraphics(PredefinedPackage):
 	Predefined Mentor Graphics package ``ieee.std_logic_arith``.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``std_logic_arith`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__("Std_Logic_Arith")
+		super().__init__(vhdlVersion, "Std_Logic_Arith")
 
 		self._AddLibraryClause(("IEEE", ))
 
@@ -60,11 +66,16 @@ class Std_Logic_Arith_Body_MentorGraphics(PredefinedPackageBody):
 	Predefined package body of Mentor Graphics package ``ieee.std_logic_arith``.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``std_logic_arith`` package body.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__("Std_Logic_Arith")
+		super().__init__(vhdlVersion, "Std_Logic_Arith")
 
 
 @export
@@ -73,11 +84,16 @@ class Std_Logic_Arith_Synopsys(PredefinedPackage):
 	Predefined Synopsys package ``ieee.std_logic_arith``.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``std_logic_arith`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__("Std_Logic_Arith")
+		super().__init__(vhdlVersion, "Std_Logic_Arith")
 
 		self._AddLibraryClause(("IEEE", ))
 		self._AddPackageClause(("IEEE.std_logic_1164.all", ))

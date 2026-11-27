@@ -35,6 +35,7 @@ from typing                  import Iterable
 
 from pyTooling.Decorators    import export
 
+from pyVHDLModel             import VHDLVersion
 from pyVHDLModel.Base        import Mode
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import PossibleReference, Symbol, SimpleSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
@@ -66,11 +67,16 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 	   Matching :class:`Package Body <pyVHDLModel.IEEE.FixedGenericPkg.Fixed_Generic_Pkg_Body>` declaration.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``fixed_generic_pkg`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		self._AddPackageClause(("STD.TEXTIO.all", ))
 		self._AddLibraryClause(("IEEE", ))
@@ -264,11 +270,16 @@ class Fixed_Generic_Pkg_Body(PredefinedPackageBody):
 	Predefined package body of package ``ieee.fixed_generic_pkg``.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``fixed_generic_pkg`` package body.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		self._AddLibraryClause(("IEEE", ))
 		self._AddPackageClause(("IEEE.MATH_REAL.all", ))

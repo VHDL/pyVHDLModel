@@ -884,8 +884,8 @@ class VHDLLibrary(Testcase):
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
 
 	def test_IeeeLibrary(self) -> None:
-		design = Design()
-		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.IEEE)
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.IEEE)
 
 		self.assertEqual(1, len(design.Libraries))
 		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
@@ -911,8 +911,8 @@ class VHDLLibrary(Testcase):
 		self.assertTrue(stdLogic.AllowBlackbox)
 
 	def test_IeeeMentorGraphicsLibrary(self) -> None:
-		design = Design()
-		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.MentorGraphics)
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.MentorGraphics)
 
 		self.assertEqual(1, len(design.Libraries))
 		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
@@ -934,8 +934,8 @@ class VHDLLibrary(Testcase):
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
 
 	def test_IeeeSynopsysLibrary(self) -> None:
-		design = Design()
-		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.Synopsys)
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.Synopsys)
 
 		self.assertEqual(1, len(design.Libraries))
 		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
@@ -960,7 +960,7 @@ class VHDLLibrary(Testcase):
 		design = Design()
 
 		with self.assertRaises(UnknownIEEEFlavorError) as context:
-			design.LoadIEEELibrary(IEEEFlavor.WithVITAL)
+			design.LoadIEEELibrary(flavor=IEEEFlavor.WithVITAL)
 
 		self.assertEqual(f"Unknown IEEE library flavor '{IEEEFlavor.WithVITAL}'.", str(context.exception))
 		self.assertIs(IEEEFlavor.WithVITAL, context.exception.Flavor)
@@ -969,7 +969,7 @@ class VHDLLibrary(Testcase):
 
 	def test_IeeeSynopsysLibrary_ChangeFlavor(self) -> None:
 		design =      Design()
-		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.Synopsys)
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.Synopsys)
 
 		with self.assertRaises(IEEEFlavorChangeError) as context:
 			ieeeLibrary.LoadMentorGraphicsPackages()
@@ -985,7 +985,7 @@ class VHDLLibrary(Testcase):
 
 	def test_IeeeMentorGraphicsLibrary_ChangeFlavor(self) -> None:
 		design =      Design()
-		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.MentorGraphics)
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.MentorGraphics)
 
 		with self.assertRaises(IEEEFlavorChangeError) as context:
 			ieeeLibrary.LoadSynopsysPackages()

@@ -35,6 +35,7 @@ from typing                 import Iterable
 
 from pyTooling.Decorators   import export
 
+from pyVHDLModel            import VHDLVersion
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
 from pyVHDLModel.Expression import StringLiteral
 from pyVHDLModel.Object     import Constant
@@ -64,11 +65,16 @@ class Numeric_Bit_Unsigned(PredefinedPackage):
 	   Matching :class:`Package Body <pyVHDLModel.IEEE.NumericBitUnsigned.Numeric_Bit_Unsigned_Body>` declaration.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``numeric_bit_unsigned`` package.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		vectorType = "bit_vector"
 
@@ -196,11 +202,16 @@ class Numeric_Bit_Unsigned_Body(PredefinedPackageBody):
 	Predefined package body of package ``ieee.numeric_bit_unsigned``.
 	"""
 
-	def __init__(self) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
 		Initializes the ``numeric_bit_unsigned`` package body.
+
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__()
+		super().__init__(vhdlVersion)
 
 		self._AddLibraryClause(("IEEE", ))
 		self._AddPackageClause(("IEEE.numeric_bit.all", ))

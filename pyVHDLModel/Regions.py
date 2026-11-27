@@ -2399,7 +2399,10 @@ class DeclarativePartMixin(
 			self._declaredItemsByName = index = {}
 			for item in self._declaredItems:
 				for name in normalizedDeclaredNamesOf(item):
-					index.setdefault(name, []).append(item)
+					if (items := index.get(name)) is None:
+						index[name] = [item]
+					else:
+						items.append(item)
 
 		if len(names) == 1:
 			return list(index.get(next(iter(names)), ()))
@@ -2676,7 +2679,10 @@ class DeclarativePartMixin(
 		if (byName := self._declaredItemsByName) is not None:
 			if index == len(self._declaredItems):
 				for name in normalizedDeclaredNamesOf(declaredItem):
-					byName.setdefault(name, []).append(declaredItem)
+					if (items := byName.get(name)) is None:
+						byName[name] = [declaredItem]
+					else:
+						items.append(declaredItem)
 			else:
 				self._declaredItemsByName = None
 

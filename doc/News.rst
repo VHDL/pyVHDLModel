@@ -133,6 +133,12 @@ Version 0.45.0 (2026)
      :data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>`) declares its types (transitions, delays, maps,
      records of timing, period, glitch, path and skew data, table and edge symbols), constants (zero delays, default
      maps, initial values), the attributes ``VITAL_Level0`` and ``VITAL_Level1`` and ``VitalTimingDataInit``.
+   * New :meth:`Design.LoadVITALPackages() <pyVHDLModel.Design.LoadVITALPackages>`: adds the VITAL packages
+     (IEEE Std 1076.4) to the design's library ``ieee`` and its virtual document, after
+     :meth:`~pyVHDLModel.Design.LoadIEEELibrary`; the flavor
+     :data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>` stays as shortcut. ``Ieee.LoadVITALPackages()``
+     returns the added packages and package bodies; it raises :exc:`~pyVHDLModel.Exception.IEEEFlavorChangeError`, if
+     the library has them already.
 
    .. rubric:: Changes
 

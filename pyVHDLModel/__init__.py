@@ -62,7 +62,7 @@ from pathlib                   import Path
 
 from typing                    import TYPE_CHECKING, Union, cast, Generator, Optional as Nullable
 
-from pyTooling.Common          import getFullyQualifiedName, getTypeName
+from pyTooling.Common          import getFullyQualifiedName, getTypeName, firstValue
 from pyTooling.Decorators      import export, readonly
 from pyTooling.Graph           import Graph, Vertex, Edge
 from pyTooling.Warning         import WarningCollector
@@ -739,6 +739,33 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			doc._AddDesignUnit(designUnit)
 
 		self.AddLibrary(library)
+
+		return library
+
+	def LoadVITALPackages(self) -> Library:
+		"""
+		Load the predefined VITAL packages (IEEE Std 1076.4) into the design's library ``ieee``.
+
+		The packages ``VITAL_Timing``, ``VITAL_Primitives`` and ``VITAL_Memory`` and their package bodies are added to the
+		library and registered to its virtual source code file ``ieee.vhdl``, with the library's VHDL version. The flavor
+		:data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>` of :meth:`LoadIEEELibrary` does the same while
+		loading the library.
+
+		:returns:                      The library object of library ``ieee``.
+		:raises LibraryNotFoundError:  If the design has no predefined library ``ieee``. |br|
+		                               Call :meth:`LoadIEEELibrary` before.
+		:raises IEEEFlavorChangeError: If the library has the VITAL packages already.
+		"""
+		from pyVHDLModel.IEEE import Ieee
+
+		if not isinstance(library := self._libraries.get("ieee"), Ieee):
+			ex = LibraryNotFoundError("Library 'ieee' not found in design.", libraryName="ieee")
+			ex.add_note("Call 'LoadIEEELibrary()' before loading the VITAL packages.")
+			raise ex
+
+		document = firstValue(library._packages)._document
+		for designUnit in library.LoadVITALPackages():
+			document._AddDesignUnit(designUnit)
 
 		return library
 

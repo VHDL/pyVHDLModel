@@ -105,6 +105,10 @@ Version 0.45.0 (2026)
      (:class:`~pyVHDLModel.IEEE.IeeeBitContext.Ieee_Bit_Context`) of IEEE Std 1076-2008, 16.9.
      New base class :class:`~pyVHDLModel.Predefined.PredefinedContext` and
      :meth:`PredefinedLibrary.AddContexts() <pyVHDLModel.Predefined.PredefinedLibrary.AddContexts>`.
+   * Synopsys package ``ieee.std_logic_unsigned`` (:class:`~pyVHDLModel.IEEE.StdLogicUnsigned.Std_Logic_Unsigned`,
+     loaded with :data:`IEEEFlavor.Synopsys <pyVHDLModel.IEEEFlavor.Synopsys>`) declares its 33 operators and functions
+     (arithmetic and relational operators on ``std_logic_vector``, ``shl``, ``shr``, ``conv_integer``). The module
+     carries Synopsys' copyright notice, as the package requires for derivative work.
 
    .. rubric:: Changes
 

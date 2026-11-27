@@ -150,6 +150,8 @@ Version 0.45.0 (2026)
      ``dir_separator``, ...), the call path API (``call_path_vector``, ``get_call_path``, ``file_name``, ...) and the
      assert and PSL API (``getvhdlassertcount``, ``setvhdlassertenable``, ``clearpslstate``, ...): 82 declarations in
      the order of the IEEE package ``std/env.vhdl``.
+   * With VHDL-2019, ``u_unsigned`` and ``u_signed`` of package ``ieee.numeric_std`` are aliases of
+     ``unresolved_unsigned`` and ``unresolved_signed`` (subtypes in VHDL-2008).
 
    .. rubric:: Changes
 

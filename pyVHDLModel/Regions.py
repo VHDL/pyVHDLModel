@@ -36,7 +36,8 @@ tbd.
 """
 from __future__               import annotations
 
-from typing                   import TYPE_CHECKING, Any, Callable, ClassVar, Generator, Iterable, Optional as Nullable
+from typing                   import TYPE_CHECKING, Any, Callable, ClassVar, Collection, Generator, Iterable, \
+                                     Optional as Nullable
 
 from pyTooling.Common         import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators     import export, readonly
@@ -2384,14 +2385,14 @@ class DeclarativePartMixin(
 		"""
 		return ()
 
-	def _DeclaredItemsNamed(self, names: set[str]) -> list[ModelEntity]:
+	def _DeclaredItemsNamed(self, names: Collection[str]) -> list[ModelEntity]:
 		"""
 		Return the declared items declaring one of the given names, found by an index (:attr:`_declaredItemsByName`).
 
 		The index is built from the declared items on first use. Appending a declared item extends it; inserting one
 		elsewhere, removing, moving or splitting one drops it, so it's built again on the next use.
 
-		:param names: The normalized names.
+		:param names: The normalized names, each once.
 		:returns:     List of declared items, in declaration order.
 		"""
 		if (index := self._declaredItemsByName) is None:
@@ -2532,7 +2533,7 @@ class DeclarativePartMixin(
 			return []
 
 		return [
-			item for item in self._DeclaredItemsNamed(set(normalizedIdentifiersOf(declaredItem)))
+			item for item in self._DeclaredItemsNamed(normalizedIdentifiersOf(declaredItem))
 			if item is not declaredItem and isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin))
 		]
 

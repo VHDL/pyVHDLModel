@@ -31,7 +31,7 @@
 #
 """This module contains the predefined package ``ieee.fixed_generic_pkg`` of VHDL library ``IEEE``."""
 
-from typing                  import Iterable
+from typing                  import Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export
 
@@ -39,7 +39,7 @@ from pyVHDLModel             import VHDLVersion
 from pyVHDLModel.Base        import Mode
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import PossibleReference, Symbol, SimpleSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
-from pyVHDLModel.Expression  import IntegerLiteral, StringLiteral
+from pyVHDLModel.Expression  import CharacterLiteral, IntegerLiteral, StringLiteral
 from pyVHDLModel.Type        import ArrayType, Subtype
 from pyVHDLModel.Object      import Constant
 from pyVHDLModel.Declaration import Alias
@@ -66,6 +66,13 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 	  (``sfixed``)
 	* the shift and rotate operators, ``shift_left`` and ``shift_right``, the logical operators and the logical reduction
 	  operators
+	* ``find_leftmost``, ``find_rightmost``, ``resize``, the conversion functions from and to ``natural``/``integer``,
+	  ``real``, ``unsigned``/``signed`` and ``std_ulogic_vector``, the functions for the index range of results
+	  (``ufixed_high``, ...), ``saturate``, ``to_01``, ``is_x``, ``to_x01``, ``to_x01z``, ``to_ux01``
+	* the procedures ``write``, ``read``, ``owrite``, ``oread``, ``hwrite`` and ``hread``, the functions ``to_string``,
+	  ``to_ostring``, ``to_hstring``, ``from_string``, ``from_ostring`` and ``from_hstring``
+
+	The aliases of subprograms (``to_stdlogicvector``, ``bread``, ``to_bstring``, ...) aren't declared.
 
 	.. seealso::
 
@@ -160,6 +167,20 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 			:param returnType:     The type mark of the return value.
 			"""
 			self._DeclareSubprogram(Function(identifier, returnType, parameterItems=parameterItems), self._functions)
+
+		def indexParameters(rightIndexDefault: Nullable[int]) -> tuple[ParameterConstantInterfaceItem, ...]:
+			"""
+			Nested function creating the parameters ``left_index`` and ``right_index`` of type ``integer``.
+
+			:param rightIndexDefault: The default value of ``right_index``, or ``None`` if it has none.
+			:returns:                 The parameters.
+			"""
+			if rightIndexDefault is None:
+				rightIndex = self._InParameter(("right_index", ), self._TypeMark("integer"))
+			else:
+				rightIndex = self._InParameter(("right_index", ), self._TypeMark("integer"), IntegerLiteral(rightIndexDefault))
+
+			return self._InParameter(("left_index", ), self._TypeMark("integer")), rightIndex
 
 		def procedure(
 			identifier:     str,
@@ -353,6 +374,178 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 					operatorSymbol,
 					(self._InParameter(("l", ), self._TypeMark(fixedType)), ),
 					self._TypeMark("std_ulogic")
+				)
+
+		# find_leftmost, find_rightmost, resize
+		for identifier in ("find_leftmost", "find_rightmost"):
+			for fixedType in (ufixedType, sfixedType):
+				function(identifier, (
+					self._InParameter(("arg", ), self._TypeMark(fixedType)),
+					self._InParameter(("y", ), self._TypeMark("std_ulogic"))
+				), self._TypeMark("integer"))
+
+		for fixedType in (ufixedType, sfixedType):
+			function("resize", (
+				self._InParameter(("arg", ), self._TypeMark(fixedType)),
+				*indexParameters(None),
+				*styles("overflow_style", "round_style")
+			), self._TypeMark(fixedType))
+			function("resize", (
+				self._InParameter(("arg", ), self._TypeMark(fixedType)),
+				self._InParameter(("size_res", ), self._TypeMark(fixedType)),
+				*styles("overflow_style", "round_style")
+			), self._TypeMark(fixedType))
+
+		# Conversion functions
+		for fixedType, conversion, integerType, vectorType, toVector, otherSources in (
+			(ufixedType, "to_ufixed", "natural", "unresolved_unsigned", "to_unsigned", ()),
+			(sfixedType, "to_sfixed", "integer", "unresolved_signed",   "to_signed",   (ufixedType, ))
+		):
+			for sourceType, rightIndexDefault, styleIdentifiers in (
+				(integerType, 0,    ("overflow_style", "round_style")),
+				("real",      None, ("overflow_style", "round_style", "guard_bits")),
+				(vectorType,  0,    ("overflow_style", "round_style"))
+			):
+				function(conversion, (
+					self._InParameter(("arg", ), self._TypeMark(sourceType)),
+					*indexParameters(rightIndexDefault),
+					*styles(*styleIdentifiers)
+				), self._TypeMark(fixedType))
+				function(conversion, (
+					self._InParameter(("arg", ), self._TypeMark(sourceType)),
+					self._InParameter(("size_res", ), self._TypeMark(fixedType)),
+					*styles(*styleIdentifiers)
+				), self._TypeMark(fixedType))
+
+			for sourceType in (vectorType, *otherSources):
+				function(conversion, (self._InParameter(("arg", ), self._TypeMark(sourceType)), ), self._TypeMark(fixedType))
+
+			function(toVector, (
+				self._InParameter(("arg", ), self._TypeMark(fixedType)),
+				self._InParameter(("size", ), self._TypeMark("natural")),
+				*styles("overflow_style", "round_style")
+			), self._TypeMark(vectorType))
+			function(toVector, (
+				self._InParameter(("arg", ), self._TypeMark(fixedType)),
+				self._InParameter(("size_res", ), self._TypeMark(vectorType)),
+				*styles("overflow_style", "round_style")
+			), self._TypeMark(vectorType))
+			function("to_real", (self._InParameter(("arg", ), self._TypeMark(fixedType)), ), self._TypeMark("real"))
+			function("to_integer", (
+				self._InParameter(("arg", ), self._TypeMark(fixedType)),
+				*styles("overflow_style", "round_style")
+			), self._TypeMark(integerType))
+
+		# Index range of results, saturate, to_01, is_x, to_x01, to_x01z, to_ux01
+		for identifier in ("ufixed_high", "ufixed_low", "sfixed_high", "sfixed_low"):
+			function(identifier, (
+				self._InParameter(("left_index", "right_index"), self._TypeMark("integer")),
+				self._InParameter(("operation", ), self._TypeMark("character"), CharacterLiteral("X")),
+				self._InParameter(("left_index2", "right_index2"), self._TypeMark("integer"), IntegerLiteral(0))
+			), self._TypeMark("integer"))
+
+		for identifier, fixedType in (
+			("ufixed_high", ufixedType),
+			("ufixed_low",  ufixedType),
+			("sfixed_high", sfixedType),
+			("sfixed_low",  sfixedType)
+		):
+			function(identifier, (
+				self._InParameter(("size_res", ), self._TypeMark(fixedType)),
+				self._InParameter(("operation", ), self._TypeMark("character"), CharacterLiteral("X")),
+				self._InParameter(("size_res2", ), self._TypeMark(fixedType))
+			), self._TypeMark("integer"))
+
+		for fixedType in (ufixedType, sfixedType):
+			function("saturate", indexParameters(None), self._TypeMark(fixedType))
+
+		for fixedType in (ufixedType, sfixedType):
+			function("saturate", (self._InParameter(("size_res", ), self._TypeMark(fixedType)), ), self._TypeMark(fixedType))
+
+		for fixedType in (ufixedType, sfixedType):
+			function("to_01", (
+				self._InParameter(("s", ), self._TypeMark(fixedType)),
+				self._InParameter(("XMAP", ), self._TypeMark("std_ulogic"), CharacterLiteral("0"))
+			), self._TypeMark(fixedType))
+
+		for fixedType in (ufixedType, sfixedType):
+			function("is_x", (self._InParameter(("arg", ), self._TypeMark(fixedType)), ), self._TypeMark("boolean"))
+
+		for identifier in ("to_x01", "to_x01z", "to_ux01"):
+			for fixedType in (ufixedType, sfixedType):
+				function(identifier, (self._InParameter(("arg", ), self._TypeMark(fixedType)), ), self._TypeMark(fixedType))
+
+		# Conversion functions from and to std_ulogic_vector
+		for identifier, vectorType in (("to_slv", "std_logic_vector"), ("to_sulv", "std_ulogic_vector")):
+			for fixedType in (ufixedType, sfixedType):
+				function(identifier, (self._InParameter(("arg", ), self._TypeMark(fixedType)), ), self._TypeMark(vectorType))
+
+		for conversion, fixedType in (("to_ufixed", ufixedType), ("to_sfixed", sfixedType)):
+			function(conversion, (
+				self._InParameter(("arg", ), self._TypeMark("std_ulogic_vector")),
+				*indexParameters(None)
+			), self._TypeMark(fixedType))
+			function(conversion, (
+				self._InParameter(("arg", ), self._TypeMark("std_ulogic_vector")),
+				self._InParameter(("size_res", ), self._TypeMark(fixedType))
+			), self._TypeMark(fixedType))
+
+		for identifier, fixedType in (("to_ufix", ufixedType), ("to_sfix", sfixedType)):
+			function(identifier, (
+				self._InParameter(("arg", ), self._TypeMark("std_ulogic_vector")),
+				self._InParameter(("width", ), self._TypeMark("natural")),
+				self._InParameter(("fraction", ), self._TypeMark("natural"))
+			), self._TypeMark(fixedType))
+
+		for identifier in ("ufix_high", "ufix_low", "sfix_high", "sfix_low"):
+			function(identifier, (
+				self._InParameter(("width", "fraction"), self._TypeMark("natural")),
+				self._InParameter(("operation", ), self._TypeMark("character"), CharacterLiteral("X")),
+				self._InParameter(("width2", "fraction2"), self._TypeMark("natural"), IntegerLiteral(0))
+			), self._TypeMark("integer"))
+
+		# Procedures read and write, to_string, from_string
+		for writeIdentifier, readIdentifier in (("write", "read"), ("owrite", "oread"), ("hwrite", "hread")):
+			for fixedType in (ufixedType, sfixedType):
+				procedure(writeIdentifier, (
+					self._LineParameter(),
+					self._InParameter(("VALUE", ), self._TypeMark(fixedType)),
+					*self._JustificationParameters()
+				))
+
+			for fixedType in (ufixedType, sfixedType):
+				procedure(readIdentifier, (self._LineParameter(), self._OutParameter(("VALUE", ), self._TypeMark(fixedType))))
+				procedure(readIdentifier, (
+					self._LineParameter(),
+					self._OutParameter(("VALUE", ), self._TypeMark(fixedType)),
+					self._OutParameter(("GOOD", ), self._TypeMark("boolean"))
+				))
+
+		for fixedType in (ufixedType, sfixedType):
+			for identifier in ("to_string", "to_ostring", "to_hstring"):
+				function(identifier, (self._InParameter(("value", ), self._TypeMark(fixedType)), ), self._TypeMark("string"))
+
+		stringConversions = (("from_string", "bstring"), ("from_ostring", "ostring"), ("from_hstring", "hstring"))
+		for fixedType in (ufixedType, sfixedType):
+			for identifier, stringParameter in stringConversions:
+				function(identifier, (
+					self._InParameter((stringParameter, ), self._TypeMark("string")),
+					*indexParameters(None)
+				), self._TypeMark(fixedType))
+
+		for fixedType in (ufixedType, sfixedType):
+			for identifier, stringParameter in stringConversions:
+				function(identifier, (
+					self._InParameter((stringParameter, ), self._TypeMark("string")),
+					self._InParameter(("size_res", ), self._TypeMark(fixedType))
+				), self._TypeMark(fixedType))
+
+		for fixedType in (ufixedType, sfixedType):
+			for identifier, stringParameter in stringConversions:
+				function(
+					identifier,
+					(self._InParameter((stringParameter, ), self._TypeMark("string")), ),
+					self._TypeMark(fixedType)
 				)
 
 

@@ -72,8 +72,11 @@ Version 0.45.0 (2026)
      ``CopyRightNotice``, the types ``unresolved_ufixed`` and ``unresolved_sfixed``, the aliases ``u_ufixed`` and
      ``u_sfixed``, the subtypes ``ufixed`` and ``sfixed``, the arithmetic operators and functions (``divide``,
      ``reciprocal``, ``remainder``, ``modulo``, ``add_carry``, ``scalb``, ``is_negative``), the relational and matching
-     operators, ``std_match``, ``maximum``, ``minimum``, the shift operators, ``shift_left``, ``shift_right`` and the
-     logical operators.
+     operators, ``std_match``, ``maximum``, ``minimum``, the shift operators, ``shift_left``, ``shift_right``, the
+     logical operators, the conversion functions, ``resize``, ``saturate``, ``to_01``, ``is_x``, the ``read``/``write``
+     procedures, ``to_string`` and ``from_string`` with their octal and hexadecimal variants: 401 declarations in the
+     package's order. The aliases of subprograms (``to_stdlogicvector``, ``bread``, ``to_bstring``, ...) aren't declared
+     yet.
 
    .. rubric:: Changes
 

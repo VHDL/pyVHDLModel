@@ -36,7 +36,7 @@ from pyTooling.Warning       import WarningCollector
 from pyVHDLModel             import Design
 from pyVHDLModel.Base        import Mode
 from pyVHDLModel.Declaration import Alias
-from pyVHDLModel.Expression  import IntegerLiteral
+from pyVHDLModel.Expression  import CharacterLiteral, IntegerLiteral
 from pyVHDLModel.Interface   import GenericConstantInterfaceItem
 from pyVHDLModel.Object      import Constant
 from pyVHDLModel.Subprogram  import Function, Operator, Procedure
@@ -76,7 +76,7 @@ class FixedGenericPkgs(Testcase):
 		self.assertEqual("false", generics[3].DefaultExpression.Name.Identifier)
 
 	def test_Declarations(self) -> None:
-		"""The constant, types, aliases and subtypes first, then 285 subprograms; all with the package as parent."""
+		"""The constant, types, aliases and subtypes first, then 394 subprograms; all with the package as parent."""
 		fixedGenericPkg = Fixed_Generic_Pkg()
 		declarations =    fixedGenericPkg.DeclaredItems
 
@@ -94,9 +94,9 @@ class FixedGenericPkgs(Testcase):
 			["unresolved_ufixed", "unresolved_sfixed", "u_ufixed", "u_sfixed", "ufixed", "sfixed"],
 			[declaration.Identifier for declaration in declarations[1:7]]
 		)
-		self.assertEqual(283, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
-		self.assertEqual(2, len([declaration for declaration in declarations if isinstance(declaration, Procedure)]))
-		self.assertEqual(292, len(declarations))
+		self.assertEqual(374, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
+		self.assertEqual(20, len([declaration for declaration in declarations if isinstance(declaration, Procedure)]))
+		self.assertEqual(401, len(declarations))
 		for declaration in declarations:
 			self.assertIs(fixedGenericPkg, declaration.Parent)
 
@@ -111,12 +111,17 @@ class FixedGenericPkgs(Testcase):
 				">": 10, "<": 10, "<=": 10, ">=": 10, "=": 10, "/=": 10,
 				"?=": 10, "?/=": 10, "?>": 10, "?>=": 10, "?<": 10, "?<=": 10, "std_match": 2, "maximum": 10, "minimum": 10,
 				"sll": 2, "srl": 2, "rol": 2, "ror": 2, "sla": 2, "sra": 2, "shift_left": 2, "shift_right": 2,
-				"not": 2, "and": 8, "or": 8, "nand": 8, "nor": 8, "xor": 8, "xnor": 8
+				"not": 2, "and": 8, "or": 8, "nand": 8, "nor": 8, "xor": 8, "xnor": 8,
+				"find_leftmost": 2, "find_rightmost": 2, "resize": 4, "to_ufixed": 9, "to_unsigned": 2, "to_real": 2,
+				"to_integer": 2, "to_sfixed": 10, "to_signed": 2, "ufixed_high": 2, "ufixed_low": 2, "sfixed_high": 2,
+				"sfixed_low": 2, "saturate": 4, "to_01": 2, "is_x": 2, "to_x01": 2, "to_x01z": 2, "to_ux01": 2, "to_slv": 2,
+				"to_sulv": 2, "to_ufix": 1, "to_sfix": 1, "ufix_high": 1, "ufix_low": 1, "sfix_high": 1, "sfix_low": 1,
+				"to_string": 2, "to_ostring": 2, "to_hstring": 2, "from_string": 6, "from_ostring": 6, "from_hstring": 6
 			},
 			{identifier: len(overloads) for identifier, overloads in fixedGenericPkg.Functions.items()}
 		)
 		self.assertDictEqual(
-			{"add_carry": 2},
+			{"add_carry": 2, "write": 2, "read": 4, "owrite": 2, "oread": 4, "hwrite": 2, "hread": 4},
 			{identifier: len(overloads) for identifier, overloads in fixedGenericPkg.Procedures.items()}
 		)
 
@@ -252,6 +257,58 @@ class FixedGenericPkgs(Testcase):
 		)
 		self.assertEqual(1, len(operators[6].ParameterItems))
 		self.assertEqual("std_ulogic", operators[6].ReturnType.Name.Identifier)
+
+	def test_Conversions(self) -> None:
+		"""``to_ufixed`` from ``NATURAL``: ``right_index : INTEGER := 0``; from ``REAL``: no default, ``guard_bits``."""
+		conversions = Fixed_Generic_Pkg().Functions["to_ufixed"]
+
+		self.assertListEqual(
+			[("arg", ), ("left_index", ), ("right_index", ), ("overflow_style", ), ("round_style", )],
+			[item.Identifiers for item in conversions[0].ParameterItems]
+		)
+		self.assertIsInstance(conversions[0].ParameterItems[2].DefaultExpression, IntegerLiteral)
+		self.assertEqual(0, conversions[0].ParameterItems[2].DefaultExpression.Value)
+		self.assertEqual("real", conversions[2].ParameterItems[0].Subtype.Name.Identifier)
+		self.assertIsNone(conversions[2].ParameterItems[2].DefaultExpression)
+		self.assertEqual("guard_bits", conversions[2].ParameterItems[5].Identifiers[0])
+		self.assertEqual("unresolved_unsigned", conversions[6].ParameterItems[0].Subtype.Name.Identifier)
+		self.assertEqual(1, len(conversions[6].ParameterItems))
+
+	def test_IndexRange(self) -> None:
+		"""``ufixed_high (left_index, right_index : INTEGER; operation : CHARACTER := 'X'; left_index2, ...)``."""
+		high = Fixed_Generic_Pkg().Functions["ufixed_high"][0]
+
+		self.assertListEqual(
+			[("left_index", "right_index"), ("operation", ), ("left_index2", "right_index2")],
+			[item.Identifiers for item in high.ParameterItems]
+		)
+		self.assertIsInstance(high.ParameterItems[1].DefaultExpression, CharacterLiteral)
+		self.assertEqual("X", high.ParameterItems[1].DefaultExpression.Value)
+		self.assertEqual(0, high.ParameterItems[2].DefaultExpression.Value)
+
+	def test_ReadWrite(self) -> None:
+		"""``WRITE (L : inout LINE; VALUE : in ...; JUSTIFIED : in SIDE := right; FIELD : in WIDTH := 0)``, ``READ``."""
+		fixedGenericPkg = Fixed_Generic_Pkg()
+		write =           fixedGenericPkg.Procedures["write"][0]
+		read =            fixedGenericPkg.Procedures["read"][1]
+
+		self.assertListEqual(
+			[("L", ), ("VALUE", ), ("JUSTIFIED", ), ("FIELD", )],
+			[item.Identifiers for item in write.ParameterItems]
+		)
+		self.assertListEqual([Mode.InOut, Mode.In, Mode.In, Mode.In], [item.Mode for item in write.ParameterItems])
+		self.assertListEqual([Mode.InOut, Mode.Out, Mode.Out], [item.Mode for item in read.ParameterItems])
+		self.assertEqual("boolean", read.ParameterItems[2].Subtype.Name.Identifier)
+
+	def test_FromString(self) -> None:
+		"""``from_string (bstring : STRING; left_index, right_index)``, with ``size_res`` and alone; ``from_hstring``."""
+		fixedGenericPkg = Fixed_Generic_Pkg()
+		fromString =      fixedGenericPkg.Functions["from_string"]
+
+		self.assertListEqual([3, 3, 2, 2, 1, 1], [len(function.ParameterItems) for function in fromString])
+		self.assertEqual("bstring", fromString[0].ParameterItems[0].Identifiers[0])
+		self.assertEqual("hstring", fixedGenericPkg.Functions["from_hstring"][0].ParameterItems[0].Identifiers[0])
+		self.assertEqual("unresolved_sfixed", fromString[5].ReturnType.Name.Identifier)
 
 	def test_Analyze(self) -> None:
 		"""Every type mark resolves, e.g. ``UNRESOLVED_SIGNED`` of ``numeric_std``; ``u_ufixed`` names its type."""

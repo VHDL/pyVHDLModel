@@ -97,6 +97,9 @@ Version 0.45.0 (2026)
      procedures, ``to_string`` and ``from_string`` with their octal and hexadecimal variants: 247 declarations in the
      package's order. The aliases of subprograms (``to_stdlogicvector``, ``bread``, ``to_bstring``, ...) aren't declared
      yet.
+   * Package ``ieee.float_pkg`` (:class:`~pyVHDLModel.IEEE.FloatPkg.Float_Pkg`) instantiates ``ieee.float_generic_pkg``
+     with the generic map of IEEE Std 1076-2008, 16.11, ``fixed_pkg => IEEE.fixed_pkg`` included: a use clause
+     ``use ieee.float_pkg.all;`` makes ``float32``, ``to_float``, ... visible.
 
    .. rubric:: Changes
 

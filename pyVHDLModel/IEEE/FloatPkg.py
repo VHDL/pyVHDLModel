@@ -31,27 +31,76 @@
 #
 """This module contains the predefined package ``ieee.float_pkg`` of VHDL library ``IEEE``."""
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators    import export
 
-from pyVHDLModel            import VHDLVersion
-from pyVHDLModel.Predefined import PredefinedPackage
+from pyVHDLModel             import VHDLVersion
+from pyVHDLModel.Name        import SimpleName, SelectedName
+from pyVHDLModel.Symbol      import PackageReferenceSymbol, SimpleObjectOrFunctionCallSymbol, \
+                                    IndexedObjectOrFunctionCallSymbol
+from pyVHDLModel.Expression  import IntegerLiteral
+from pyVHDLModel.Association import GenericAssociationItem
+from pyVHDLModel.Predefined  import PredefinedPackageInstantiation
 
 
 @export
-class Float_Pkg(PredefinedPackage):
+class Float_Pkg(PredefinedPackageInstantiation):
 	"""
-	Predefined package ``ieee.float_pkg``.
+	Predefined package ``ieee.float_pkg`` (IEEE Std 1076-2008, 16.11).
+
+	It instantiates ``ieee.float_generic_pkg``:
+
+	.. code-block:: VHDL
+
+	   package float_pkg is new IEEE.float_generic_pkg
+	     generic map (
+	       float_exponent_width => 8,
+	       float_fraction_width => 23,
+	       float_round_style    => IEEE.fixed_float_types.round_nearest,
+	       float_denormalize    => true,
+	       float_check_error    => true,
+	       float_guard_bits     => 3,
+	       no_warning           => false,
+	       fixed_pkg            => IEEE.fixed_pkg
+	     );
 	"""
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
-		Initializes the ``float_pkg`` package.
+		Initializes the ``float_pkg`` package instantiation.
 
 		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
 		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
 		"""
-		super().__init__(vhdlVersion)
+		def name(identifier: str) -> SimpleObjectOrFunctionCallSymbol:
+			"""
+			Nested function creating a simple name in an expression.
 
-		self._AddLibraryClause(("IEEE", ))
+			It names an enumeration literal, e.g. ``true``.
+
+			:param identifier: The identifier.
+			:returns:          The name.
+			"""
+			return SimpleObjectOrFunctionCallSymbol(SimpleName(identifier))
+
+		super().__init__(
+			vhdlVersion,
+			PackageReferenceSymbol(SelectedName("float_generic_pkg", SimpleName("IEEE"))),
+			(
+				GenericAssociationItem(SimpleName("float_exponent_width"), IntegerLiteral(8)),
+				GenericAssociationItem(SimpleName("float_fraction_width"), IntegerLiteral(23)),
+				GenericAssociationItem(SimpleName("float_round_style"),    IndexedObjectOrFunctionCallSymbol(
+					SelectedName("round_nearest", SelectedName("fixed_float_types", SimpleName("IEEE")))
+				)),
+				GenericAssociationItem(SimpleName("float_denormalize"),    name("true")),
+				GenericAssociationItem(SimpleName("float_check_error"),    name("true")),
+				GenericAssociationItem(SimpleName("float_guard_bits"),     IntegerLiteral(3)),
+				GenericAssociationItem(SimpleName("no_warning"),           name("false")),
+				GenericAssociationItem(SimpleName("fixed_pkg"),            IndexedObjectOrFunctionCallSymbol(
+					SelectedName("fixed_pkg", SimpleName("IEEE"))
+				))
+			)
+		)
+
+		self._AddLibraryClause(("ieee", ))

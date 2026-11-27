@@ -162,6 +162,11 @@ Version 0.45.0 (2026)
      (:meth:`~pyVHDLModel.Design.IndexImplicitOperations`, new): a namespace holds them in
      :data:`~pyVHDLModel.Namespace.Namespace.ImplicitOperations` (new), and a use clause naming a type, or a subtype as
      package member, imports them. Before, indexing a type declaration created them, before the use clauses were linked.
+   * The analysis resolves the type marks of the implicit operations naming ``BOOLEAN``, ``INTEGER`` or ``STRING`` to
+     the types of ``std.standard`` (IEEE Std 1076-2008, 9.2), whatever is visible at the type declaration
+     (:meth:`~pyVHDLModel.Type.FullType.ResolveImplicitOperationTypeMarks`, new). Before, they had no reference.
+     :meth:`~pyVHDLModel.Design.IndexImplicitOperations` raises :exc:`~pyVHDLModel.Exception.LibraryNotFoundError`
+     without library ``std``.
 
    .. rubric:: Bug Fixes
 

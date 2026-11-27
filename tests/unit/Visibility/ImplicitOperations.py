@@ -33,8 +33,10 @@ Implicit operations in namespaces: indexed by the analysis after the type marks 
 """
 from pyTooling.Testing      import Testcase
 
+from pyVHDLModel            import Design
 from pyVHDLModel.Base       import Direction, SimpleRange
 from pyVHDLModel.DesignUnit import Entity, Package
+from pyVHDLModel.Exception  import LibraryNotFoundError
 from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Type       import IntegerType, Subtype
 
@@ -172,3 +174,59 @@ class Standard(Testcase):
 
 		for operation in operations:
 			self.assertIn(operation, declarations)
+
+
+class PredefinedTypeMarks(Testcase):
+	"""The type marks naming ``BOOLEAN``, ``INTEGER`` or ``STRING`` reference the types of ``std.standard`` (9.2)."""
+
+	def test_Boolean(self) -> None:
+		"""``"="`` of a user-defined integer type returns ``std.standard.BOOLEAN``."""
+		integerType = _integerType("I")
+		design =      _design(Package("p", declaredItems=[integerType]))
+		boolean =     design.Libraries["std"].Packages["standard"].Types["boolean"]
+
+		for operation in _operationsOf(integerType, "="):
+			self.assertIs(boolean, operation.ReturnType.Reference)
+
+	def test_IntegerAndString(self) -> None:
+		"""``"**"`` takes ``INTEGER``, ``TO_STRING`` returns ``STRING``; the marks of the type itself stay."""
+		integerType = _integerType("I")
+		design =      _design(Package("p", declaredItems=[integerType]))
+		standard =    design.Libraries["std"].Packages["standard"]
+		power =       _operationsOf(integerType, "**")[0]
+
+		self.assertIs(integerType, power.ParameterItems[0].Subtype.Reference)
+		self.assertIs(standard.Types["integer"], power.ParameterItems[1].Subtype.Reference)
+		self.assertIs(standard.Types["string"], _operationsOf(integerType, "to_string")[0].ReturnType.Reference)
+
+	def test_LocalBoolean(self) -> None:
+		"""A type ``boolean`` declared beside the type doesn't capture the type marks of its implicit operations."""
+		localBoolean = _integerType("boolean")
+		integerType =  _integerType("I")
+		design =       _design(Package("p", declaredItems=[localBoolean, integerType]))
+		boolean =      design.Libraries["std"].Packages["standard"].Types["boolean"]
+
+		for operation in _operationsOf(integerType, "/="):
+			self.assertIs(boolean, operation.ReturnType.Reference)
+			self.assertIsNot(localBoolean, operation.ReturnType.Reference)
+
+	def test_Standard(self) -> None:
+		"""Every type mark of the implicit operations of the types of ``std.standard`` and ``ieee`` is resolved."""
+		design = _design(Package("p"))
+
+		for library in (design.Libraries["std"], design.Libraries["ieee"]):
+			for package in library.Packages.values():
+				for fullType in package.Types.values():
+					for operation in fullType.ImplicitOperations:
+						for item in operation.ParameterItems:
+							self.assertIsNotNone(item.Subtype.Reference, f"{package.Identifier}.{operation}")
+
+						self.assertIsNotNone(operation.ReturnType.Reference, f"{package.Identifier}.{operation}")
+
+	def test_NoStdLibrary(self) -> None:
+		"""Indexing the implicit operations needs library ``std``."""
+		with self.assertRaises(LibraryNotFoundError) as context:
+			Design("design").IndexImplicitOperations()
+
+		self.assertEqual("Library 'std' not found in design.", str(context.exception))
+		self.assertListEqual(["Call 'LoadStdLibrary()' before analyzing a design."], context.exception.__notes__)

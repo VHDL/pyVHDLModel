@@ -55,7 +55,7 @@ from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarat
                                    SequentialDeclarationRegionMixin, WithoutStatementsMixin
 
 if TYPE_CHECKING:
-	from pyVHDLModel.DesignUnit import DesignUnit
+	from pyVHDLModel.DesignUnit import DesignUnit, Package
 	from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
 	from pyVHDLModel.Subprogram import PredefinedOperator, PredefinedFunction, PredefinedOperation
 	from pyVHDLModel.Visitor    import Visitor
@@ -274,6 +274,23 @@ class FullType(BaseType):
 
 		if not designUnit._parent.IsPredefined:
 			self._implicitOperations = None
+
+	def ResolveImplicitOperationTypeMarks(self, standard: Package) -> None:
+		"""
+		Resolve the type marks of the implicit operations naming a type of package ``std.standard``.
+
+		An implicit operation names the predefined types ``BOOLEAN``, ``INTEGER`` or ``STRING`` of ``std.standard``
+		(IEEE Std 1076-2008, 9.2), whatever a declaration of the type's region or a use clause makes visible there; the
+		type marks naming this type are resolved, when the operations are created. The analysis resolves them, when it
+		indexes the implicit operations (:meth:`~pyVHDLModel.Design.IndexImplicitOperations`). Resolving them again
+		changes nothing.
+
+		:param standard: The package ``std.standard``.
+		"""
+		for operation in self.ImplicitOperations:
+			for symbol in (*(item._subtype for item in operation._parameterItems), operation._returnType):
+				if symbol._reference is None:
+					symbol._reference = standard._types[symbol._name._normalizedIdentifier]
 
 	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""

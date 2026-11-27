@@ -130,7 +130,7 @@ class Std(PredefinedLibrary):
 		:param vhdlVersion: Optional, the VHDL version of the library's packages. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(PACKAGES, vhdlVersion)
 
@@ -149,6 +149,11 @@ class Standard(PredefinedPackage):
 	* types ``file_open_kind`` and ``file_open_status``
 	* attribute ``foreign``
 
+	With :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`, it declares the additions of IEEE Std
+	1076-2019, 16.3: the type ``range_direction`` before ``boolean``, the literal ``read_write_mode`` of
+	``file_open_kind`` and the types ``file_open_state`` and ``file_origin_kind`` after ``file_open_status``. The
+	implicitly defined range record types (``boolean_range_record``, ...) aren't declared.
+
 	The types declare their predefined operations (:attr:`~pyVHDLModel.Type.FullType.ImplicitOperations`). The
 	implementation-defined ranges are GHDL's: ``integer`` has 32 bits, ``real`` is an IEEE 754 double, ``time`` counts
 	femtoseconds in 64 bits.
@@ -165,9 +170,14 @@ class Standard(PredefinedPackage):
 		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(vhdlVersion)
+
+		if vhdlVersion is VHDLVersion.VHDL2019:
+			directions =     "ascending", "descending"
+			rangeDirection = EnumeratedType("range_direction", [EnumerationLiteral(direction) for direction in directions])
+			self._DeclareItem(rangeDirection, self._types)
 
 		self._DeclareItem(Boolean(), self._types)
 		self._DeclareItem(Bit(), self._types)
@@ -249,12 +259,23 @@ class Standard(PredefinedPackage):
 		):
 			self._DeclareItem(ArrayType(identifier, (self._TypeMark("natural"),), self._TypeMark(element)), self._types)
 
-		kinds = "read_mode", "write_mode", "append_mode"
+		if vhdlVersion is VHDLVersion.VHDL2019:
+			kinds = "read_mode", "read_write_mode", "write_mode", "append_mode"
+		else:
+			kinds = "read_mode", "write_mode", "append_mode"
 		self._DeclareItem(EnumeratedType("file_open_kind", [EnumerationLiteral(kind) for kind in kinds]), self._types)
 
 		statuses =       "open_ok", "status_error", "name_error", "mode_error"
 		fileOpenStatus = EnumeratedType("file_open_status", [EnumerationLiteral(status) for status in statuses])
 		self._DeclareItem(fileOpenStatus, self._types)
+
+		if vhdlVersion is VHDLVersion.VHDL2019:
+			for identifier, literals in (
+				("file_open_state",  ("state_open", "state_closed")),
+				("file_origin_kind", ("file_origin_begin", "file_origin_current", "file_origin_end"))
+			):
+				enumeration = EnumeratedType(identifier, [EnumerationLiteral(literal) for literal in literals])
+				self._DeclareItem(enumeration, self._types)
 
 		self.AddDeclaredItem(Attribute("foreign", self._TypeMark("string")))
 
@@ -296,7 +317,7 @@ class TextIO(PredefinedPackage):
 		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(vhdlVersion)
 
@@ -461,7 +482,7 @@ class Env(PredefinedPackage):
 		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(vhdlVersion)
 

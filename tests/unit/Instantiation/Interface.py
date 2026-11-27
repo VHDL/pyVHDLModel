@@ -30,29 +30,30 @@
 #
 """Tests for mode views (VHDL-2019), the Port/Parameter signal interface item split, generic/
 parameter interface item kinds, and the With*Mixin/*Group classes."""
-from pyTooling.Testing      import Testcase
+from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Base       import Mode
-from pyVHDLModel.Concurrent import ConcurrentBlockStatement
-from pyVHDLModel.DesignUnit import Component, Entity, Package
-from pyVHDLModel.Name       import SimpleName
-from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ModeViewSymbol
-from pyVHDLModel.Expression import IntegerLiteral
-from pyVHDLModel.Subprogram import Function, Procedure
-from pyVHDLModel.Interface  import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
-                                   PortInterfaceItemMixin, PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, \
-                                   PortViewSignalInterfaceItem, ParameterSignalInterfaceItem, \
-                                   ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
-                                   GenericInterfaceItemMixin, GenericSubprogramInterfaceItemMixin, \
-                                   GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
-                                   GenericProcedureInterfaceItem, GenericFunctionInterfaceItem, InterfacePackage, \
-                                   GenericPackageInterfaceItem, ParameterConstantInterfaceItem, \
-                                   ParameterVariableInterfaceItem, ParameterFileInterfaceItem, InterfaceGroup, \
-                                   GenericGroup, PortGroup, ParameterGroup
-from pyVHDLModel.Regions    import WithGenericsMixin, WithPortsMixin, WithParametersMixin
+from pyVHDLModel.Association import GenericAssociationItem
+from pyVHDLModel.Base        import Mode
+from pyVHDLModel.Concurrent  import ConcurrentBlockStatement
+from pyVHDLModel.DesignUnit  import Component, Entity, Package
+from pyVHDLModel.Name        import SelectedName, SimpleName
+from pyVHDLModel.Symbol      import SimpleSubtypeSymbol, ModeViewSymbol, PackageReferenceSymbol
+from pyVHDLModel.Expression  import IntegerLiteral
+from pyVHDLModel.Subprogram  import Function, Procedure
+from pyVHDLModel.Interface   import ModeViewDeclaration, SimpleModeViewElement, CompositeModeViewElement, \
+                                    PortInterfaceItemMixin, PortSignalInterfaceItem, PortSimpleSignalInterfaceItem, \
+                                    PortViewSignalInterfaceItem, ParameterSignalInterfaceItem, \
+                                    ParameterSimpleSignalInterfaceItem, ParameterViewSignalInterfaceItem, \
+                                    GenericInterfaceItemMixin, GenericSubprogramInterfaceItemMixin, \
+                                    GenericConstantInterfaceItem, GenericTypeInterfaceItem, \
+                                    GenericProcedureInterfaceItem, GenericFunctionInterfaceItem, InterfacePackage, \
+                                    GenericPackageInterfaceItem, ParameterConstantInterfaceItem, \
+                                    ParameterVariableInterfaceItem, ParameterFileInterfaceItem, InterfaceGroup, \
+                                    GenericGroup, PortGroup, ParameterGroup, InterfacePackageGenericMap
+from pyVHDLModel.Regions     import WithGenericsMixin, WithPortsMixin, WithParametersMixin
 
-from tests.unit             import _subtypeSymbol
-from tests.unit.Mutation    import _generic, _parameter, _port
+from tests.unit              import _subtypeSymbol
+from tests.unit.Mutation     import _generic, _parameter, _port
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -245,11 +246,84 @@ class GenericInterfaceItems(Testcase):
 		self.assertIsInstance(item, GenericInterfaceItemMixin)
 
 	def test_GenericPackageInterfaceItem(self) -> None:
-		"""``generic (package p is new q generic map (<>));`` (VHDL-2008)"""
+		"""``generic (package p is new q generic map (<>));`` (VHDL-2008), without the package reference (pyGHDL)."""
 		item = GenericPackageInterfaceItem("p")
 
 		self.assertIsInstance(item, InterfacePackage)
 		self.assertEqual("p", item.Identifier)
+		self.assertIsNone(item.PackageReference)
+		self.assertIs(InterfacePackageGenericMap.Box, item.GenericMap)
+		self.assertListEqual([], item.GenericAssociationItems)
+		self.assertEqual("package p", str(item))
+
+	def test_GenericPackageInterfaceItem_PackageReference(self) -> None:
+		"""``package fixed_pkg is new IEEE.fixed_generic_pkg generic map (<>)``: the reference has the item as parent."""
+		symbol = PackageReferenceSymbol(SelectedName("fixed_generic_pkg", SimpleName("IEEE")))
+		item =   GenericPackageInterfaceItem("fixed_pkg", genericPackage=symbol)
+
+		self.assertIs(symbol, item.PackageReference)
+		self.assertIs(item, symbol.Parent)
+		self.assertEqual("package fixed_pkg is new IEEE.fixed_generic_pkg generic map (<>)", str(item))
+
+	def test_GenericPackageInterfaceItem_Default(self) -> None:
+		"""``package p is new work.gp generic map (default)``"""
+		item = GenericPackageInterfaceItem(
+			"p",
+			genericPackage=PackageReferenceSymbol(SelectedName("gp", SimpleName("work"))),
+			genericMap=InterfacePackageGenericMap.Default
+		)
+
+		self.assertIs(InterfacePackageGenericMap.Default, item.GenericMap)
+		self.assertEqual("package p is new work.gp generic map (default)", str(item))
+
+	def test_GenericPackageInterfaceItem_Associations(self) -> None:
+		"""``package p is new work.gp generic map (N => 1)``: the associations have the item as parent."""
+		association = GenericAssociationItem(SimpleName("N"), IntegerLiteral(1))
+		item =        GenericPackageInterfaceItem(
+			"p",
+			genericPackage=PackageReferenceSymbol(SelectedName("gp", SimpleName("work"))),
+			genericMap=InterfacePackageGenericMap.Associations,
+			genericAssociationItems=[association]
+		)
+
+		self.assertListEqual([association], item.GenericAssociationItems)
+		self.assertIs(item, association.Parent)
+		self.assertEqual("package p is new work.gp generic map (N => 1)", str(item))
+
+	def test_GenericPackageInterfaceItem_PackageReferenceType(self) -> None:
+		"""A package reference, which isn't a :class:`~pyVHDLModel.Symbol.PackageReferenceSymbol`, is rejected."""
+		with self.assertRaises(TypeError) as context:
+			GenericPackageInterfaceItem("p", genericPackage=SimpleName("gp"))
+
+		self.assertEqual("Parameter 'genericPackage' is not of type 'PackageReferenceSymbol'.", str(context.exception))
+		self.assertListEqual(["Got type 'pyVHDLModel.Name.SimpleName'."], context.exception.__notes__)
+
+	def test_GenericPackageInterfaceItem_GenericMapNone(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			GenericPackageInterfaceItem("p", genericMap=None)
+
+		self.assertEqual("Parameter 'genericMap' is None.", str(context.exception))
+
+	def test_GenericPackageInterfaceItem_GenericMapType(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			GenericPackageInterfaceItem("p", genericMap="<>")
+
+		self.assertEqual("Parameter 'genericMap' is not of type 'InterfacePackageGenericMap'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_GenericPackageInterfaceItem_AssociationsWithBox(self) -> None:
+		"""Generic associations need ``InterfacePackageGenericMap.Associations``."""
+		with self.assertRaises(ValueError) as context:
+			GenericPackageInterfaceItem(
+				"p",
+				genericAssociationItems=[GenericAssociationItem(SimpleName("N"), IntegerLiteral(1))]
+			)
+
+		self.assertEqual(
+			"Parameter 'genericAssociationItems' is given, but parameter 'genericMap' isn't 'Associations'.",
+			str(context.exception)
+		)
+		self.assertListEqual([f"Got value '{InterfacePackageGenericMap.Box}'."], context.exception.__notes__)
 
 
 class ParameterInterfaceItems(Testcase):

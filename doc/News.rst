@@ -81,6 +81,11 @@ Version 0.45.0 (2026)
      with the generic map of IEEE Std 1076-2008, 16.10: a use clause ``use ieee.fixed_pkg.all;`` makes ``ufixed``,
      ``to_ufixed``, ... visible. New base class :class:`~pyVHDLModel.Predefined.PredefinedPackageInstantiation` for
      predefined package instantiations.
+   * An interface package (:class:`~pyVHDLModel.Interface.GenericPackageInterfaceItem`) holds its uninstantiated
+     package (:data:`~pyVHDLModel.Interface.InterfacePackage.PackageReference`) and the form of its generic map aspect
+     (:class:`~pyVHDLModel.Interface.InterfacePackageGenericMap`: ``<>``, ``default`` or associations). The analysis
+     links the package, and a use clause naming the interface package (``use fixed_pkg.all;``) imports the declarations
+     of the generic package.
 
    .. rubric:: Changes
 

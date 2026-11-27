@@ -34,25 +34,27 @@ This module contains parts of an abstract document language model for VHDL.
 
 Interface items are used in generic, port and parameter declarations.
 """
-from __future__             import annotations
+from __future__              import annotations
 
-from typing                 import TYPE_CHECKING, ClassVar, Generator, Iterable, Optional as Nullable, Iterator, Self
+from enum                    import Enum, unique
+from typing                  import TYPE_CHECKING, ClassVar, Generator, Iterable, Optional as Nullable, Iterator, Self
 
-from pyTooling.Common       import getFullyQualifiedName, getTypeName
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType, abstractclass, expects
+from pyTooling.Common        import getFullyQualifiedName, getTypeName
+from pyTooling.Decorators    import export, readonly
+from pyTooling.MetaClasses   import ExtendedType, abstractclass, expects
 
-from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, ModeViewSymbol
-from pyVHDLModel.Base       import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin, \
-                                   MultipleNamedEntityMixin, identifiersOf, ExpressionUnion, Mode, ReservedWord
-from pyVHDLModel.Exception  import NotAChildError
-from pyVHDLModel.Object     import Constant, Signal, Variable, File
-from pyVHDLModel.Subprogram import Procedure, Function
-from pyVHDLModel.Type       import Type
+from pyVHDLModel.Symbol      import Symbol, SubtypeSymbol, ModeViewSymbol, PackageReferenceSymbol
+from pyVHDLModel.Base        import ModelEntity, DocumentedEntityMixin, NamedEntityMixin, OptionallyNamedEntityMixin, \
+                                    MultipleNamedEntityMixin, identifiersOf, ExpressionUnion, Mode, ReservedWord
+from pyVHDLModel.Exception   import NotAChildError
+from pyVHDLModel.Object      import Constant, Signal, Variable, File
+from pyVHDLModel.Subprogram  import Procedure, Function
+from pyVHDLModel.Type        import Type
+from pyVHDLModel.Association import GenericAssociationItem, GenericMapAspectMixin
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Regions  import DeclarativeRegionMixin
-	from pyVHDLModel.Visitor  import Visitor
+	from pyVHDLModel.Regions   import DeclarativeRegionMixin
+	from pyVHDLModel.Visitor   import Visitor
 
 
 @export
@@ -838,39 +840,138 @@ class GenericFunctionInterfaceItem(Function, GenericSubprogramInterfaceItemMixin
 
 
 @export
+@unique
+class InterfacePackageGenericMap(Enum):
+	"""
+	The form of the generic map aspect of an interface package (IEEE Std 1076-2008, 6.5.5).
+	"""
+
+	Box =          0  #: ``generic map (<>)``: any actuals.
+	Default =      1  #: ``generic map (default)``: the default values of the generic package's generics.
+	Associations = 2  #: ``generic map (...)``: the actuals of the generic associations.
+
+
+@export
 @abstractclass
-class InterfacePackage(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
+class InterfacePackage(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, GenericMapAspectMixin):
 	"""
 	Represents a package as a generic of a design unit.
 
-	An interface package parameterises a design unit with an instantiated package.
+	An interface package parameterises a design unit with an instantiated package. Within the design unit, its name
+	denotes an instance of the uninstantiated package (:attr:`PackageReference`), e.g. as prefix of a use clause.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      package fixed_pkg is new IEEE.fixed_generic_pkg generic map (<>)
+	      --      ^^^^^^^^^                                                  <- Identifier
+	      --                   ^^^^^^^^^^^^^^^^^^^^^^                        <- PackageReference
+	      --                                          ^^^^^^^^^^^^^^^^^      <- GenericMap
 
 	.. seealso::
 
 	   * :class:`Generic package interface item <pyVHDLModel.Interface.GenericPackageInterfaceItem>`
 	"""
-	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
+
+	_packageReference: Nullable[PackageReferenceSymbol]  #: Reference to the uninstantiated package, or ``None``.
+	_genericMap:       InterfacePackageGenericMap        #: The form of the generic map aspect.
+
+	def __init__(
+		self,
+		identifier:              str,
+		documentation:           Nullable[str] =                              None,
+		parent:                  Nullable[ModelEntity] =                      None,
+		*,
+		genericPackage:          Nullable[PackageReferenceSymbol] =           None,
+		genericMap:              InterfacePackageGenericMap =                 InterfacePackageGenericMap.Box,
+		genericAssociationItems: Nullable[Iterable[GenericAssociationItem]] = None
+	) -> None:
 		"""
 		Initializes a package as a generic of a design unit.
 
-		:param identifier:    The identifier of a model entity.
-		:param documentation: Optional, the documentation comment associated with this declaration.
-		                      Default: ``None``, no documentation.
-		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param identifier:              The identifier of a model entity.
+		:param documentation:           Optional, the documentation comment associated with this declaration.
+		                                Default: ``None``, no documentation.
+		:param parent:                  Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param genericPackage:          Optional, reference to the uninstantiated package.
+		                                Default: ``None``, not given.
+		:param genericMap:              Optional, the form of the generic map aspect.
+		                                Default: ``InterfacePackageGenericMap.Box``, ``generic map (<>)``.
+		:param genericAssociationItems: Optional, the generic associations of the generic map aspect, if
+		                                ``genericMap`` is ``InterfacePackageGenericMap.Associations``.
+		                                Default: ``None``, no generic associations.
+		:raises TypeError:              If parameter 'genericPackage' is not of type
+		                                :class:`~pyVHDLModel.Symbol.PackageReferenceSymbol`.
+		:raises ValueError:             If parameter 'genericMap' is None.
+		:raises TypeError:              If parameter 'genericMap' is not of type :class:`InterfacePackageGenericMap`.
+		:raises ValueError:             If parameter 'genericAssociationItems' is given, but parameter 'genericMap' isn't
+		                                ``InterfacePackageGenericMap.Associations``.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
+		GenericMapAspectMixin.__init__(self, genericAssociationItems)
+
+		if genericPackage is not None and not isinstance(genericPackage, PackageReferenceSymbol):
+			ex = TypeError("Parameter 'genericPackage' is not of type 'PackageReferenceSymbol'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericPackage)}'.")
+			raise ex
+
+		if genericMap is None:
+			raise ValueError("Parameter 'genericMap' is None.")
+		elif not isinstance(genericMap, InterfacePackageGenericMap):
+			ex = TypeError("Parameter 'genericMap' is not of type 'InterfacePackageGenericMap'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(genericMap)}'.")
+			raise ex
+
+		if genericAssociationItems is not None and genericMap is not InterfacePackageGenericMap.Associations:
+			ex = ValueError("Parameter 'genericAssociationItems' is given, but parameter 'genericMap' isn't 'Associations'.")
+			ex.add_note(f"Got value '{genericMap}'.")
+			raise ex
+
+		self._packageReference = genericPackage
+		self._genericMap =       genericMap
+		if genericPackage is not None:
+			genericPackage.Parent = self
+
+	@readonly
+	def PackageReference(self) -> Nullable[PackageReferenceSymbol]:
+		"""
+		Read-only property to access the reference to the uninstantiated package (:attr:`_packageReference`).
+
+		:returns: The package reference, or ``None`` if not set.
+		"""
+		return self._packageReference
+
+	@readonly
+	def GenericMap(self) -> InterfacePackageGenericMap:
+		"""
+		Read-only property to access the form of the generic map aspect (:attr:`_genericMap`).
+
+		:returns: The form of the generic map aspect.
+		"""
+		return self._genericMap
 
 	def __str__(self) -> str:
 		"""
 		Formats the interface package.
 
-		**Format:** ``package myPackage``
+		**Format:** ``package myPackage`` or ``package myPackage is new lib.genericPackage generic map (<>)``
 
 		:returns: Formatted interface package.
 		"""
-		return f"package {self._identifier}"
+		if self._packageReference is None:
+			return f"package {self._identifier}"
+
+		if self._genericMap is InterfacePackageGenericMap.Box:
+			genericMap = "<>"
+		elif self._genericMap is InterfacePackageGenericMap.Default:
+			genericMap = "default"
+		else:
+			genericMap = ", ".join(str(item) for item in self._genericAssociationItems)
+
+		return f"package {self._identifier} is new {self._packageReference._name!s} generic map ({genericMap})"
 
 
 @export
@@ -880,27 +981,67 @@ class GenericPackageInterfaceItem(InterfacePackage, GenericInterfaceItemMixin):
 
 	A generic package parameterises a design unit with an instantiated package.
 	"""
-	def __init__(self, identifier: str, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		identifier:              str,
+		documentation:           Nullable[str] =                              None,
+		parent:                  Nullable[ModelEntity] =                      None,
+		*,
+		genericPackage:          Nullable[PackageReferenceSymbol] =           None,
+		genericMap:              InterfacePackageGenericMap =                 InterfacePackageGenericMap.Box,
+		genericAssociationItems: Nullable[Iterable[GenericAssociationItem]] = None
+	) -> None:
 		"""
 		Initializes a package in a generic clause.
 
-		:param identifier:    The identifier of a model entity.
-		:param documentation: Optional, the documentation comment associated with this declaration.
-		                      Default: ``None``, no documentation.
-		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param identifier:              The identifier of a model entity.
+		:param documentation:           Optional, the documentation comment associated with this declaration.
+		                                Default: ``None``, no documentation.
+		:param parent:                  Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param genericPackage:          Optional, reference to the uninstantiated package.
+		                                Default: ``None``, not given.
+		:param genericMap:              Optional, the form of the generic map aspect.
+		                                Default: ``InterfacePackageGenericMap.Box``, ``generic map (<>)``.
+		:param genericAssociationItems: Optional, the generic associations of the generic map aspect, if
+		                                ``genericMap`` is ``InterfacePackageGenericMap.Associations``.
+		                                Default: ``None``, no generic associations.
+		:raises TypeError:              If parameter 'genericPackage' is not of type
+		                                :class:`~pyVHDLModel.Symbol.PackageReferenceSymbol`.
+		:raises ValueError:             If parameter 'genericMap' is None.
+		:raises TypeError:              If parameter 'genericMap' is not of type :class:`InterfacePackageGenericMap`.
+		:raises ValueError:             If parameter 'genericAssociationItems' is given, but parameter 'genericMap' isn't
+		                                ``InterfacePackageGenericMap.Associations``.
 		"""
-		super().__init__(identifier, documentation, parent)
+		super().__init__(
+			identifier,
+			documentation,
+			parent,
+			genericPackage=genericPackage,
+			genericMap=genericMap,
+			genericAssociationItems=genericAssociationItems
+		)
 		GenericInterfaceItemMixin.__init__(self)
 
 	def Copy(self) -> Self:
 		"""
-		Create a copy of this generic package.
+		Create a copy of this generic package, with copies of its package reference and generic associations.
 
 		The copy has no parent.
 
 		:returns: The new generic package.
 		"""
-		return self.__class__(self._identifier, self._documentation)
+		if self._genericMap is InterfacePackageGenericMap.Associations:
+			genericAssociationItems = [item.Copy() for item in self._genericAssociationItems]
+		else:
+			genericAssociationItems = None
+
+		return self.__class__(
+			self._identifier,
+			self._documentation,
+			genericPackage=None if self._packageReference is None else self._packageReference.Copy(),
+			genericMap=self._genericMap,
+			genericAssociationItems=genericAssociationItems
+		)
 
 
 @export

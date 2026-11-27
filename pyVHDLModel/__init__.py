@@ -96,7 +96,7 @@ from pyVHDLModel.Object        import Signal, Constant, DeferredConstant, Shared
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
                                       PackageMemberReferenceSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Regions       import DeclarativeRegionMixin, DeclarationRegionMixin, \
+from pyVHDLModel.Regions       import WithGenericsMixin, DeclarativeRegionMixin, DeclarationRegionMixin, \
                                       ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
                                       ProtectedTypeDeclarationRegionMixin
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation, \
@@ -109,7 +109,7 @@ from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Type          import BaseType, FullType, Subtype
 from pyVHDLModel.Configuration import ComponentConfiguration
 from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
-from pyVHDLModel.Interface     import ModeViewDeclaration
+from pyVHDLModel.Interface     import ModeViewDeclaration, InterfacePackage
 from pyVHDLModel.Subprogram    import Subprogram
 
 if TYPE_CHECKING:
@@ -2096,7 +2096,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		2. Link every use clause of the design unit's context clause into the design unit's namespace. |br|
 		   |rarr| :meth:`_LinkUseClause`
-		3. Link every use clause in the declarative part of the design unit and of every declarative region nested in it
+		3. Link the uninstantiated package of every interface package in the design unit's generic clause. |br|
+		   |rarr| :meth:`_LinkInterfacePackage`
+		4. Link every use clause in the declarative part of the design unit and of every declarative region nested in it
 		   (e.g. a process, a subprogram or a block) into the namespace of its declarative region. |br|
 		   |rarr| :meth:`_LinkUseClause`
 
@@ -2119,7 +2121,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises PackageNotFoundError:            If a use clause references a package, which doesn't exist in its library.
 		:raises UnhandledCriticalWarningError:   If a use clause names a package member, which the package doesn't declare,
 		                                         a primary unit, which the library doesn't contain, a prefix, which isn't a
-		                                         visible package, or an uninstantiated generic package, and no
+		                                         visible package or a linked interface package, or an uninstantiated
+		                                         generic package, or if the uninstantiated package of an interface package
+		                                         isn't found or isn't a generic package, and no
 		                                         :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                         :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
@@ -2181,11 +2185,98 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			for packageReference in designUnit._packageReferences:
 				self._LinkUseClause(designUnit, designUnit._namespace, packageReference, True)
 
+			if isinstance(designUnit, WithGenericsMixin):
+				for genericItem in designUnit._genericItems:
+					if isinstance(genericItem, InterfacePackage) and genericItem._packageReference is not None:
+						self._LinkInterfacePackage(designUnit, genericItem)
+
 			if isinstance(designUnit, DeclarativeRegionMixin):
 				for region in designUnit.IterateDeclarationRegions():
 					for item in region._Declarations():
 						if isinstance(item, UseClause):
 							self._LinkUseClause(designUnit, region._namespace, item, False)
+
+	def _LinkInterfacePackage(self, designUnit: DesignUnit, interfacePackage: InterfacePackage) -> None:
+		"""
+		Link the uninstantiated package of an interface package in the generic clause of a design unit.
+
+		.. rubric:: Algorithm
+
+		1. Resolve the package name: with a library name, lookup the package in that library (``work`` is the design unit's
+		   library; another library name must be visible, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`);
+		   without, lookup the directly visible package in the design unit's namespace.
+		2. If the package is an uninstantiated generic package, update the package symbol's reference with it and add an
+		   edge in the dependency graph from the design unit to the package.
+
+		Otherwise raise an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+
+		:param designUnit:                     The design unit, whose generic clause declares the interface package.
+		:param interfacePackage:               The interface package.
+		:raises UnhandledCriticalWarningError: If the library name isn't visible, the package isn't found or isn't an
+		                                       uninstantiated generic package, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		packageSymbol =     interfacePackage._packageReference
+		packageName =       packageSymbol._name
+		packageIdentifier = packageName._normalizedIdentifier
+		libraryName =       packageName._prefix
+		if libraryName is None:
+			result =   designUnit._namespace.Lookup(packageIdentifier, interfacePackage)
+			packages = [declaration for declaration in result._declarations if isinstance(declaration, Package)]
+			if len(packages) == 0:
+				WarningCollector.Raise(UnresolvedNameWarning(
+					f"Package '{packageName._identifier}' of interface package '{interfacePackage._identifier}' isn't visible.",
+					symbol=packageSymbol,
+					place=interfacePackage,
+					namespaces=result._searchedNamespaces,
+					conflicts=result._conflicts
+				))
+				return
+
+			package = packages[0]
+		else:
+			libraryIdentifier = libraryName._normalizedIdentifier
+			if libraryIdentifier == "work":
+				library = designUnit._parent
+			elif designUnit.IsLibraryVisible(libraryIdentifier):
+				library = self._libraries[libraryIdentifier]
+			else:
+				WarningCollector.Raise(UnresolvedNameWarning(
+					f"Library '{libraryName._identifier}' of interface package '{interfacePackage._identifier}' isn't visible.",
+					symbol=packageSymbol,
+					place=interfacePackage,
+					namespaces=()
+				))
+				return
+
+			if (package := library._packages.get(packageIdentifier)) is None:
+				WarningCollector.Raise(UnresolvedNameWarning(
+					f"Library '{library._identifier}' has no package '{packageName._identifier}' for interface package "
+					f"'{interfacePackage._identifier}'.",
+					symbol=packageSymbol,
+					place=interfacePackage,
+					namespaces=()
+				))
+				return
+
+		if len(package._genericItems) == 0 or isinstance(package, PackageInstantiation):
+			WarningCollector.Raise(UnresolvedNameWarning(
+				f"Package '{package._identifier}' of interface package '{interfacePackage._identifier}' isn't an "
+				"uninstantiated generic package.",
+				symbol=packageSymbol,
+				place=interfacePackage,
+				namespaces=(package._namespace, )
+			))
+			return
+
+		packageSymbol._reference = package
+
+		dependency = designUnit._dependencyVertex.EdgeToVertex(
+			package._dependencyVertex,
+			edgeValue=interfacePackage
+		)
+		dependency["kind"] = DependencyGraphEdgeKind.PackageInstantiation
 
 	def _LinkUseClause(
 		self,
@@ -2289,8 +2380,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			libraryName =       packageName._prefix
 
 			# 'use lib.all;' or 'use lib.unit;' with a primary unit, which isn't a package: the prefix denotes a library.
-			library =        None
-			unitIdentifier = None
+			library =          None
+			unitIdentifier =   None
+			interfacePackage = None
 			if libraryName is None:
 				if packageIdentifier == "work":
 					library = designUnit._parent
@@ -2334,9 +2426,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 			if libraryName is None:
 
-				# 'use pkg.all;': the prefix denotes a visible package, e.g. made visible by 'use lib.pkg;'.
+				# 'use pkg.all;': the prefix denotes a visible package, e.g. made visible by 'use lib.pkg;', or an interface
+				# package of a generic clause.
 				result =   namespace.Lookup(packageIdentifier, useClause)
-				packages = [declaration for declaration in result._declarations if isinstance(declaration, Package)]
+				packages = [
+					declaration for declaration in result._declarations if isinstance(declaration, (Package, InterfacePackage))
+				]
 				if len(packages) == 0:
 					WarningCollector.Raise(UnresolvedNameWarning(
 						f"Prefix '{packageName._identifier}' of use clause '{name!s}' isn't a visible package.",
@@ -2348,6 +2443,19 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					continue
 
 				package = packages[0]
+				if isinstance(package, InterfacePackage):
+					interfacePackage = package
+					if interfacePackage._packageReference is None or interfacePackage._packageReference._reference is None:
+						WarningCollector.Raise(UnresolvedNameWarning(
+							f"Interface package '{interfacePackage._identifier}' of use clause '{name!s}' isn't linked to an "
+							"uninstantiated package.",
+							symbol=packageMemberSymbol,
+							place=useClause,
+							namespaces=result._searchedNamespaces
+						))
+						continue
+
+					package = interfacePackage._packageReference._reference
 			else:
 				libraryIdentifier = libraryName._normalizedIdentifier
 
@@ -2387,9 +2495,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				dependency =         designUnit._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=useClause)
 				dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
-			packageMemberSymbol._reference = package
+			if interfacePackage is not None:
+				packageMemberSymbol._reference = interfacePackage
+			else:
+				packageMemberSymbol._reference = package
 
-			if len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
+			if interfacePackage is None and len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
 				WarningCollector.Raise(UnresolvedNameWarning(
 					f"Use clause '{name!s}' names the uninstantiated generic package '{package._identifier}'.",
 					symbol=packageMemberSymbol,
@@ -2402,7 +2513,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				namespace.AddImports(package.IterateDeclarations(), useClause)
 
 			elif isinstance(packageMemberSymbol, PackageReferenceSymbol):
-				namespace.AddImport(packageIdentifier, package, useClause)
+				namespace.AddImport(packageIdentifier, packageMemberSymbol._reference, useClause)
 
 			else:
 				memberIdentifier = packageMemberSymbol._name._normalizedIdentifier

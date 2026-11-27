@@ -112,6 +112,10 @@ Version 0.45.0 (2026)
    * Synopsys package ``ieee.std_logic_signed`` (:class:`~pyVHDLModel.IEEE.StdLogicSigned.Std_Logic_Signed`) declares
      its 35 operators and functions (as ``std_logic_unsigned``, and the unary ``"-"`` and ``"abs"``), with Synopsys'
      copyright notice.
+   * Synopsys package ``ieee.std_logic_misc`` (:class:`~pyVHDLModel.IEEE.StdLogicMisc.Std_Logic_Misc`) declares the
+     types ``strength`` and ``minomax`` and its 29 functions (``strength_map``, ``drive``, ``sense``, the conversions to
+     ``bit``/``bit_vector``, the reduction functions ``and_reduce`` ..., ``fun_buf3s`` ...), with Synopsys' copyright
+     notice.
 
    .. rubric:: Changes
 

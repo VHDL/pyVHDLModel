@@ -74,8 +74,7 @@ Version 0.45.0 (2026)
      operators, ``std_match``, ``maximum``, ``minimum``, the shift operators, ``shift_left``, ``shift_right``, the
      logical operators, the conversion functions, ``resize``, ``saturate``, ``to_01``, ``is_x``, the ``read``/``write``
      procedures, ``to_string`` and ``from_string`` with their octal and hexadecimal variants: 401 declarations in the
-     package's order. The aliases of subprograms (``to_stdlogicvector``, ``bread``, ``to_bstring``, ...) aren't declared
-     yet.
+     package's order.
    * Package ``ieee.fixed_pkg`` (:class:`~pyVHDLModel.IEEE.FixedPkg.Fixed_Pkg`) instantiates ``ieee.fixed_generic_pkg``
      with the generic map of IEEE Std 1076-2008, 16.10: a use clause ``use ieee.fixed_pkg.all;`` makes ``ufixed``,
      ``to_ufixed``, ... visible. New base class :class:`~pyVHDLModel.Predefined.PredefinedPackageInstantiation` for
@@ -164,6 +163,12 @@ Version 0.45.0 (2026)
      functions with their signatures, after the functions: ``to_std_logic_vector``, ``to_slv``,
      ``to_std_ulogic_vector`` and ``to_sulv`` (8), ``to_bit_vector`` and ``to_bv`` (4). The analysis resolves each alias
      to the package's function, e.g. ``to_slv [natural, natural return std_logic_vector]``.
+   * Package ``ieee.fixed_generic_pkg`` declares its 64 aliases of subprograms with their signatures, at their places in
+     the package's order: of ``to_slv`` and ``to_sulv`` (``to_stdlogicvector``, ``to_std_logic_vector``, ...), of the
+     ``read``/``write`` procedures (``bread``, ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ...), of
+     ``to_string`` (``to_bstring``, ...) and of ``from_string`` (``from_bstring``, ``from_binary_string``,
+     ``from_octal_string``, ``from_hex_string``). The analysis resolves each alias, ``to_bstring`` to the package's
+     ``to_string``.
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

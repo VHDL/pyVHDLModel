@@ -30,6 +30,8 @@
 """Tests for pyVHDLModel.IEEE.NumericBitUnsigned."""
 from pyTooling.Testing       import Testcase
 """Tests for pyVHDLModel.IEEE.FixedGenericPkg."""
+from collections             import Counter
+
 from pyTooling.Testing       import Testcase
 from pyTooling.Warning       import WarningCollector
 
@@ -76,7 +78,7 @@ class FixedGenericPkgs(Testcase):
 		self.assertEqual("false", generics[3].DefaultExpression.Name.Identifier)
 
 	def test_Declarations(self) -> None:
-		"""The constant, types, aliases and subtypes first, then 394 subprograms; all with the package as parent."""
+		"""The constant, types, aliases and subtypes first, then 394 subprograms and 64 aliases of subprograms."""
 		fixedGenericPkg = Fixed_Generic_Pkg()
 		declarations =    fixedGenericPkg.DeclaredItems
 
@@ -96,7 +98,8 @@ class FixedGenericPkgs(Testcase):
 		)
 		self.assertEqual(374, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
 		self.assertEqual(20, len([declaration for declaration in declarations if isinstance(declaration, Procedure)]))
-		self.assertEqual(401, len(declarations))
+		self.assertEqual(66, len([declaration for declaration in declarations if isinstance(declaration, Alias)]))
+		self.assertEqual(465, len(declarations))
 		for declaration in declarations:
 			self.assertIs(fixedGenericPkg, declaration.Parent)
 
@@ -325,3 +328,90 @@ class FixedGenericPkgs(Testcase):
 		self.assertIs(numericStd.Types["unresolved_signed"], scalb.ParameterItems[1].Subtype.Reference)
 		self.assertIs(fixedGenericPkg.Types["unresolved_ufixed"], fixedGenericPkg.DeclaredItems[3].Name.Reference)
 		self.assertIsNotNone(fixedGenericPkg.GenericItems[0].Subtype.Reference)
+
+	def test_Aliases(self) -> None:
+		"""``alias bread is READ [LINE, UNRESOLVED_ufixed];``: 64 aliases with a signature, after their subprograms."""
+		declarations = Fixed_Generic_Pkg().DeclaredItems
+		aliases =      [item for item in declarations if isinstance(item, Alias) and item.Signature is not None]
+
+		self.assertDictEqual(
+			{
+				"to_stdlogicvector": 2, "to_std_logic_vector": 2, "to_stdulogicvector": 2, "to_std_ulogic_vector": 2,
+				"bwrite": 2, "bread": 4, "binary_write": 2, "binary_read": 4, "octal_read": 4, "octal_write": 2, "hex_read": 4,
+				"hex_write": 2, "to_bstring": 2, "to_binary_string": 2, "to_octal_string": 2, "to_hex_string": 2,
+				"from_bstring": 6, "from_binary_string": 6, "from_octal_string": 6, "from_hex_string": 6
+			},
+			dict(Counter(alias.Identifier for alias in aliases))
+		)
+		self.assertDictEqual(
+			{
+				"to_stdlogicvector": "to_slv", "to_std_logic_vector": "to_slv", "to_stdulogicvector": "to_sulv",
+				"to_std_ulogic_vector": "to_sulv", "bwrite": "write", "bread": "read", "binary_write": "write",
+				"binary_read": "read", "octal_read": "oread", "octal_write": "owrite", "hex_read": "hread",
+				"hex_write": "hwrite", "to_bstring": "to_string", "to_binary_string": "to_string",
+				"to_octal_string": "to_ostring", "to_hex_string": "to_hstring", "from_bstring": "from_string",
+				"from_binary_string": "from_string", "from_octal_string": "from_ostring", "from_hex_string": "from_hstring"
+			},
+			{alias.Identifier: alias.Name.Name.Identifier for alias in aliases}
+		)
+		self.assertListEqual(
+			[
+				"[line, unresolved_ufixed]",
+				"[line, unresolved_ufixed, boolean]",
+				"[line, unresolved_sfixed]",
+				"[line, unresolved_sfixed, boolean]",
+				*([
+					"[line, unresolved_ufixed, boolean]",
+					"[line, unresolved_ufixed]",
+					"[line, unresolved_sfixed, boolean]",
+					"[line, unresolved_sfixed]"
+				] * 2),
+				"[line, unresolved_ufixed, boolean]",
+				"[line, unresolved_sfixed, boolean]",
+				"[line, unresolved_ufixed]",
+				"[line, unresolved_sfixed]"
+			],
+			[
+				str(alias.Signature)
+				for alias in aliases
+				if alias.Identifier in ("bread", "binary_read", "octal_read", "hex_read")
+			]
+		)
+		self.assertListEqual(
+			[
+				"[string, integer, integer return unresolved_ufixed]",
+				"[string, integer, integer return unresolved_sfixed]",
+				"[string, unresolved_ufixed return unresolved_ufixed]",
+				"[string, unresolved_sfixed return unresolved_sfixed]",
+				"[string return unresolved_ufixed]",
+				"[string return unresolved_sfixed]"
+			],
+			[str(alias.Signature) for alias in aliases if alias.Identifier == "from_bstring"]
+		)
+		for alias in aliases:
+			self.assertIsNone(alias.Subtype)
+			self.assertIs(alias, alias.Signature.Parent)
+			self.assertTrue(alias.IsOverloadable)
+
+	def test_AnalyzeAliases(self) -> None:
+		"""
+		The analysis resolves the name of each alias to the subprogram of the signature's type profile, e.g.
+		``TO_BSTRING [UNRESOLVED_ufixed return STRING]`` to the package's ``TO_STRING``, not to the implicit one.
+		"""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		package = design.Libraries["ieee"].Packages["fixed_generic_pkg"]
+		aliases = [item for item in package.DeclaredItems if isinstance(item, Alias) and item.Signature is not None]
+		self.assertEqual(64, len(aliases))
+		for alias in aliases:
+			self.assertIsNotNone(alias.Name.Reference)
+			self.assertEqual(alias.Name.Name.Identifier, alias.Name.Reference.NormalizedDesignator)
+			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
+
+		self.assertIs(package.Functions["to_string"][0], aliases[32].Name.Reference)
+		self.assertIs(package.Procedures["hread"][3], aliases[27].Name.Reference)

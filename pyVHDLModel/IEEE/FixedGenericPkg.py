@@ -67,12 +67,15 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 	* the shift and rotate operators, ``shift_left`` and ``shift_right``, the logical operators and the logical reduction
 	  operators
 	* ``find_leftmost``, ``find_rightmost``, ``resize``, the conversion functions from and to ``natural``/``integer``,
-	  ``real``, ``unsigned``/``signed`` and ``std_ulogic_vector``, the functions for the index range of results
-	  (``ufixed_high``, ...), ``saturate``, ``to_01``, ``is_x``, ``to_x01``, ``to_x01z``, ``to_ux01``
+	  ``real``, ``unsigned``/``signed`` and ``std_ulogic_vector`` (with the aliases ``to_stdlogicvector``, ...), the
+	  functions for the index range of results (``ufixed_high``, ...), ``saturate``, ``to_01``, ``is_x``, ``to_x01``,
+	  ``to_x01z``, ``to_ux01``
 	* the procedures ``write``, ``read``, ``owrite``, ``oread``, ``hwrite`` and ``hread``, the functions ``to_string``,
-	  ``to_ostring``, ``to_hstring``, ``from_string``, ``from_ostring`` and ``from_hstring``
+	  ``to_ostring``, ``to_hstring``, ``from_string``, ``from_ostring`` and ``from_hstring``, each followed by its
+	  aliases (``bread``, ``to_bstring``, ``from_hex_string``, ...)
 
-	The aliases of subprograms (``to_stdlogicvector``, ``bread``, ``to_bstring``, ...) aren't declared.
+	Each alias of a subprogram selects an overload by a signature, e.g. ``alias bread is READ [LINE,
+	UNRESOLVED_ufixed];``.
 
 	.. seealso::
 
@@ -476,9 +479,14 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 				function(identifier, (self._InParameter(("arg", ), self._TypeMark(fixedType)), ), self._TypeMark(fixedType))
 
 		# Conversion functions from and to std_ulogic_vector
-		for identifier, vectorType in (("to_slv", "std_logic_vector"), ("to_sulv", "std_ulogic_vector")):
+		for identifier, vectorType, aliasIdentifiers in (
+			("to_slv",  "std_logic_vector",  ("to_stdlogicvector", "to_std_logic_vector")),
+			("to_sulv", "std_ulogic_vector", ("to_stdulogicvector", "to_std_ulogic_vector"))
+		):
 			for fixedType in (ufixedType, sfixedType):
 				function(identifier, (self._InParameter(("arg", ), self._TypeMark(fixedType)), ), self._TypeMark(vectorType))
+				for aliasIdentifier in aliasIdentifiers:
+					self._DeclareAlias(aliasIdentifier, identifier, (self._TypeMark(fixedType), ), self._TypeMark(vectorType))
 
 		for conversion, fixedType in (("to_ufixed", ufixedType), ("to_sfixed", sfixedType)):
 			function(conversion, (
@@ -504,8 +512,25 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 				self._InParameter(("width2", "fraction2"), self._TypeMark("natural"), IntegerLiteral(0))
 			), self._TypeMark("integer"))
 
-		# Procedures read and write, to_string, from_string
-		for writeIdentifier, readIdentifier in (("write", "read"), ("owrite", "oread"), ("hwrite", "hread")):
+		# Procedures read and write, to_string, from_string, and their aliases
+		writeSignatures = ((ufixedType, "side", "width"), (sfixedType, "side", "width"))
+		readSignatures =  ((ufixedType, "boolean"), (ufixedType, ), (sfixedType, "boolean"), (sfixedType, ))
+		for writeIdentifier, readIdentifier, aliases in (
+			("write", "read", (
+				("bwrite",       "write", writeSignatures),
+				("bread",        "read",  ((ufixedType, ), (ufixedType, "boolean"), (sfixedType, ), (sfixedType, "boolean"))),
+				("binary_write", "write", writeSignatures),
+				("binary_read",  "read",  readSignatures)
+			)),
+			("owrite", "oread", (
+				("octal_read",  "oread",  readSignatures),
+				("octal_write", "owrite", writeSignatures)
+			)),
+			("hwrite", "hread", (
+				("hex_read",  "hread",  ((ufixedType, "boolean"), (sfixedType, "boolean"), (ufixedType, ), (sfixedType, ))),
+				("hex_write", "hwrite", writeSignatures)
+			))
+		):
 			for fixedType in (ufixedType, sfixedType):
 				procedure(writeIdentifier, (
 					self._LineParameter(),
@@ -521,32 +546,62 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 					self._OutParameter(("GOOD", ), self._TypeMark("boolean"))
 				))
 
-		for fixedType in (ufixedType, sfixedType):
-			for identifier in ("to_string", "to_ostring", "to_hstring"):
-				function(identifier, (self._InParameter(("value", ), self._TypeMark(fixedType)), ), self._TypeMark("string"))
+			for identifier, name, signatures in aliases:
+				for typeNames in signatures:
+					self._DeclareAlias(identifier, name, [self._TypeMark(typeName) for typeName in ("line", *typeNames)])
 
-		stringConversions = (("from_string", "bstring"), ("from_ostring", "ostring"), ("from_hstring", "hstring"))
 		for fixedType in (ufixedType, sfixedType):
-			for identifier, stringParameter in stringConversions:
+			for identifier, aliasIdentifiers in (
+				("to_string",  ("to_bstring", "to_binary_string")),
+				("to_ostring", ("to_octal_string", )),
+				("to_hstring", ("to_hex_string", ))
+			):
+				function(identifier, (self._InParameter(("value", ), self._TypeMark(fixedType)), ), self._TypeMark("string"))
+				for aliasIdentifier in aliasIdentifiers:
+					self._DeclareAlias(aliasIdentifier, identifier, (self._TypeMark(fixedType), ), self._TypeMark("string"))
+
+		stringConversions = (
+			("from_string",  "bstring", ("from_bstring", "from_binary_string")),
+			("from_ostring", "ostring", ("from_octal_string", )),
+			("from_hstring", "hstring", ("from_hex_string", ))
+		)
+		for fixedType in (ufixedType, sfixedType):
+			for identifier, stringParameter, aliasIdentifiers in stringConversions:
 				function(identifier, (
 					self._InParameter((stringParameter, ), self._TypeMark("string")),
 					*indexParameters(None)
 				), self._TypeMark(fixedType))
+				for aliasIdentifier in aliasIdentifiers:
+					self._DeclareAlias(
+						aliasIdentifier,
+						identifier,
+						(self._TypeMark("string"), self._TypeMark("integer"), self._TypeMark("integer")),
+						self._TypeMark(fixedType)
+					)
 
 		for fixedType in (ufixedType, sfixedType):
-			for identifier, stringParameter in stringConversions:
+			for identifier, stringParameter, aliasIdentifiers in stringConversions:
 				function(identifier, (
 					self._InParameter((stringParameter, ), self._TypeMark("string")),
 					self._InParameter(("size_res", ), self._TypeMark(fixedType))
 				), self._TypeMark(fixedType))
+				for aliasIdentifier in aliasIdentifiers:
+					self._DeclareAlias(
+						aliasIdentifier,
+						identifier,
+						(self._TypeMark("string"), self._TypeMark(fixedType)),
+						self._TypeMark(fixedType)
+					)
 
 		for fixedType in (ufixedType, sfixedType):
-			for identifier, stringParameter in stringConversions:
+			for identifier, stringParameter, aliasIdentifiers in stringConversions:
 				function(
 					identifier,
 					(self._InParameter((stringParameter, ), self._TypeMark("string")), ),
 					self._TypeMark(fixedType)
 				)
+				for aliasIdentifier in aliasIdentifiers:
+					self._DeclareAlias(aliasIdentifier, identifier, (self._TypeMark("string"), ), self._TypeMark(fixedType))
 
 
 @export

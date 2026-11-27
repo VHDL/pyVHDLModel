@@ -61,6 +61,11 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 	  ``u_ufixed`` and ``u_sfixed``, the subtypes ``ufixed`` and ``sfixed``
 	* the arithmetic operators, ``divide``, ``reciprocal``, ``remainder``, ``modulo``, ``add_carry``, ``scalb`` and
 	  ``is_negative``
+	* the ordering, equality and matching relational operators, ``std_match``, ``maximum`` and ``minimum``, of two
+	  fixed-point values and of a fixed-point value with ``natural`` or ``real`` (``ufixed``), ``integer`` or ``real``
+	  (``sfixed``)
+	* the shift and rotate operators, ``shift_left`` and ``shift_right``, the logical operators and the logical reduction
+	  operators
 
 	.. seealso::
 
@@ -262,6 +267,93 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 				), self._TypeMark(fixedType))
 
 		function("is_negative", (self._InParameter(("arg", ), self._TypeMark(sfixedType)), ), self._TypeMark("boolean"))
+
+		# Relational operators, std_match, maximum and minimum
+		for operatorSymbol in (">", "<", "<=", ">=", "=", "/="):
+			for fixedType in (ufixedType, sfixedType):
+				operator(
+					operatorSymbol,
+					operands(self._TypeMark(fixedType), self._TypeMark(fixedType)),
+					self._TypeMark("boolean")
+				)
+
+		for fixedType in (ufixedType, sfixedType):
+			for operatorSymbol in ("?=", "?/=", "?>", "?>=", "?<", "?<="):
+				operator(
+					operatorSymbol,
+					operands(self._TypeMark(fixedType), self._TypeMark(fixedType)),
+					self._TypeMark("std_ulogic")
+				)
+
+		for fixedType in (ufixedType, sfixedType):
+			function("std_match", operands(self._TypeMark(fixedType), self._TypeMark(fixedType)), self._TypeMark("boolean"))
+
+		for fixedType in (ufixedType, sfixedType):
+			for identifier in ("maximum", "minimum"):
+				function(identifier, operands(self._TypeMark(fixedType), self._TypeMark(fixedType)), self._TypeMark(fixedType))
+
+		sideBySide = (("maximum", 0), ("minimum", 0), ("maximum", 1), ("minimum", 1))
+		nameByName = (("maximum", 0), ("maximum", 1), ("minimum", 0), ("minimum", 1))
+		for fixedType, otherType, minimumMaximum in (
+			(ufixedType, "natural", sideBySide),
+			(ufixedType, "real",    nameByName),
+			(sfixedType, "integer", nameByName),
+			(sfixedType, "real",    nameByName)
+		):
+			sides = ((fixedType, otherType), (otherType, fixedType))
+			for left, right in sides:
+				for operatorSymbol in ("=", "/=", ">=", "<=", ">", "<"):
+					operator(operatorSymbol, operands(self._TypeMark(left), self._TypeMark(right)), self._TypeMark("boolean"))
+
+			for left, right in sides:
+				for operatorSymbol in ("?=", "?/=", "?>=", "?<=", "?>", "?<"):
+					operator(
+						operatorSymbol,
+						operands(self._TypeMark(left), self._TypeMark(right)),
+						self._TypeMark("std_ulogic")
+					)
+
+			for identifier, side in minimumMaximum:
+				left, right = sides[side]
+				function(identifier, operands(self._TypeMark(left), self._TypeMark(right)), self._TypeMark(fixedType))
+
+		# Shift and rotate operators, shift_left, shift_right
+		for fixedType in (ufixedType, sfixedType):
+			for operatorSymbol in ("sll", "srl", "rol", "ror", "sla", "sra"):
+				operator(operatorSymbol, (
+					self._InParameter(("ARG", ), self._TypeMark(fixedType)),
+					self._InParameter(("COUNT", ), self._TypeMark("integer"))
+				), self._TypeMark(fixedType))
+
+		for fixedType in (ufixedType, sfixedType):
+			for identifier in ("shift_left", "shift_right"):
+				function(identifier, (
+					self._InParameter(("ARG", ), self._TypeMark(fixedType)),
+					self._InParameter(("COUNT", ), self._TypeMark("natural"))
+				), self._TypeMark(fixedType))
+
+		# Logical operators and logical reduction operators
+		for fixedType in (ufixedType, sfixedType):
+			operator("not", (self._InParameter(("l", ), self._TypeMark(fixedType)), ), self._TypeMark(fixedType))
+			for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+				operator(
+					operatorSymbol,
+					operands(self._TypeMark(fixedType), self._TypeMark(fixedType)),
+					self._TypeMark(fixedType)
+				)
+
+		for fixedType in (ufixedType, sfixedType):
+			for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+				for left, right in (("std_ulogic", fixedType), (fixedType, "std_ulogic")):
+					operator(operatorSymbol, operands(self._TypeMark(left), self._TypeMark(right)), self._TypeMark(fixedType))
+
+		for fixedType in (ufixedType, sfixedType):
+			for operatorSymbol in ("and", "nand", "or", "nor", "xor", "xnor"):
+				operator(
+					operatorSymbol,
+					(self._InParameter(("l", ), self._TypeMark(fixedType)), ),
+					self._TypeMark("std_ulogic")
+				)
 
 
 @export

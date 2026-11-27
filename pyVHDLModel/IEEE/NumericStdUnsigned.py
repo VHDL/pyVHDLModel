@@ -56,9 +56,11 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 	* the arithmetic operators and ``find_leftmost``/``find_rightmost``
 	* the ordering, equality and matching relational operators, ``minimum`` and ``maximum``
 	* the shift and rotate functions and operators, ``resize`` and the conversion functions ``to_integer``,
-	  ``to_stdlogicvector`` and ``to_stdulogicvector``
+	  ``to_stdlogicvector`` and ``to_stdulogicvector`` with their aliases (``to_std_logic_vector``, ``to_slv``,
+	  ``to_std_ulogic_vector``, ``to_sulv``)
 
-	The aliases of the package (``to_slv``, ``to_sulv``, ...) aren't declared.
+	Each alias selects an overload by a signature, e.g. ``alias To_SLV is To_StdLogicVector [NATURAL, NATURAL return
+	STD_LOGIC_VECTOR];``.
 
 	.. seealso::
 
@@ -192,9 +194,9 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 		)
 
 		function("to_integer", (self._InParameter(("ARG", ), self._TypeMark(vectorType)), ), self._TypeMark("natural"))
-		for identifier, typeName in (
-			("to_stdlogicvector",  "std_logic_vector"),
-			("to_stdulogicvector", vectorType)
+		for identifier, typeName, aliasIdentifiers in (
+			("to_stdlogicvector",  "std_logic_vector", ("to_std_logic_vector", "to_slv")),
+			("to_stdulogicvector", vectorType,         ("to_std_ulogic_vector", "to_sulv"))
 		):
 			function(
 				identifier,
@@ -205,6 +207,14 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 				self._InParameter(("ARG", ), self._TypeMark("natural")),
 				self._InParameter(("SIZE_RES", ), self._TypeMark(vectorType))
 			), self._TypeMark(typeName))
+			for sizeType in ("natural", vectorType):
+				for aliasIdentifier in aliasIdentifiers:
+					self._DeclareAlias(
+						aliasIdentifier,
+						identifier,
+						(self._TypeMark("natural"), self._TypeMark(sizeType)),
+						self._TypeMark(typeName)
+					)
 
 
 @export

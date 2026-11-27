@@ -33,6 +33,7 @@ from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel             import Design
 from pyVHDLModel.Base        import Mode
+from pyVHDLModel.Declaration import Alias
 from pyVHDLModel.Expression  import StringLiteral
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem
 from pyVHDLModel.Object      import Constant
@@ -50,14 +51,15 @@ class NumericBitUnsigneds(Testcase):
 	"""Package ``ieee.numeric_bit_unsigned`` (IEEE Std 1076-2008, 16.8)."""
 
 	def test_Declarations(self) -> None:
-		"""The constant first, then 81 functions; all with the package as parent."""
+		"""The constant first, then 81 functions and 4 aliases; all with the package as parent."""
 		numericBitUnsigned = Numeric_Bit_Unsigned()
 		declarations =       numericBitUnsigned.DeclaredItems
 
 		self.assertIsInstance(declarations[0], Constant)
 		self.assertTupleEqual(("copyrightnotice", ), declarations[0].Identifiers)
 		self.assertEqual(81, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
-		self.assertEqual(82, len(declarations))
+		self.assertEqual(4, len([declaration for declaration in declarations if isinstance(declaration, Alias)]))
+		self.assertEqual(86, len(declarations))
 		for declaration in declarations:
 			self.assertIs(numericBitUnsigned, declaration.Parent)
 
@@ -155,3 +157,47 @@ class NumericBitUnsigneds(Testcase):
 		numericBitUnsigned = design.Libraries["ieee"].Packages["numeric_bit_unsigned"]
 		self.assertIsNotNone(numericBitUnsigned.Functions["+"][1].ParameterItems[1].Subtype.Reference)
 		self.assertIsNotNone(numericBitUnsigned.Functions["to_bitvector"][0].ReturnType.Reference)
+
+	def test_Aliases(self) -> None:
+		"""``alias To_BV is To_BitVector [NATURAL, NATURAL return BIT_VECTOR];``: 4 aliases with a signature."""
+		aliases = [declaration for declaration in Numeric_Bit_Unsigned().DeclaredItems if isinstance(declaration, Alias)]
+
+		self.assertListEqual(
+			["to_bit_vector", "to_bv", "to_bit_vector", "to_bv"],
+			[alias.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			["to_bitvector"] * 4,
+			[alias.Name.Name.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				*(["[natural, natural return bit_vector]"] * 2),
+				*(["[natural, bit_vector return bit_vector]"] * 2)
+			],
+			[str(alias.Signature) for alias in aliases]
+		)
+		for alias in aliases:
+			self.assertIsNone(alias.Subtype)
+			self.assertIs(alias, alias.Signature.Parent)
+			self.assertTrue(alias.IsOverloadable)
+
+	def test_AnalyzeAliases(self) -> None:
+		"""The analysis resolves the name of each alias to the function of the package of the signature's type profile."""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		package = design.Libraries["ieee"].Packages["numeric_bit_unsigned"]
+		aliases = [declaration for declaration in package.DeclaredItems if isinstance(declaration, Alias)]
+		self.assertEqual(4, len(aliases))
+		for alias in aliases:
+			self.assertIsNotNone(alias.Name.Reference)
+			self.assertEqual(alias.Name.Name.Identifier, alias.Name.Reference.NormalizedDesignator)
+			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
+
+		self.assertIs(package.Functions["to_bitvector"][0], aliases[1].Name.Reference)
+		self.assertIs(package.Functions["to_bitvector"][1], aliases[3].Name.Reference)

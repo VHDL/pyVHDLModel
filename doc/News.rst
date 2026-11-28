@@ -256,6 +256,9 @@ Version 0.45.0 (2026)
      :mod:`pyVHDLModel.IEEE` alike (e.g. :mod:`~pyVHDLModel.IEEE.NumericStdPkg`): a class of ``STD`` shares the name
      of its VHDL package (``Standard``), and ``IEEE`` follows for consistency. A VHDL package named ``*_pkg``
      (``fixed_pkg``) gets no second suffix, a context module keeps its name (:mod:`~pyVHDLModel.IEEE.IeeeStdContext`).
+   * :meth:`~pyVHDLModel.Design.ComputeCompileOrder` has a doc-string with its algorithm; the properties
+     :data:`~pyVHDLModel.Design.DependencyGraph` and :data:`~pyVHDLModel.Design.CompileOrderGraph` describe their
+     vertices and edges, incl. the compile-order edges between the document vertices of the dependency graph.
    * Doc-string examples mark their parts with carets in the columns of the code (``AggregateSymbol``, ``Alias``,
      ``InterfacePackage``, ``SubprogramSignature``, ``PhysicalUnit``); several stood one or two columns off.
    * A local package (a package declared in a declarative region, e.g. an architecture) connects its namespace to the

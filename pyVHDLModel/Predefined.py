@@ -315,15 +315,15 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 	def _InParameter(
 		identifiers:       Iterable[str],
 		subtype:           SimpleSubtypeSymbol,
-		defaultExpression: Nullable[Literal | SimpleObjectOrFunctionCallSymbol] = None
+		defaultExpression: Nullable[Literal | Symbol] = None
 	) -> ParameterConstantInterfaceItem:
 		"""
 		Create a constant parameter of mode ``in`` of a subprogram of a predefined package.
 
 		:param identifiers:       The parameter's identifiers.
 		:param subtype:           The parameter's type mark.
-		:param defaultExpression: Optional, the default value: a literal or a name, e.g. of an enumeration literal.
-		                          Default: ``None``, no default value.
+		:param defaultExpression: Optional, the default value: a literal or a name, e.g. of an enumeration literal or an
+		                          attribute (``TIME'HIGH``). Default: ``None``, no default value.
 		:returns:                 The parameter.
 		"""
 		return ParameterConstantInterfaceItem(identifiers, Mode.In, subtype, defaultExpression)

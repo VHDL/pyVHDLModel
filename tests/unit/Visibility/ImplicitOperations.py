@@ -34,7 +34,7 @@ Implicit operations in namespaces: indexed by the analysis after the type marks 
 from pyTooling.Testing      import Testcase
 from pyTooling.Warning      import WarningCollector
 
-from pyVHDLModel            import Design
+from pyVHDLModel            import Design, VHDLVersion
 from pyVHDLModel.Base       import Direction, Mode, SimpleRange
 from pyVHDLModel.DesignUnit import DesignUnit, Entity, LibraryClause, Package
 from pyVHDLModel.Exception  import LibraryNotFoundError, UnresolvedTypeMarkWarning
@@ -355,6 +355,33 @@ class PredefinedTypeMarks(Testcase):
 						self.assertIsNotNone(operation.ReturnType.Reference, f"{package.Identifier}.{operation}")
 
 		self.assertSetEqual(set(), design.Libraries["std"].Packages["standard"]._namespace.HiddenOperations)
+
+	def test_Standard_VITAL_VHDL2019(self) -> None:
+		"""
+		The same with VHDL-2019: no warning, every type mark resolved; no operation of ``std.standard`` and ``std.env`` is
+		hidden, ``ieee.numeric_std`` hides 20 as with VHDL-2008.
+		"""
+		design = Design("design")
+		design.LoadStdLibrary(VHDLVersion.VHDL2019)
+		design.LoadIEEELibrary(VHDLVersion.VHDL2019)
+		design.LoadVITALPackages()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		for library in design.Libraries.values():
+			for package in library.Packages.values():
+				for fullType in package.Types.values():
+					for operation in fullType.ImplicitOperations:
+						for item in operation.ParameterItems:
+							self.assertIsNotNone(item.Subtype.Reference, f"{package.Identifier}.{operation}")
+
+						self.assertIsNotNone(operation.ReturnType.Reference, f"{package.Identifier}.{operation}")
+
+		for identifier in ("standard", "env"):
+			self.assertSetEqual(set(), design.Libraries["std"].Packages[identifier]._namespace.HiddenOperations)
+
+		self.assertEqual(20, len(design.Libraries["ieee"].Packages["numeric_std"]._namespace.HiddenOperations))
 
 	def test_Natural(self) -> None:
 		"""``TO_STRING`` of ``REAL`` takes ``DIGITS`` of subtype ``NATURAL``, ``FORMAT`` of type ``STRING``."""

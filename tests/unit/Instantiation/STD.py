@@ -232,6 +232,33 @@ class Standards(Testcase):
 			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
 
 
+	def test_ToString(self) -> None:
+		"""VHDL-2008: of the array types, only ``bit_vector`` declares ``TO_STRING`` (5.3.2.4)."""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.Analyze()
+
+		types = design.Libraries["std"].Packages["standard"].Types
+		self.assertIn("to_string", [operation.Identifier for operation in types["bit_vector"].ImplicitOperations])
+		for identifier in ("string", "boolean_vector", "integer_vector", "real_vector", "time_vector"):
+			self.assertNotIn("to_string", [operation.Identifier for operation in types[identifier].ImplicitOperations])
+
+	def test_ToString_VHDL2019(self) -> None:
+		"""VHDL-2019: every array type declares ``TO_STRING`` last (IEEE Std 1076-2019, 5.3.2.4, 16.3)."""
+		design = Design("design")
+		design.LoadStdLibrary(VHDLVersion.VHDL2019)
+		design.Analyze()
+
+		types = design.Libraries["std"].Packages["standard"].Types
+		for identifier in ("string", "boolean_vector", "integer_vector", "real_vector", "time_vector"):
+			self.assertListEqual([("to_string", (identifier, ), "string")], _signatures(types[identifier], -1))
+
+		self.assertListEqual(
+			["to_string", "to_ostring", "to_hstring"],
+			[operation.Identifier for operation in types["bit_vector"].ImplicitOperations[-3:]]
+		)
+
+
 class UniversalTypes(Testcase):
 	"""The anonymous types *universal_integer* and *universal_real* of ``std.standard`` (IEEE Std 1076-2008, 16.3)."""
 

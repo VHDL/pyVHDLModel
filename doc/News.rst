@@ -206,7 +206,9 @@ Version 0.45.0 (2026)
      :class:`~pyVHDLModel.STD.StandardPkg.UniversalReal`): no name denotes them, their implicit operations are
      declarations of the package, which a use clause imports; *universal_real* adds ``"*"`` and ``"/"`` with a
      *universal_integer* operand (9.2.7). Every physical type declares ``"/"`` of two values returning
-     *universal_integer*.
+     *universal_integer*. With VHDL-2019, every array type, whose element type has a string representation, and every
+     record type, whose element types have one, declare ``to_string`` (IEEE Std 1076-2019, 5.3.2.4, 5.3.3.3), e.g.
+     ``string`` and ``integer_vector``; the VHDL version is the predefined package's or the document's.
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

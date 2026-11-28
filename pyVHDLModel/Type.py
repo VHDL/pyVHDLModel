@@ -56,6 +56,7 @@ from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarat
                                    SequentialDeclarationRegionMixin, WithoutStatementsMixin
 
 if TYPE_CHECKING:
+	from pyVHDLModel            import VHDLVersion
 	from pyVHDLModel.DesignUnit import DesignUnit, Package
 	from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
 	from pyVHDLModel.Subprogram import Function, PredefinedOperator, PredefinedFunction, PredefinedOperation
@@ -318,6 +319,42 @@ class FullType(BaseType):
 			self._BinaryOperator("/=", SimpleSubtypeSymbol(SimpleName("boolean")))
 		]
 
+	def _HasStringRepresentation(self, vhdlVersion: VHDLVersion) -> bool:
+		"""
+		Check if the values of this type have a string representation (IEEE Std 1076-2008, 5.7).
+
+		A type with a string representation declares the implicit operation ``TO_STRING``. An access type, a file type and
+		a protected type have none; derived classes define the rules of their type class.
+
+		:param vhdlVersion: The VHDL version of the rules.
+		:returns:           ``True``, if the values have a string representation.
+		"""
+		return False
+
+	def _VHDLVersion(self) -> VHDLVersion:
+		"""
+		Return the VHDL version of the design unit declaring this type, which selects the rules of its implicit operations.
+
+		A predefined package has its own VHDL version, another design unit the one of its document. A type outside a design
+		unit or in a design unit without a document follows VHDL-2008.
+
+		:returns: The VHDL version.
+		"""
+		from pyVHDLModel            import VHDLVersion
+		from pyVHDLModel.DesignUnit import DesignUnit
+		from pyVHDLModel.Predefined import PredefinedPackageMixin
+
+		designUnit = self._parent
+		while designUnit is not None and not isinstance(designUnit, DesignUnit):
+			designUnit = designUnit._parent
+
+		if isinstance(designUnit, PredefinedPackageMixin):
+			return designUnit._vhdlVersion
+		elif designUnit is not None and designUnit._document is not None:
+			return designUnit._document._vhdlVersion
+
+		return VHDLVersion.VHDL2008
+
 	def _TypeMark(self) -> SimpleSubtypeSymbol:
 		"""
 		Create a type mark referencing this type, for a parameter or the return value of an implicit operation.
@@ -400,6 +437,18 @@ class FullType(BaseType):
 		:returns:              The predefined operator.
 		"""
 		return self._Operator(operatorSymbol, returnType, (self._Parameter("R", self._TypeMark()),))
+
+	def _ToString(self) -> PredefinedFunction:
+		"""
+		Create the implicit function ``TO_STRING (VALUE : <type>) return STRING`` of this type (IEEE Std 1076-2008, 5.7).
+
+		:returns: The predefined function.
+		"""
+		return self._Function(
+			"to_string",
+			SimpleSubtypeSymbol(SimpleName("string")),
+			(self._Parameter("VALUE", self._TypeMark()),)
+		)
 
 @export
 class Subtype(BaseType):
@@ -609,13 +658,18 @@ class ScalarType(FullType):
 				(self._Parameter("L", self._TypeMark()), self._Parameter("R", self._TypeMark()))
 			))
 
-		operations.append(self._Function(
-			"to_string",
-			SimpleSubtypeSymbol(SimpleName("string")),
-			(self._Parameter("VALUE", self._TypeMark()),)
-		))
+		operations.append(self._ToString())
 
 		return operations
+
+	def _HasStringRepresentation(self, vhdlVersion: VHDLVersion) -> bool:
+		"""
+		Check if the values of this type have a string representation: always for a scalar type (IEEE Std 1076-2008, 5.7).
+
+		:param vhdlVersion: The VHDL version of the rules.
+		:returns:           ``True``
+		"""
+		return True
 
 
 @export
@@ -1395,8 +1449,10 @@ class ArrayType(CompositeType):
 		  ``"ror"`` with an ``integer`` shift amount (9.2.4), the binary logical operators of an element and an array and
 		  of an array and an element, and the logical reduction operators (9.2.2);
 		* element type ``bit`` (:class:`MatchingOperatorsMixin`): the matching operators ``"?="`` and
-		  ``"?/="`` (9.2.3);
-		* element type a character type containing only character literals: ``TO_STRING`` (5.3.2.4).
+		  ``"?/="`` (9.2.3).
+
+		An array type, whose values have a string representation (:meth:`_HasStringRepresentation`), declares
+		``TO_STRING`` last (5.3.2.4).
 
 		A parameter or result of the element type has a type mark naming the element subtype, which references it. With an
 		unresolved element type mark, only the equality operators and the concatenation of two arrays are created.
@@ -1405,6 +1461,9 @@ class ArrayType(CompositeType):
 		"""
 		operations = super()._CreateImplicitOperations()
 		if len(self._dimensions) != 1:
+			if self._HasStringRepresentation(self._VHDLVersion()):
+				operations.append(self._ToString())
+
 			return operations
 
 		reference = self._elementType._reference
@@ -1487,16 +1546,35 @@ class ArrayType(CompositeType):
 			for operatorSymbol in ("?=", "?/="):
 				operations.append(self._BinaryOperator(operatorSymbol, elementTypeMark()))
 
-		if isinstance(element, EnumeratedType) and all(
-			isinstance(literal, CharacterEnumerationLiteral) for literal in element._literals
-		):
-			operations.append(self._Function(
-				"to_string",
-				SimpleSubtypeSymbol(SimpleName("string")),
-				(self._Parameter("VALUE", self._TypeMark()),)
-			))
+		if self._HasStringRepresentation(self._VHDLVersion()):
+			operations.append(self._ToString())
 
 		return operations
+
+	def _HasStringRepresentation(self, vhdlVersion: VHDLVersion) -> bool:
+		"""
+		Check if the values of this array type have a string representation (IEEE Std 1076-2008, 5.7).
+
+		Up to VHDL-2008, a one-dimensional array type has one, if its element type is a character type containing only
+		character literals (``bit_vector``, not ``string``). Since VHDL-2019, an array type has one, if its element type
+		has one (a representable array type, IEEE Std 1076-2019, 5.7). An unresolved element type mark has none.
+
+		:param vhdlVersion: The VHDL version of the rules.
+		:returns:           ``True``, if the values have a string representation.
+		"""
+		from pyVHDLModel import VHDLVersion
+
+		reference = self._elementType._reference
+		if not isinstance(reference, BaseType):
+			return False
+
+		element = reference.BaseType
+		if vhdlVersion >= VHDLVersion.VHDL2019:
+			return isinstance(element, FullType) and element._HasStringRepresentation(vhdlVersion)
+
+		return len(self._dimensions) == 1 and isinstance(element, EnumeratedType) and all(
+			isinstance(literal, CharacterEnumerationLiteral) for literal in element._literals
+		)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1786,6 +1864,45 @@ class RecordType(CompositeType):
 		for element in self._elements:
 			if isinstance(element._subtype, SubtypeSymbol):
 				yield region, self, element._subtype
+
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this record type declares implicitly: the equality operators, then ``TO_STRING``, if its
+		values have a string representation (:meth:`_HasStringRepresentation`, IEEE Std 1076-2019, 5.3.3.3).
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		if self._HasStringRepresentation(self._VHDLVersion()):
+			operations.append(self._ToString())
+
+		return operations
+
+	def _HasStringRepresentation(self, vhdlVersion: VHDLVersion) -> bool:
+		"""
+		Check if the values of this record type have a string representation (IEEE Std 1076-2019, 5.7).
+
+		Up to VHDL-2008, a record type has none. Since VHDL-2019, it has one, if the type of each element has one (a
+		representable record type). An unresolved element type mark has none.
+
+		:param vhdlVersion: The VHDL version of the rules.
+		:returns:           ``True``, if the values have a string representation.
+		"""
+		from pyVHDLModel import VHDLVersion
+
+		if vhdlVersion < VHDLVersion.VHDL2019:
+			return False
+
+		for element in self._elements:
+			reference = element._subtype._reference
+			if not isinstance(reference, BaseType):
+				return False
+
+			elementType = reference.BaseType
+			if not isinstance(elementType, FullType) or not elementType._HasStringRepresentation(vhdlVersion):
+				return False
+
+		return True
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

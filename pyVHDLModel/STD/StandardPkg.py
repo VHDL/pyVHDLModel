@@ -351,6 +351,9 @@ class Standard(PredefinedPackage):
 	declarations: no name denotes them (:attr:`AnonymousTypes`). Their predefined operations are declarations of the
 	package, which a use clause makes visible (:meth:`IterateDeclarations`).
 
+	With :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`, each array type, whose element type has a
+	string representation, declares ``to_string``, e.g. ``string`` and ``integer_vector`` (IEEE Std 1076-2019, 5.3.2.4).
+
 	.. seealso::
 
 	   Matching :class:`Package Body <pyVHDLModel.STD.StandardPkg.Standard_Body>` declaration.

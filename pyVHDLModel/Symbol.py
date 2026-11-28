@@ -595,9 +595,9 @@ class AggregateSymbol(Symbol):
 
 	   .. code-block:: VHDL
 
-	      (carry, sum) := add(a, b);
-	      -- ^^^^^^^^^^^^    <- the aggregate symbol
-	      --  ^^^^^  ^^^    <- Targets
+	      assign: (carry, sum) := add(a, b);
+	      --      ^^^^^^^^^^^^    <- the aggregate symbol
+	      --       ^^^^^  ^^^     <- Targets
 	"""
 	_targets: list[Symbol]  #: List of the targets, in source order.
 

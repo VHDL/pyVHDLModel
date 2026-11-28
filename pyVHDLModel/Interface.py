@@ -866,8 +866,8 @@ class InterfacePackage(ModelEntity, NamedEntityMixin, DocumentedEntityMixin, Gen
 
 	      package fixed_pkg is new IEEE.fixed_generic_pkg generic map (<>)
 	      --      ^^^^^^^^^                                                  <- Identifier
-	      --                   ^^^^^^^^^^^^^^^^^^^^^^                        <- PackageReference
-	      --                                          ^^^^^^^^^^^^^^^^^      <- GenericMap
+	      --                       ^^^^^^^^^^^^^^^^^^^^^^                    <- PackageReference
+	      --                                              ^^^^^^^^^^^^^^^^   <- GenericMap
 
 	.. seealso::
 

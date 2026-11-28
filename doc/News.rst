@@ -256,6 +256,8 @@ Version 0.45.0 (2026)
      :mod:`pyVHDLModel.IEEE` alike (e.g. :mod:`~pyVHDLModel.IEEE.NumericStdPkg`): a class of ``STD`` shares the name
      of its VHDL package (``Standard``), and ``IEEE`` follows for consistency. A VHDL package named ``*_pkg``
      (``fixed_pkg``) gets no second suffix, a context module keeps its name (:mod:`~pyVHDLModel.IEEE.IeeeStdContext`).
+   * Doc-string examples mark their parts with carets in the columns of the code (``AggregateSymbol``, ``Alias``,
+     ``InterfacePackage``, ``SubprogramSignature``, ``PhysicalUnit``); several stood one or two columns off.
    * :data:`~pyVHDLModel.Base.ExpressionUnion` includes :class:`~pyVHDLModel.Symbol.Symbol`: a name in an expression is
      a symbol (``read_mode``, ``TIME'HIGH``). It's defined once, in :mod:`pyVHDLModel.Base`; five modules had a copy of
      it. The helpers of the predefined packages annotate default values with it.

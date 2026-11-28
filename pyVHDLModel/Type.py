@@ -994,7 +994,7 @@ class PhysicalUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	      --^^                                        <- Identifier (primary unit)
 	        mm = 1000 um;
 	      --^^                                        <- Identifier (secondary unit)
-	      --   ^^^^^^^                                <- Value
+	      --     ^^^^^^^                              <- Value
 	      end units;
 	"""
 	_value: Nullable[PhysicalIntegerLiteral]  #: The unit's value in a smaller unit, or ``None`` for the primary unit.

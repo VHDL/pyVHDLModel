@@ -38,11 +38,11 @@ from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
 from pyVHDLModel               import VHDLVersion, Library, Package, PackageBody, Context, \
                                       AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
-from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, Mode
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, Mode, ExpressionUnion
 from pyVHDLModel.Name          import SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol        import LibraryReferenceSymbol, PackageSymbol, PackageReferenceSymbol, \
                                       PossibleReference, Symbol, SimpleSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
-from pyVHDLModel.Expression    import Literal, IntegerLiteral
+from pyVHDLModel.Expression    import IntegerLiteral
 from pyVHDLModel.DesignUnit    import LibraryClause, UseClause
 from pyVHDLModel.Interface     import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
 from pyVHDLModel.Declaration   import Alias
@@ -315,7 +315,7 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 	def _InParameter(
 		identifiers:       Iterable[str],
 		subtype:           SimpleSubtypeSymbol,
-		defaultExpression: Nullable[Literal | Symbol] = None
+		defaultExpression: Nullable[ExpressionUnion] = None
 	) -> ParameterConstantInterfaceItem:
 		"""
 		Create a constant parameter of mode ``in`` of a subprogram of a predefined package.

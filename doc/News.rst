@@ -233,6 +233,9 @@ Version 0.45.0 (2026)
      :mod:`pyVHDLModel.IEEE` alike (e.g. :mod:`~pyVHDLModel.IEEE.NumericStdPkg`): a class of ``STD`` shares the name
      of its VHDL package (``Standard``), and ``IEEE`` follows for consistency. A VHDL package named ``*_pkg``
      (``fixed_pkg``) gets no second suffix, a context module keeps its name (:mod:`~pyVHDLModel.IEEE.IeeeStdContext`).
+   * :data:`~pyVHDLModel.Base.ExpressionUnion` includes :class:`~pyVHDLModel.Symbol.Symbol`: a name in an expression is
+     a symbol (``read_mode``, ``TIME'HIGH``). It's defined once, in :mod:`pyVHDLModel.Base`; five modules had a copy of
+     it. The helpers of the predefined packages annotate default values with it.
    * :class:`~pyVHDLModel.Object.File` takes the file open information (IEEE Std 1076-2008, 6.4.2.5): keyword parameters
      ``openKind`` and ``logicalName`` (properties :attr:`~pyVHDLModel.Object.File.OpenKind`,
      :attr:`~pyVHDLModel.Object.File.LogicalName`), e.g. ``file input : text open read_mode is "STD_INPUT";``; the VHDL

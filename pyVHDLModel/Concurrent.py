@@ -42,16 +42,16 @@ from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass, mustoverride
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, \
-                                    BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, \
-                                    BlockStatementMixin, WaveformElement, ChoicesMixin, ReservedWord
+from pyVHDLModel.Base        import ExpressionUnion, ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, \
+                                    BaseChoice, BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, \
+                                    AssertStatementMixin, BlockStatementMixin, WaveformElement, ChoicesMixin, \
+                                    ReservedWord
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, DeclarativeRegionMixin, \
                                     SequentialDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, \
                                     ConfigurationInstantiationSymbol, Symbol, SignalSymbol
-from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Association import ParameterAssociationItem, GenericAssociationItem, PortAssociationItem, \
                                     GenericMapAspectMixin, PortMapAspectMixin
 from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin, GenericGroup, PortGroup
@@ -64,14 +64,6 @@ if TYPE_CHECKING:
 	from pyVHDLModel.Visitor   import Visitor
 
 
-ExpressionUnion = Union[
-	BaseExpression,
-	QualifiedExpression,
-	FunctionCall,
-	TypeConversion,
-	# ConstantOrSymbol,     TODO: ObjectSymbol
-	Literal,
-]
 
 
 @export

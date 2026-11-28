@@ -42,11 +42,10 @@ from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, BaseCase, BaseChoice, \
-                                    WaveformElement, ConditionalMixin, ChoicesMixin
+from pyVHDLModel.Base        import ExpressionUnion, ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, BaseCase, \
+                                    BaseChoice, WaveformElement, ConditionalMixin, ChoicesMixin
 from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError, \
                                     DuplicateParameterAssociationError
-from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import Symbol, SignalSymbol, VariableSymbol
 from pyVHDLModel.Association import ParameterAssociationItem
@@ -55,14 +54,6 @@ if TYPE_CHECKING:
 	from pyVHDLModel.Visitor   import Visitor
 
 
-ExpressionUnion = Union[
-	BaseExpression,
-	QualifiedExpression,
-	FunctionCall,
-	TypeConversion,
-	# ConstantOrSymbol,     TODO: ObjectSymbol
-	Literal,
-]
 
 
 @export

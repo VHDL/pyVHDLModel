@@ -37,27 +37,19 @@ All declarations for literals, aggregates, operators forming an expressions.
 from __future__            import annotations
 
 from enum                  import Flag, IntEnum, unique
-from typing                import TYPE_CHECKING, Iterable, Union, ClassVar, Optional as Nullable, Self
+from typing                import TYPE_CHECKING, Iterable, ClassVar, Optional as Nullable, Self
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly
 from pyTooling.MetaClasses import abstractclass
 
-from pyVHDLModel.Base      import ModelEntity, DocumentedEntityMixin, Direction, Range, ReservedWord
+from pyVHDLModel.Base      import ExpressionUnion, ModelEntity, DocumentedEntityMixin, Direction, Range, ReservedWord
 from pyVHDLModel.Exception import LiteralError
 from pyVHDLModel.Symbol    import Symbol, SubtypeSymbol
 if TYPE_CHECKING:
 	from pyVHDLModel.Visitor import Visitor
 
 
-ExpressionUnion = Union[
-	'BaseExpression',
-	'QualifiedExpression',
-	'FunctionCall',
-	'TypeConversion',
-	# ConstantOrSymbol,     TODO: ObjectSymbol
-	'Literal',
-]
 
 
 @export

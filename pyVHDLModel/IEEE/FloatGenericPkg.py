@@ -77,7 +77,9 @@ class Float_Generic_Pkg(PredefinedPackage):
 	  special values (``zerofp``, ``nanfp``, ...), the procedures ``write``, ``read``, ``owrite``, ``oread``, ``hwrite``,
 	  ``hread``, ``to_string``, ``to_hstring``, ``to_ostring``, ``from_string``, ``from_ostring`` and ``from_hstring``
 
-	The aliases of subprograms (``to_stdlogicvector``, ...) aren't declared.
+	The conversion functions ``to_slv`` and ``to_sulv``, the procedures ``read``/``write`` and the string conversions are
+	each followed by their aliases (``to_stdlogicvector``, ``bread``, ``to_bstring``, ``from_hex_string``, ...); each
+	alias of a subprogram selects an overload by a signature, e.g. ``alias BREAD is READ [LINE, UNRESOLVED_float];``.
 
 	.. seealso::
 
@@ -378,8 +380,13 @@ class Float_Generic_Pkg(PredefinedPackage):
 		for width in (32, 64, 128):
 			function(f"to_float{width}", (argument(), *styles(*conversionStyles)), self._TypeMark(f"unresolved_float{width}"))
 
-		function("to_slv", (argument(), ), self._TypeMark("std_logic_vector"))
-		function("to_sulv", (argument(), ), self._TypeMark("std_ulogic_vector"))
+		for identifier, vectorType, aliasIdentifiers in (
+			("to_slv",  "std_logic_vector",  ("to_stdlogicvector", "to_std_logic_vector")),
+			("to_sulv", "std_ulogic_vector", ("to_stdulogicvector", "to_std_ulogic_vector"))
+		):
+			function(identifier, (argument(), ), self._TypeMark(vectorType))
+			for aliasIdentifier in aliasIdentifiers:
+				self._DeclareAlias(aliasIdentifier, identifier, (self._TypeMark(floatType), ), self._TypeMark(vectorType))
 
 		for sourceType, styleIdentifiers in (
 			("std_ulogic_vector",   ()),
@@ -578,8 +585,12 @@ class Float_Generic_Pkg(PredefinedPackage):
 				self._TypeMark(floatType)
 			)
 
-		# Procedures read and write, to_string, from_string
-		for writeIdentifier, readIdentifier in (("write", "read"), ("owrite", "oread"), ("hwrite", "hread")):
+		# Procedures read and write, to_string, from_string, and their aliases
+		for writeIdentifier, readIdentifier, aliasIdentifiers in (
+			("write",  "read",  (("bread", "bwrite"), ("binary_read", "binary_write"))),
+			("owrite", "oread", (("octal_read", "octal_write"), )),
+			("hwrite", "hread", (("hex_read", "hex_write"), ))
+		):
 			procedure(writeIdentifier, (
 				self._LineParameter(),
 				self._InParameter(("VALUE", ), self._TypeMark(floatType)),
@@ -591,22 +602,58 @@ class Float_Generic_Pkg(PredefinedPackage):
 				self._OutParameter(("VALUE", ), self._TypeMark(floatType)),
 				self._OutParameter(("GOOD", ), self._TypeMark("boolean"))
 			))
+			for readAlias, writeAlias in aliasIdentifiers:
+				self._DeclareAlias(
+					readAlias,
+					readIdentifier,
+					(self._TypeMark("line"), self._TypeMark(floatType), self._TypeMark("boolean"))
+				)
+				self._DeclareAlias(readAlias, readIdentifier, (self._TypeMark("line"), self._TypeMark(floatType)))
+				self._DeclareAlias(
+					writeAlias,
+					writeIdentifier,
+					(self._TypeMark("line"), self._TypeMark(floatType), self._TypeMark("side"), self._TypeMark("width"))
+				)
 
-		for identifier in ("to_string", "to_hstring", "to_ostring"):
+		for identifier, aliasIdentifiers in (
+			("to_string",  ("to_bstring", "to_binary_string")),
+			("to_hstring", ("to_hex_string", )),
+			("to_ostring", ("to_octal_string", ))
+		):
 			function(identifier, (self._InParameter(("value", ), self._TypeMark(floatType)), ), self._TypeMark("string"))
+			for aliasIdentifier in aliasIdentifiers:
+				self._DeclareAlias(aliasIdentifier, identifier, (self._TypeMark(floatType), ), self._TypeMark("string"))
 
-		stringConversions = (("from_string", "bstring"), ("from_ostring", "ostring"), ("from_hstring", "hstring"))
-		for identifier, stringParameter in stringConversions:
+		stringConversions = (
+			("from_string",  "bstring", ("from_bstring", "from_binary_string")),
+			("from_ostring", "ostring", ("from_octal_string", )),
+			("from_hstring", "hstring", ("from_hex_string", ))
+		)
+		for identifier, stringParameter, aliasIdentifiers in stringConversions:
 			function(identifier, (
 				self._InParameter((stringParameter, ), self._TypeMark("string")),
 				*styles("exponent_width", "fraction_width")
 			), self._TypeMark(floatType))
+			for aliasIdentifier in aliasIdentifiers:
+				self._DeclareAlias(
+					aliasIdentifier,
+					identifier,
+					(self._TypeMark("string"), self._TypeMark("natural"), self._TypeMark("natural")),
+					self._TypeMark(floatType)
+				)
 
-		for identifier, stringParameter in stringConversions:
+		for identifier, stringParameter, aliasIdentifiers in stringConversions:
 			function(identifier, (
 				self._InParameter((stringParameter, ), self._TypeMark("string")),
 				self._InParameter(("size_res", ), self._TypeMark(floatType))
 			), self._TypeMark(floatType))
+			for aliasIdentifier in aliasIdentifiers:
+				self._DeclareAlias(
+					aliasIdentifier,
+					identifier,
+					(self._TypeMark("string"), self._TypeMark(floatType)),
+					self._TypeMark(floatType)
+				)
 
 
 @export

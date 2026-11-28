@@ -77,7 +77,7 @@ class FloatGenericPkgs(Testcase):
 		self.assertEqual("IEEE.fixed_generic_pkg", str(generics[7].PackageReference.Name))
 
 	def test_Declarations(self) -> None:
-		"""The constant, the use clause, types, subtypes, aliases and the deferred constant, then 231 subprograms."""
+		"""The constant, use clause, types, subtypes, aliases, deferred constant, then 231 subprograms and 28 aliases."""
 		floatGenericPkg = Float_Generic_Pkg()
 		declarations =    floatGenericPkg.DeclaredItems
 
@@ -96,7 +96,8 @@ class FloatGenericPkgs(Testcase):
 		self.assertIsInstance(declarations[15], DeferredConstant)
 		self.assertEqual(220, len([declaration for declaration in declarations if isinstance(declaration, Function)]))
 		self.assertEqual(11, len([declaration for declaration in declarations if isinstance(declaration, Procedure)]))
-		self.assertEqual(247, len(declarations))
+		self.assertEqual(32, len([declaration for declaration in declarations if isinstance(declaration, Alias)]))
+		self.assertEqual(275, len(declarations))
 		for declaration in declarations:
 			self.assertIs(floatGenericPkg, declaration.Parent)
 
@@ -120,10 +121,56 @@ class FloatGenericPkgs(Testcase):
 
 	def test_Aliases(self) -> None:
 		"""``alias U_float32 is UNRESOLVED_float32;``"""
-		aliases = [declaration for declaration in Float_Generic_Pkg().DeclaredItems if isinstance(declaration, Alias)]
+		declarations = Float_Generic_Pkg().DeclaredItems
+		aliases =      [item for item in declarations if isinstance(item, Alias) and item.Signature is None]
 
 		self.assertListEqual(["u_float", "u_float32", "u_float64", "u_float128"], [alias.Identifier for alias in aliases])
 		self.assertEqual("unresolved_float32", aliases[1].Name.Name.Identifier)
+
+	def test_SubprogramAliases(self) -> None:
+		"""``alias BREAD is READ [LINE, UNRESOLVED_float];``: 28 aliases with a signature, after their subprograms."""
+		declarations = Float_Generic_Pkg().DeclaredItems
+		aliases =      [item for item in declarations if isinstance(item, Alias) and item.Signature is not None]
+
+		self.assertListEqual(
+			[
+				"to_stdlogicvector", "to_std_logic_vector", "to_stdulogicvector", "to_std_ulogic_vector", "bread", "bread",
+				"bwrite", "binary_read", "binary_read", "binary_write", "octal_read", "octal_read", "octal_write", "hex_read",
+				"hex_read", "hex_write", "to_bstring", "to_binary_string", "to_hex_string", "to_octal_string",
+				"from_bstring", "from_binary_string", "from_octal_string", "from_hex_string", "from_bstring",
+				"from_binary_string", "from_octal_string", "from_hex_string"
+			],
+			[alias.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				"to_slv", "to_slv", "to_sulv", "to_sulv", *(["read", "read", "write"] * 2), "oread", "oread", "owrite",
+				"hread", "hread", "hwrite", "to_string", "to_string", "to_hstring", "to_ostring",
+				*(["from_string", "from_string", "from_ostring", "from_hstring"] * 2)
+			],
+			[alias.Name.Name.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				"[unresolved_float return std_logic_vector]",
+				"[unresolved_float return std_logic_vector]",
+				"[unresolved_float return std_ulogic_vector]",
+				"[unresolved_float return std_ulogic_vector]",
+				*([
+					"[line, unresolved_float, boolean]",
+					"[line, unresolved_float]",
+					"[line, unresolved_float, side, width]"
+				] * 4),
+				*(["[unresolved_float return string]"] * 4),
+				*(["[string, natural, natural return unresolved_float]"] * 4),
+				*(["[string, unresolved_float return unresolved_float]"] * 4)
+			],
+			[str(alias.Signature) for alias in aliases]
+		)
+		for alias in aliases:
+			self.assertIsNone(alias.Subtype)
+			self.assertIs(alias, alias.Signature.Parent)
+			self.assertTrue(alias.IsOverloadable)
 
 	def test_ValidFpstate(self) -> None:
 		"""``type valid_fpstate is (nan, quiet_nan, ..., isx);``, the return type of ``classfp``."""
@@ -314,3 +361,26 @@ class FloatGenericPkgs(Testcase):
 		self.assertIs(fixedGenericPkg, floatGenericPkg.GenericItems[7].PackageReference.Reference)
 		self.assertIs(fixedGenericPkg.Types["unresolved_ufixed"], toFloat.ParameterItems[0].Subtype.Reference)
 		self.assertIs(floatGenericPkg.Types["valid_fpstate"], floatGenericPkg.Functions["classfp"][0].ReturnType.Reference)
+
+	def test_AnalyzeAliases(self) -> None:
+		"""
+		The analysis resolves the name of each alias with a signature to the subprogram of the signature's type profile,
+		e.g. ``TO_BSTRING [UNRESOLVED_float return STRING]`` to the package's ``to_string``.
+		"""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		package = design.Libraries["ieee"].Packages["float_generic_pkg"]
+		aliases = [item for item in package.DeclaredItems if isinstance(item, Alias) and item.Signature is not None]
+		self.assertEqual(28, len(aliases))
+		for alias in aliases:
+			self.assertIsNotNone(alias.Name.Reference)
+			self.assertEqual(alias.Name.Name.Identifier, alias.Name.Reference.NormalizedDesignator)
+			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
+
+		self.assertIs(package.Functions["to_string"][0], aliases[16].Name.Reference)
+		self.assertIs(package.Procedures["read"][1], aliases[4].Name.Reference)

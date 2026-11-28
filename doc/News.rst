@@ -93,8 +93,7 @@ Version 0.45.0 (2026)
      ``normalize``, the operators with ``real`` and ``integer`` operands, the logical operators, ``copysign``,
      ``scalb``, ``logb``, ``nextafter``, the special values (``zerofp``, ``nanfp``, ...), the ``read``/``write``
      procedures, ``to_string`` and ``from_string`` with their octal and hexadecimal variants: 247 declarations in the
-     package's order. The aliases of subprograms (``to_stdlogicvector``, ``bread``, ``to_bstring``, ...) aren't declared
-     yet.
+     package's order.
    * Package ``ieee.float_pkg`` (:class:`~pyVHDLModel.IEEE.FloatPkg.Float_Pkg`) instantiates ``ieee.float_generic_pkg``
      with the generic map of IEEE Std 1076-2008, 16.11, ``fixed_pkg => IEEE.fixed_pkg`` included: a use clause
      ``use ieee.float_pkg.all;`` makes ``float32``, ``to_float``, ... visible.
@@ -169,6 +168,11 @@ Version 0.45.0 (2026)
      ``to_string`` (``to_bstring``, ...) and of ``from_string`` (``from_bstring``, ``from_binary_string``,
      ``from_octal_string``, ``from_hex_string``). The analysis resolves each alias, ``to_bstring`` to the package's
      ``to_string``.
+   * Package ``ieee.float_generic_pkg`` declares its 28 aliases of subprograms with their signatures, at their places in
+     the package's order: of ``to_slv`` and ``to_sulv`` (``to_stdlogicvector``, ...), of the ``read``/``write``
+     procedures (``bread``, ``bwrite``, ``binary_read``, ``octal_read``, ``hex_write``, ...), of ``to_string``,
+     ``to_hstring`` and ``to_ostring`` (``to_bstring``, ...) and of ``from_string`` (``from_bstring``, ...). The
+     analysis resolves each alias.
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

@@ -30,8 +30,11 @@
 #
 """Tests for pyVHDLModel.IEEE.StdLogic1164."""
 from pyTooling.Testing              import Testcase
+from pyTooling.Warning              import WarningCollector
 
+from pyVHDLModel                    import Design
 from pyVHDLModel.Base               import Direction, Mode
+from pyVHDLModel.Declaration        import Alias
 from pyVHDLModel.DesignUnit         import Entity, LibraryClause
 from pyVHDLModel.Expression         import CharacterLiteral
 from pyVHDLModel.Interface          import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
@@ -206,6 +209,68 @@ class StdLogic1164s(Testcase):
 					["L", "VALUE", "JUSTIFIED", "FIELD"],
 					[item.Identifiers[0] for item in write.ParameterItems]
 				)
+
+	def test_Aliases(self) -> None:
+		"""``alias To_SLV is To_StdLogicVector [BIT_VECTOR return STD_LOGIC_VECTOR];``: 26 aliases with a signature."""
+		aliases = [declaration for declaration in Std_Logic_1164().DeclaredItems if isinstance(declaration, Alias)]
+
+		self.assertListEqual(
+			[
+				"to_bit_vector", "to_bv", "to_std_logic_vector", "to_slv", "to_std_logic_vector", "to_slv",
+				"to_std_ulogic_vector", "to_sulv", "to_std_ulogic_vector", "to_sulv", "to_bstring", "to_binary_string",
+				"to_octal_string", "to_hex_string", "bread", "bread", "binary_read", "binary_read", "octal_read", "octal_read",
+				"hex_read", "hex_read", "bwrite", "binary_write", "octal_write", "hex_write"
+			],
+			[alias.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				"to_bitvector", "to_bitvector", *(["to_stdlogicvector"] * 4), *(["to_stdulogicvector"] * 4), "to_string",
+				"to_string", "to_ostring", "to_hstring", *(["read"] * 4), "oread", "oread", "hread", "hread", "write",
+				"write", "owrite", "hwrite"
+			],
+			[alias.Name.Name.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			[
+				*(["[std_ulogic_vector, bit return bit_vector]"] * 2),
+				*(["[bit_vector return std_logic_vector]"] * 2),
+				*(["[std_ulogic_vector return std_logic_vector]"] * 2),
+				*(["[bit_vector return std_ulogic_vector]"] * 2),
+				*(["[std_logic_vector return std_ulogic_vector]"] * 2),
+				*(["[std_ulogic_vector return string]"] * 4),
+				*(["[line, std_ulogic_vector, boolean]", "[line, std_ulogic_vector]"] * 4),
+				*(["[line, std_ulogic_vector, side, width]"] * 4)
+			],
+			[str(alias.Signature) for alias in aliases]
+		)
+		for alias in aliases:
+			self.assertIsNone(alias.Subtype)
+			self.assertIs(alias, alias.Signature.Parent)
+			self.assertTrue(alias.IsOverloadable)
+
+	def test_AnalyzeAliases(self) -> None:
+		"""
+		The analysis resolves the name of each alias to the subprogram of the signature's type profile, e.g.
+		``TO_BSTRING [STD_ULOGIC_VECTOR return STRING]`` to the implicit ``TO_STRING`` of ``STD_ULOGIC_VECTOR``.
+		"""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		package = design.Libraries["ieee"].Packages["std_logic_1164"]
+		aliases = [declaration for declaration in package.DeclaredItems if isinstance(declaration, Alias)]
+		self.assertEqual(26, len(aliases))
+		for alias in aliases:
+			self.assertIsNotNone(alias.Name.Reference)
+			self.assertEqual(alias.Name.Name.Identifier, alias.Name.Reference.NormalizedDesignator)
+			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
+
+		self.assertIs(package.Functions["to_stdlogicvector"][1], aliases[5].Name.Reference)
+		self.assertIs(package.Types["std_ulogic_vector"], aliases[10].Name.Reference.Parent)
 
 
 class StdULogics(Testcase):

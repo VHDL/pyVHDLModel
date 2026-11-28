@@ -83,13 +83,18 @@ class Std_Logic_1164(PredefinedPackage):
 	* types ``std_ulogic`` and ``std_ulogic_vector``, the resolution function ``resolved``, subtypes ``std_logic``,
 	  ``std_logic_vector``, ``x01``, ``x01z``, ``ux01`` and ``ux01z``
 	* the logical operators of ``std_ulogic`` and ``std_ulogic_vector``, the shift operators of ``std_ulogic_vector``
-	* the conversion functions ``to_bit``, ``to_bitvector``, ``to_stdulogic``, ``to_stdlogicvector``,
-	  ``to_stdulogicvector``, ``to_01``, ``to_x01``, ``to_x01z`` and ``to_ux01``
+	* the conversion functions ``to_bit``, ``to_bitvector``, ``to_stdulogic``, ``to_stdlogicvector`` and
+	  ``to_stdulogicvector``, the aliases ``to_bit_vector``, ``to_bv``, ``to_std_logic_vector``, ``to_slv``,
+	  ``to_std_ulogic_vector`` and ``to_sulv``, the functions ``to_01``, ``to_x01``, ``to_x01z`` and ``to_ux01``
 	* the condition operator ``"??"``, ``rising_edge``, ``falling_edge`` and ``is_x``
-	* the string conversions ``to_ostring``, ``to_hstring`` and the procedures ``read``, ``write``, ``oread``,
-	  ``hread``, ``owrite`` and ``hwrite``
+	* the string conversions ``to_ostring``, ``to_hstring`` and their aliases (``to_bstring``, ``to_binary_string``,
+	  ``to_octal_string``, ``to_hex_string``)
+	* the procedures ``read``, ``write``, ``oread``, ``hread``, ``owrite`` and ``hwrite`` and their aliases (``bread``,
+	  ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ``binary_write``, ``octal_write``, ``hex_write``)
 
-	The aliases of the standard (``to_bv``, ``to_slv``, ``to_bstring``, ``bread``, ...) aren't declared.
+	Each alias selects an overload by a signature, e.g. ``alias To_SLV is To_StdLogicVector [BIT_VECTOR return
+	STD_LOGIC_VECTOR];``. ``to_bstring`` and ``to_binary_string`` alias the implicit ``to_string`` of
+	``std_ulogic_vector``.
 	"""
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
@@ -228,6 +233,26 @@ class Std_Logic_1164(PredefinedPackage):
 				self._functions
 			)
 
+		for identifier in ("to_bit_vector", "to_bv"):
+			self._DeclareAlias(
+				identifier,
+				"to_bitvector",
+				(self._TypeMark("std_ulogic_vector"), self._TypeMark("bit")),
+				self._TypeMark("bit_vector")
+			)
+
+		for identifier, name, subtype, returnType in (
+			("to_std_logic_vector",  "to_stdlogicvector",  "bit_vector",        "std_logic_vector"),
+			("to_slv",               "to_stdlogicvector",  "bit_vector",        "std_logic_vector"),
+			("to_std_logic_vector",  "to_stdlogicvector",  "std_ulogic_vector", "std_logic_vector"),
+			("to_slv",               "to_stdlogicvector",  "std_ulogic_vector", "std_logic_vector"),
+			("to_std_ulogic_vector", "to_stdulogicvector", "bit_vector",        "std_ulogic_vector"),
+			("to_sulv",              "to_stdulogicvector", "bit_vector",        "std_ulogic_vector"),
+			("to_std_ulogic_vector", "to_stdulogicvector", "std_logic_vector",  "std_ulogic_vector"),
+			("to_sulv",              "to_stdulogicvector", "std_logic_vector",  "std_ulogic_vector")
+		):
+			self._DeclareAlias(identifier, name, (self._TypeMark(subtype), ), self._TypeMark(returnType))
+
 		for subtype, returnType in (
 			("std_ulogic_vector", "std_ulogic_vector"),
 			("std_ulogic",        "std_ulogic"),
@@ -283,13 +308,20 @@ class Std_Logic_1164(PredefinedPackage):
 				self._functions
 			)
 
-		for identifier in ("to_ostring", "to_hstring"):
+		for identifier in ("to_bstring", "to_binary_string"):
+			self._DeclareAlias(identifier, "to_string", (self._TypeMark("std_ulogic_vector"), ), self._TypeMark("string"))
+
+		for identifier, aliasIdentifier in (
+			("to_ostring", "to_octal_string"),
+			("to_hstring", "to_hex_string")
+		):
 			self._DeclareSubprogram(
 				Function(identifier, self._TypeMark("string"), parameterItems=(
 					self._InParameter(("VALUE",), self._TypeMark("std_ulogic_vector")),
 				)),
 				self._functions
 			)
+			self._DeclareAlias(aliasIdentifier, identifier, (self._TypeMark("std_ulogic_vector"), ), self._TypeMark("string"))
 
 		for subtype in ("std_ulogic", "std_ulogic_vector"):
 			self._DeclareSubprogram(
@@ -318,7 +350,18 @@ class Std_Logic_1164(PredefinedPackage):
 				self._procedures
 			)
 
-		for identifier in ("oread", "hread"):
+		for identifier in ("bread", "binary_read"):
+			self._DeclareAlias(
+				identifier,
+				"read",
+				(self._TypeMark("line"), self._TypeMark("std_ulogic_vector"), self._TypeMark("boolean"))
+			)
+			self._DeclareAlias(identifier, "read", (self._TypeMark("line"), self._TypeMark("std_ulogic_vector")))
+
+		for identifier, aliasIdentifier in (
+			("oread", "octal_read"),
+			("hread", "hex_read")
+		):
 			self._DeclareSubprogram(
 				Procedure(identifier, parameterItems=(
 					self._LineParameter(),
@@ -334,8 +377,29 @@ class Std_Logic_1164(PredefinedPackage):
 				)),
 				self._procedures
 			)
+			self._DeclareAlias(
+				aliasIdentifier,
+				identifier,
+				(self._TypeMark("line"), self._TypeMark("std_ulogic_vector"), self._TypeMark("boolean"))
+			)
+			self._DeclareAlias(aliasIdentifier, identifier, (self._TypeMark("line"), self._TypeMark("std_ulogic_vector")))
 
-		for identifier in ("owrite", "hwrite"):
+		for identifier in ("bwrite", "binary_write"):
+			self._DeclareAlias(
+				identifier,
+				"write",
+				(
+					self._TypeMark("line"),
+					self._TypeMark("std_ulogic_vector"),
+					self._TypeMark("side"),
+					self._TypeMark("width")
+				)
+			)
+
+		for identifier, aliasIdentifier in (
+			("owrite", "octal_write"),
+			("hwrite", "hex_write")
+		):
 			self._DeclareSubprogram(
 				Procedure(identifier, parameterItems=(
 					self._LineParameter(),
@@ -343,6 +407,16 @@ class Std_Logic_1164(PredefinedPackage):
 					*self._JustificationParameters()
 				)),
 				self._procedures
+			)
+			self._DeclareAlias(
+				aliasIdentifier,
+				identifier,
+				(
+					self._TypeMark("line"),
+					self._TypeMark("std_ulogic_vector"),
+					self._TypeMark("side"),
+					self._TypeMark("width")
+				)
 			)
 
 @export

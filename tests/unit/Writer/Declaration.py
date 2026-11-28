@@ -36,6 +36,7 @@ from pyVHDLModel.Exception       import VHDLWriterError
 from pyVHDLModel.Expression      import IntegerLiteral, EnumerationLiteral, DescendingRangeExpression
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName
+from pyVHDLModel.Subprogram      import SubprogramSignature
 from pyVHDLModel.Symbol          import ConstrainedArraySubtypeSymbol, IndexedObjectOrFunctionCallSymbol
 
 from tests.unit                  import _subtypeSymbol
@@ -65,6 +66,27 @@ class Aliases(Testcase):
 		)
 
 		self.assertEqual("alias low : bit_vector(3 downto 0) is data(3 downto 0);\n", VHDLWriter().Format(alias))
+
+	def test_Alias_Signature(self) -> None:
+		signature = SubprogramSignature([_subtypeSymbol("bit_vector")], _subtypeSymbol("std_logic_vector"))
+		alias =     Alias("to_slv", _object("to_stdlogicvector"), signature=signature)
+
+		self.assertEqual(
+			"alias to_slv is to_stdlogicvector [bit_vector return std_logic_vector];\n",
+			VHDLWriter().Format(alias)
+		)
+
+	def test_Alias_Signature_Parameters(self) -> None:
+		signature = SubprogramSignature([_subtypeSymbol("bit"), _subtypeSymbol("natural")])
+		alias =     Alias("p2", _object("p"), signature=signature)
+
+		self.assertEqual("alias p2 is p [bit, natural];\n", VHDLWriter().Format(alias))
+
+	def test_Alias_Signature_Return(self) -> None:
+		"""A signature without parameters: ``[return natural]``."""
+		alias = Alias("g", _object("f"), signature=SubprogramSignature([], _subtypeSymbol("natural")))
+
+		self.assertEqual("alias g is f [return natural];\n", VHDLWriter().Format(alias))
 
 	def test_UpperCase(self) -> None:
 		alias = Alias("clock", _object("clk"))

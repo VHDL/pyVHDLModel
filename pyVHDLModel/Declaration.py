@@ -39,6 +39,7 @@ from __future__             import annotations
 from enum                   import unique, Enum
 from typing                 import TYPE_CHECKING, ClassVar, Generator, Iterable, Union, Optional as Nullable
 
+from pyTooling.Common       import getFullyQualifiedName
 from pyTooling.Decorators   import export, readonly
 from pyTooling.Warning      import WarningCollector
 
@@ -50,6 +51,7 @@ from pyVHDLModel.Symbol     import PossibleReference, Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
 	from pyVHDLModel.DesignUnit import DesignUnit
+	from pyVHDLModel.Subprogram import SubprogramSignature
 	from pyVHDLModel.Regions  import DeclarativeRegionMixin
 	from pyVHDLModel.Visitor  import Visitor
 
@@ -344,6 +346,13 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	      alias b is s;
 	      --          ^
 	      --          Name
+
+	      alias to_slv is to_stdlogicvector [bit_vector return std_logic_vector];
+	      --               ^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	      --               Name              optional Signature
+
+	An alias of a subprogram selects one of its overloads by a signature (IEEE Std 1076-2008, 6.6.3); the analysis
+	resolves the name to the overload with the same parameter and result type profile.
 	"""
 
 	_IMPLICIT_OPERATIONS: ClassVar[frozenset[str]] = frozenset((
@@ -351,16 +360,19 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		"minimum", "maximum", "deallocate", "file_open", "file_close", "read", "write", "endfile", "flush"
 	))  #: Normalized identifiers of implicitly declared operations (IEEE Std 1076-2008, 5), which aren't represented.
 
-	_name:    Symbol                   #: Reference to the name being aliased.
-	_subtype: Nullable[SubtypeSymbol]  #: Reference to the alias' subtype, or ``None`` if none was given.
+	_name:      Symbol                         #: Reference to the name being aliased.
+	_subtype:   Nullable[SubtypeSymbol]        #: Reference to the alias' subtype, or ``None`` if none was given.
+	_signature: Nullable[SubprogramSignature]  #: The signature of the aliased subprogram, or ``None`` if none was given.
 
 	def __init__(
 		self,
 		identifier:    str,
 		name:          Symbol,
-		subtype:       Nullable[SubtypeSymbol] = None,
-		documentation: Nullable[str] =            None,
-		parent:        Nullable[ModelEntity] =    None
+		subtype:       Nullable[SubtypeSymbol] =       None,
+		documentation: Nullable[str] =                 None,
+		parent:        Nullable[ModelEntity] =         None,
+		*,
+		signature:     Nullable[SubprogramSignature] = None
 	) -> None:
 		"""
 		Initializes an alias declaration.
@@ -371,10 +383,27 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		:param documentation: Optional, the documentation comment associated with this declaration.
 		                      Default: ``None``, no documentation.
 		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param signature:     Optional, the signature selecting an overload of the aliased subprogram. Default: ``None``,
+		                      no signature. |br|
+		                      The signature becomes a child of the alias, its type marks children of the signature.
+		:raises TypeError:    If parameter 'signature' is not of type :class:`~pyVHDLModel.Subprogram.SubprogramSignature`.
+		:raises ValueError:   If parameter 'signature' is given together with a subtype indication.
 		"""
 		super().__init__(parent)
 		NamedEntityMixin.__init__(self, identifier)
 		DocumentedEntityMixin.__init__(self, documentation)
+
+		from pyVHDLModel.Subprogram import SubprogramSignature
+
+		if signature is not None:
+			if not isinstance(signature, SubprogramSignature):
+				ex = TypeError("Parameter 'signature' is not of type 'SubprogramSignature'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(signature)}'.")
+				raise ex
+			elif subtype is not None:
+				ex = ValueError("Parameter 'signature' is given together with a subtype indication.")
+				ex.add_note("An alias with a subtype indication is an object alias, which has no signature.")
+				raise ex
 
 		self._name = name
 		name.Parent = self
@@ -383,9 +412,18 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		if subtype is not None:
 			subtype.Parent = self
 
+		self._signature = signature
+		if signature is not None:
+			signature.Parent = self
+			for typeMark in signature._parameterTypes:
+				typeMark.Parent = signature
+
+			if signature._returnType is not None:
+				signature._returnType.Parent = signature
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this alias declaration, its subtype (if any) and its name with a visitor.
+		Walk this alias declaration, its subtype (if any), its name and its signature (if any) with a visitor.
 
 		:param visitor: The visitor receiving the events.
 		"""
@@ -395,6 +433,9 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 
 		visitor.VisitIs(self)
 		self._name.Visit(visitor)
+		if self._signature is not None:
+			self._signature.Visit(visitor)
+
 		visitor.VisitTerminator(self)
 		visitor.DepartAlias(self)
 
@@ -417,18 +458,30 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		return self._subtype
 
 	@readonly
+	def Signature(self) -> Nullable[SubprogramSignature]:
+		"""
+		Read-only property to access the signature selecting an overload of the aliased subprogram (:attr:`_signature`).
+
+		:returns: The signature, or ``None`` if not set.
+		"""
+		return self._signature
+
+	@readonly
 	def IsOverloadable(self) -> bool:
 		"""
 		Check if this alias is overloadable: it has no subtype indication, and its name may denote a subprogram or an
 		enumeration literal.
 
-		The resolved name (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`) decides, else the name's possible references,
-		e.g. ``alias To_SLV is To_StdLogicVector [std_ulogic_vector return std_logic_vector];``.
+		An alias with a signature is overloadable, e.g. ``alias To_SLV is To_StdLogicVector [std_ulogic_vector return
+		std_logic_vector];``. Otherwise, the resolved name (:attr:`~pyVHDLModel.Symbol.Symbol.Reference`) decides, else the
+		name's possible references.
 
 		:returns: ``True``, if this alias is overloadable.
 		"""
 		if self._subtype is not None:
 			return False
+		elif self._signature is not None:
+			return True
 		elif (reference := self._name._reference) is not None:
 			return reference.IsOverloadable
 
@@ -440,35 +493,45 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		region: DeclarativeRegionMixin
 	) -> Generator[tuple[DeclarativeRegionMixin, ModelEntity, SubtypeSymbol], None, None]:
 		"""
-		Iterate the type marks of this alias: the type mark of its subtype indication, if it has one.
+		Iterate the type marks of this alias: the type mark of its subtype indication, or the type marks of its signature.
 
 		:param region:  The declarative region declaring this alias.
 		:returns:       A generator to iterate (region, place, type mark) tuples: the alias' subtype indication, if
-		                given.
+		                given, or the type marks of the signature, if given.
 		"""
 		if self._subtype is not None:
 			yield region, self, self._subtype
+		elif self._signature is not None:
+			for typeMark in self._signature._parameterTypes:
+				yield region, self, typeMark
+
+			if self._signature._returnType is not None:
+				yield region, self, self._signature._returnType
 
 	def ResolveReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
-		Resolve the name of this alias, if it has no subtype indication, then its type marks.
+		Resolve the type marks of this alias, then its name, if it has neither a subtype indication nor a signature.
 
 		The name is resolved, if it's a simple name or an expanded name ``lib.pkg.item``
 		(:attr:`~pyVHDLModel.Name.Name.IsExpandedName`) and denotes a declaration, which isn't overloadable, e.g. a type or
 		an object (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.LookupName`); the alias isn't overloadable then
 		(:attr:`IsOverloadable`). The name of an implicitly declared operation (:attr:`_IMPLICIT_OPERATIONS`, an operator
-		symbol) isn't looked up, as the model doesn't represent these.
+		symbol) isn't looked up, as the analysis indexes these after the type marks are resolved
+		(:meth:`~pyVHDLModel.Design.IndexImplicitOperations`). The name of an alias with a signature is resolved after them
+		(:meth:`ResolveSignature`).
 
 		:param designUnit:                     The design unit containing this declaration.
 		:param region:                         The declarative region declaring this declaration.
-		:raises UnhandledCriticalWarningError: If the name can't be resolved, and no
-		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
-		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		:raises UnhandledCriticalWarningError: If a type mark can't be resolved, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedTypeMarkWarning`.
+		:raises UnhandledCriticalWarningError: If the name can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
-		if self._subtype is None:
+		super().ResolveReferences(designUnit, region)
+
+		if self._subtype is None and self._signature is None:
 			name =       self._name._name
 			isImplicit = name._normalizedIdentifier in self._IMPLICIT_OPERATIONS or name.IsOperatorSymbol
 			if (isinstance(name, SimpleName) or name.IsExpandedName) and not isImplicit:
@@ -477,7 +540,44 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 				if len(aliased) > 0 and not aliased[0].IsOverloadable:
 					self._name._reference = aliased[0]
 
-		super().ResolveReferences(designUnit, region)
+	def ResolveSignature(self, region: DeclarativeRegionMixin) -> None:
+		"""
+		Resolve the name of this alias to the subprogram of the same parameter and result type profile as its signature.
+
+		The analysis resolves it after the type marks are resolved and the implicit operations are indexed
+		(:meth:`~pyVHDLModel.Design.ResolveAliasSignatures`): the overloads' type profiles are known then
+		(:meth:`~pyVHDLModel.Subprogram.SubprogramSignature.HasSameTypeProfile`), and an implicit operation can be aliased,
+		e.g. ``alias to_bstring is to_string [std_ulogic_vector return string];``. A name, which isn't a simple name or an
+		expanded name ``lib.pkg.item``, isn't resolved. An alias without a signature changes nothing.
+
+		:param region:                         The declarative region declaring this alias.
+		:raises UnhandledCriticalWarningError: If the name can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If no subprogram of the name has the signature's type profile, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		from pyVHDLModel.Subprogram import Subprogram
+
+		name = self._name._name
+		if self._signature is None or not (isinstance(name, SimpleName) or name.IsExpandedName):
+			return
+
+		self._name._reference = None
+		aliased =               region.LookupName(self, self._name, name, UnresolvedNameWarning)
+		for declaration in aliased:
+			if isinstance(declaration, Subprogram) and declaration.Signature.HasSameTypeProfile(self._signature):
+				self._name._reference = declaration
+				return
+
+		if len(aliased) > 0:
+			WarningCollector.Raise(UnresolvedNameWarning(
+				f"No subprogram '{name!s}' of signature {self._signature!s} for alias '{self._identifier}'.",
+				symbol=self._name,
+				place=self,
+				namespaces=(region._namespace, )
+			))
 
 	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
@@ -534,9 +634,11 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		"""
 		Formats the alias declaration.
 
-		**Format:** ``alias myAlias : bit is target``, or without the subtype when none was given
+		**Format:** ``alias myAlias : bit is target``, without the subtype when none was given, or with a signature:
+		``alias to_slv is to_stdlogicvector [bit_vector return std_logic_vector]``
 
 		:returns: Formatted alias declaration.
 		"""
-		subtype = f" : {self._subtype}" if self._subtype is not None else ""
-		return f"alias {self._identifier}{subtype} is {self._name}"
+		subtype =   f" : {self._subtype}" if self._subtype is not None else ""
+		signature = f" {self._signature}" if self._signature is not None else ""
+		return f"alias {self._identifier}{subtype} is {self._name}{signature}"

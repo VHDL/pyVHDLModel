@@ -102,7 +102,7 @@ from pyVHDLModel.Sequential    import IndexedChoice, SequentialProcedureCall, Se
                                       ElseBranch, IfStatement, SequentialCase, Case, OthersCase, CaseStatement, \
                                       LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
                                       LoopControlStatement, NextStatement, ExitStatement
-from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
+from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function, SubprogramSignature
 from pyVHDLModel.Symbol        import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
                                       ConstrainedRecordSubtypeSymbol, ArrayElementConstraint, \
                                       RecordElementConstraint, AggregateSymbol
@@ -1018,12 +1018,13 @@ class VHDLWriter(Visitor):
 	def VisitElementSeparator(
 		self,
 		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
-		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol
+		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol |
+		         SubprogramSignature
 	) -> None:
 		"""
-		Write the comma between two elements of a parenthesized list, which is no association list.
+		Write the comma between two elements of a parenthesized or bracketed list, which is no association list.
 
-		**Format:** ``m(i, j)`` or ``(Idle, Busy)``
+		**Format:** ``m(i, j)``, ``(Idle, Busy)`` or ``[natural, natural]``
 
 		:param element: The element containing the list.
 		"""
@@ -2689,6 +2690,24 @@ class VHDLWriter(Visitor):
 		if alias.Subtype is not None:
 			self._Write(" : ")
 
+	def VisitSubprogramSignature(self, signature: SubprogramSignature) -> None:
+		"""
+		Write the left bracket of a signature, after the name of an alias declaration.
+
+		**Format:** ``alias to_slv is to_stdlogicvector [bit_vector return std_logic_vector];``
+
+		:param signature: The signature.
+		"""
+		self._Write(" [")
+
+	def DepartSubprogramSignature(self, signature: SubprogramSignature) -> None:
+		"""
+		Write the right bracket of a signature.
+
+		:param signature: The signature.
+		"""
+		self._Write("]")
+
 	def VisitAttribute(self, attribute: Attribute) -> None:
 		"""
 		Write the reserved word ``attribute`` and the identifier of an attribute declaration.
@@ -2757,13 +2776,18 @@ class VHDLWriter(Visitor):
 
 		return subprogram.Parent is not None and not isinstance(subprogram.Parent, (Package, ProtectedType))
 
-	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem) -> None:
+	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem | SubprogramSignature) -> None:
 		"""
-		Write the reserved word ``return`` before the return type of a function.
+		Write the reserved word ``return`` before the return type of a function, or of a function's signature.
 
-		:param function: The function.
+		**Format:** ``function f return natural``, ``[bit return natural]`` or ``[return natural]``
+
+		:param function: The function, or the signature.
 		"""
-		self._Write(f" {self._Keyword(ReservedWord.Return)} ")
+		if isinstance(function, SubprogramSignature) and len(function._parameterTypes) == 0:
+			self._Write(f"{self._Keyword(ReservedWord.Return)} ")
+		else:
+			self._Write(f" {self._Keyword(ReservedWord.Return)} ")
 
 	def VisitFormalParameterList(self, element: WithParametersMixin) -> None:
 		"""

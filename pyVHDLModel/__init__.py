@@ -3121,6 +3121,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`ResolveTypeMarks`
 		2. Create the implicit operations of all full types and index them in the namespaces. |br|
 		   |rarr| :meth:`IndexImplicitOperations`
+		3. Resolve the names of the aliases with a signature to the selected overloads. |br|
+		   |rarr| :meth:`ResolveAliasSignatures`
 
 		.. todo::
 
@@ -3137,9 +3139,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		:raises UnhandledCriticalWarningError: If no overload matches the signature of an alias, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
 		self.ResolveTypeMarks()
 		self.IndexImplicitOperations()
+		self.ResolveAliasSignatures()
 
 	def ResolveTypeMarks(self) -> None:
 		"""
@@ -3261,6 +3267,32 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for designUnit in designUnits:
 			for region in designUnit.IterateDeclarationRegions():
 				region._namespace.ImportImplicitOperations()
+
+	def ResolveAliasSignatures(self) -> None:
+		"""
+		Resolve the names of all aliases with a signature to the overload of the same parameter and result type profile.
+
+		It's the third step of :meth:`AnalyzeObjects`, after the type marks are resolved (:meth:`ResolveTypeMarks`) and the
+		implicit operations are indexed (:meth:`IndexImplicitOperations`): the type profiles of all overloads are known
+		then, the implicit operations' too.
+
+		.. rubric:: Algorithm
+
+		1. Iterate the design units in the order of :meth:`ResolveTypeMarks` and their declarative regions: resolve the
+		   name of each alias declared in a region (:meth:`~pyVHDLModel.Declaration.Alias.ResolveSignature`).
+
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If no overload matches the signature of an alias, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		for designUnit in self._DesignUnitsInAnalysisOrder():
+			for region in designUnit.IterateDeclarationRegions():
+				for item in region._Declarations():
+					if isinstance(item, Alias):
+						item.ResolveSignature(region)
 
 	def IterateDocumentsInCompileOrder(self) -> Generator[Document, None, None]:
 		"""

@@ -126,7 +126,7 @@ if TYPE_CHECKING:
 	                                      ElseBranch, IfStatement, SequentialCase, Case, OthersCase, CaseStatement, \
 	                                      LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
 	                                      LoopControlStatement, NextStatement, ExitStatement
-	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
+	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function, SubprogramSignature
 	from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
 	                                      ConstrainedRecordSubtypeSymbol, ArrayElementConstraint, \
 	                                      RecordElementConstraint, AggregateSymbol
@@ -175,14 +175,15 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def VisitElementSeparator(
 		self,
 		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
-		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol
+		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol |
+		         SubprogramSignature
 	) -> None:
 		"""
-		Visit the comma between two elements of a parenthesized list, which is no association list.
+		Visit the comma between two elements of a parenthesized or bracketed list, which is no association list.
 
 		The elements are the indices of an indexed name, the element associations of an aggregate, the discrete ranges of
-		an index constraint, the record element constraints of a record constraint, the literals of an enumerated type, or
-		the index subtype definitions or discrete ranges of an array type.
+		an index constraint, the record element constraints of a record constraint, the literals of an enumerated type,
+		the index subtype definitions or discrete ranges of an array type, or the parameters' type marks of a signature.
 
 		:param element: The element containing the list.
 		"""
@@ -343,11 +344,11 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The declaration, statement, context item or design unit.
 		"""
 
-	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem) -> None:
+	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem | SubprogramSignature) -> None:
 		"""
-		Visit the reserved word ``return`` before the return type of a function.
+		Visit the reserved word ``return`` before the return type of a function, or of a function's signature.
 
-		:param function: The function.
+		:param function: The function, or the signature.
 		"""
 
 	def VisitSignalAssignment(self, element: SignalAssignmentMixin) -> None:
@@ -1744,9 +1745,23 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def DepartAlias(self, alias: Alias) -> None:
 		"""
-		Depart from an alias declaration, after its name.
+		Depart from an alias declaration, after its name and signature.
 
 		:param alias: The alias declaration.
+		"""
+
+	def VisitSubprogramSignature(self, signature: SubprogramSignature) -> None:
+		"""
+		Visit a signature, before its type marks.
+
+		:param signature: The signature.
+		"""
+
+	def DepartSubprogramSignature(self, signature: SubprogramSignature) -> None:
+		"""
+		Depart from a signature, after its type marks.
+
+		:param signature: The signature.
 		"""
 
 	def VisitAttribute(self, attribute: Attribute) -> None:

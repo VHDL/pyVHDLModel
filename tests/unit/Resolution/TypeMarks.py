@@ -47,7 +47,7 @@ from pyVHDLModel.Interface   import GenericConstantInterfaceItem, GenericTypeInt
                                     ParameterConstantInterfaceItem, PortSimpleSignalInterfaceItem
 from pyVHDLModel.Name        import SelectedName, SimpleName
 from pyVHDLModel.Object      import Constant, Variable
-from pyVHDLModel.Subprogram  import Function, Procedure
+from pyVHDLModel.Subprogram  import Function, Procedure, SubprogramSignature
 from pyVHDLModel.Symbol      import LibraryReferenceSymbol, SimpleObjectOrFunctionCallSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Type        import AccessType, AnonymousType, ArrayType, FileType, ProtectedType, RecordType, \
                                     RecordTypeElement, Subtype
@@ -676,3 +676,91 @@ class ReviewFindings(Testcase):
 		alias = Alias("to_bstring", SimpleObjectOrFunctionCallSymbol(SimpleName("to_string")))
 
 		self.assertListEqual([], _resolve(_design(Package("q", declaredItems=[alias]), analyze=False)))
+
+
+class AliasSignatures(Testcase):
+	"""An alias with a signature references the overload of the same parameter and result type profile (6.6.3)."""
+
+	def _function(self, parameterType: str) -> Function:
+		parameter = ParameterConstantInterfaceItem(("a", ), Mode.In, _subtypeSymbol(parameterType))
+		return Function("f", _subtypeSymbol("integer"), parameterItems=[parameter])
+
+	def _alias(self, parameterType: str, returnType: str) -> Alias:
+		signature = SubprogramSignature([_subtypeSymbol(parameterType)], _subtypeSymbol(returnType))
+		return Alias("g", SimpleObjectOrFunctionCallSymbol(SimpleName("f")), signature=signature)
+
+	def test_Overload(self) -> None:
+		"""``alias g is f [integer return integer];`` selects the second of two overloads."""
+		first =    self._function("bit")
+		second =   self._function("integer")
+		alias =    self._alias("integer", "integer")
+		warnings = _resolve(_design(Package("q", declaredItems=[first, second, alias]), analyze=False))
+
+		self.assertListEqual([], warnings)
+		self.assertIs(second, alias.Name.Reference)
+		self.assertTrue(alias.IsOverloadable)
+
+	def test_Subtype(self) -> None:
+		"""A subtype in the signature selects the overload of its base type."""
+		function = self._function("integer")
+		alias =    self._alias("natural", "integer")
+		warnings = _resolve(_design(Package("q", declaredItems=[self._function("bit"), function, alias]), analyze=False))
+
+		self.assertListEqual([], warnings)
+		self.assertIs(function, alias.Name.Reference)
+
+	def test_Procedure(self) -> None:
+		parameter = ParameterConstantInterfaceItem(("a", ), Mode.In, _subtypeSymbol("bit"))
+		procedure = Procedure("p", parameterItems=[parameter])
+		signature = SubprogramSignature([_subtypeSymbol("bit")])
+		alias =     Alias("p2", SimpleObjectOrFunctionCallSymbol(SimpleName("p")), signature=signature)
+		warnings =  _resolve(_design(Package("q", declaredItems=[procedure, alias]), analyze=False))
+
+		self.assertListEqual([], warnings)
+		self.assertIs(procedure, alias.Name.Reference)
+
+	def test_ImplicitOperation(self) -> None:
+		"""``alias s is to_string [T return string];`` selects the implicit ``TO_STRING`` of ``T``."""
+		enumeration = _enumeration("T", "a", "b")
+		signature =   SubprogramSignature([_subtypeSymbol("T")], _subtypeSymbol("string"))
+		alias =       Alias("s", SimpleObjectOrFunctionCallSymbol(SimpleName("to_string")), signature=signature)
+		warnings =    _resolve(_design(Package("q", declaredItems=[enumeration, alias]), analyze=False))
+
+		self.assertListEqual([], warnings)
+		self.assertIs(enumeration, alias.Name.Reference.Parent)
+		self.assertEqual("to_string", alias.Name.Reference.NormalizedDesignator)
+
+	def test_OperatorSymbol(self) -> None:
+		"""``alias eq is "=" [T, T return boolean];``: an operator symbol is looked up by its designator."""
+		enumeration = _enumeration("T", "a", "b")
+		signature =   SubprogramSignature([_subtypeSymbol("T"), _subtypeSymbol("T")], _subtypeSymbol("boolean"))
+		alias =       Alias("eq", SimpleObjectOrFunctionCallSymbol(SimpleName('"="')), signature=signature)
+		warnings =    _resolve(_design(Package("q", declaredItems=[enumeration, alias]), analyze=False))
+
+		self.assertListEqual([], warnings)
+		self.assertIs(enumeration, alias.Name.Reference.Parent)
+		self.assertEqual("=", alias.Name.Reference.NormalizedDesignator)
+
+	def test_NoMatch(self) -> None:
+		"""A signature matching no overload is reported."""
+		alias =    self._alias("boolean", "integer")
+		warnings = _resolve(_design(Package("q", declaredItems=[self._function("bit"), alias]), analyze=False))
+
+		self.assertEqual(1, len(warnings))
+		self.assertIsInstance(warnings[0], UnresolvedNameWarning)
+		self.assertEqual("No subprogram 'f' of signature [boolean return integer] for alias 'g'.", str(warnings[0]))
+		self.assertIsNone(alias.Name.Reference)
+
+	def test_Reset(self) -> None:
+		"""Resetting the analysis resets the reference; the next analysis resolves it again."""
+		function = self._function("integer")
+		alias =    self._alias("integer", "integer")
+		design =   _design(Package("q", declaredItems=[function, alias]))
+
+		design.ResetAnalysis()
+
+		self.assertIsNone(alias.Name.Reference)
+
+		design.Analyze()
+
+		self.assertIs(function, alias.Name.Reference)

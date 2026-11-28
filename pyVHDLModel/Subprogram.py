@@ -34,23 +34,24 @@ This module contains parts of an abstract document language model for VHDL.
 
 Subprograms are procedures, functions and methods.
 """
-from __future__             import annotations
+from __future__                import annotations
 
-from typing                 import TYPE_CHECKING, Any, ClassVar, Generator, Iterable, Union, Optional as Nullable
+from typing                    import TYPE_CHECKING, Any, ClassVar, Generator, Iterable, Union, Optional as Nullable
 
-from pyTooling.Common       import getFullyQualifiedName
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType, abstractclass
+from pyTooling.Common          import getFullyQualifiedName
+from pyTooling.Decorators      import export, readonly
+from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf, ReservedWord
-from pyVHDLModel.Symbol     import SubtypeSymbol
-from pyVHDLModel.Type       import FullType, ProtectedType
-from pyVHDLModel.Regions    import DeclarativeRegionMixin, SequentialDeclarationRegionMixin, WithGenericsMixin, \
-                                   WithParametersMixin
-from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf, ReservedWord
+from pyVHDLModel.Symbol        import SubtypeSymbol
+from pyVHDLModel.Type          import FullType, ProtectedType
+from pyVHDLModel.Regions       import DeclarativeRegionMixin, SequentialDeclarationRegionMixin, WithGenericsMixin, \
+                                      WithParametersMixin
+from pyVHDLModel.Sequential    import SequentialStatement, SequentialStatementsMixin
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Visitor  import Visitor
+	from pyVHDLModel.Declaration import Alias
+	from pyVHDLModel.Visitor     import Visitor
 
 
 __all__ = ["PredefinedOperation"]
@@ -66,14 +67,16 @@ class SubprogramSignature(ModelEntity):
 	(IEEE Std 1076-2019, 4.5.3), as an alias declaration or attribute specification writes it:
 	``[natural, natural return boolean]``.
 
-	The parent of a signature is the subprogram declaring it (:data:`Subprogram.Signature`). The type marks stay children
-	of the parameters and of the function declaring them.
+	The parent of a signature is the subprogram declaring it (:data:`Subprogram.Signature`); its type marks stay children
+	of the parameters and of the function declaring them. An alias of a subprogram writes a signature to select one of
+	its overloads (:data:`~pyVHDLModel.Declaration.Alias.Signature`): the alias is the signature's parent, the signature
+	is the parent of its type marks.
 
 	Two signatures are equal, if their parameters' type marks and their return type marks have the same normalized names
 	(:data:`NormalizedParameterTypeNames`, :data:`NormalizedReturnTypeName`); the parent isn't compared. So the
 	signatures of two subprograms compare by their parameter and result type profile, and a signature can be used as a
-	dictionary key or set member. The names are compared as written: ``natural`` and ``std.standard.natural`` differ,
-	because the model doesn't resolve type marks yet.
+	dictionary key or set member. The names are compared as written: ``natural`` and ``std.standard.natural`` differ.
+	:meth:`HasSameTypeProfile` compares the base types of the resolved type marks.
 
 	.. admonition:: Example
 
@@ -94,27 +97,30 @@ class SubprogramSignature(ModelEntity):
 	def __init__(
 		self,
 		parameterTypes: Iterable[SubtypeSymbol],
-		returnType:     Nullable[SubtypeSymbol] = None,
+		returnType:     Nullable[SubtypeSymbol] =      None,
 		*,
-		parent:         Nullable[Subprogram] =    None
+		parent:         Nullable[Subprogram | Alias] = None
 	) -> None:
 		"""
 		Initializes a subprogram signature.
 
 		:param parameterTypes: The type marks of the parameters, one per parameter identifier.
 		:param returnType:     Optional, the type mark of a function's return value. Default: ``None``, a procedure.
-		:param parent:         Optional, the subprogram declaring this signature. Default: ``None``.
+		:param parent:         Optional, the subprogram or the alias declaring this signature. Default: ``None``.
 		:raises ValueError:    If parameter 'parameterTypes' is ``None``.
 		:raises TypeError:     If parameter 'parameterTypes' is not iterable.
 		:raises TypeError:     If an element of parameter 'parameterTypes' is not of type
 		                       :class:`~pyVHDLModel.Symbol.SubtypeSymbol`.
 		:raises TypeError:     If parameter 'returnType' is not of type :class:`~pyVHDLModel.Symbol.SubtypeSymbol`.
-		:raises TypeError:     If parameter 'parent' is not of type :class:`~pyVHDLModel.Subprogram.Subprogram`.
+		:raises TypeError:     If parameter 'parent' is not of type :class:`~pyVHDLModel.Subprogram.Subprogram` or
+		                       :class:`~pyVHDLModel.Declaration.Alias`.
 		"""
 		super().__init__(parent)
 
-		if parent is not None and not isinstance(parent, Subprogram):
-			ex = TypeError("Parameter 'parent' is not of type 'Subprogram'.")
+		from pyVHDLModel.Declaration import Alias
+
+		if parent is not None and not isinstance(parent, (Subprogram, Alias)):
+			ex = TypeError("Parameter 'parent' is not of type 'Subprogram' or 'Alias'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(parent)}'.")
 			raise ex
 
@@ -157,6 +163,25 @@ class SubprogramSignature(ModelEntity):
 			self._normalizedReturnTypeName = self._returnTypeName.lower()
 
 		self._hash = hash((self._normalizedParameterTypeNames, self._normalizedReturnTypeName))
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this signature, its parameters' type marks and a function's return type mark with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSubprogramSignature(self)
+		for index, parameterType in enumerate(self._parameterTypes):
+			if index > 0:
+				visitor.VisitElementSeparator(self)
+
+			parameterType.Visit(visitor)
+
+		if self._returnType is not None:
+			visitor.VisitReturn(self)
+			self._returnType.Visit(visitor)
+
+		visitor.DepartSubprogramSignature(self)
 
 	@readonly
 	def ParameterTypes(self) -> tuple[SubtypeSymbol, ...]:

@@ -35,6 +35,7 @@ from pyVHDLModel.Declaration import EntityClass, Alias, Attribute, AttributeSpec
 from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Subprogram  import SubprogramSignature
 
 from tests.unit.Visitor      import FullRecorder
 
@@ -74,6 +75,27 @@ class Aliases(Testcase):
 		self.assertEqual(
 			["VisitAlias", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitIs", "VisitSymbol",
 			 "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitTerminator", "DepartAlias"],
+			[event[0] for event in recorder.Events]
+		)
+
+
+	def test_Alias_Signature(self) -> None:
+		"""The signature follows the name: its type marks, separated by commas, then ``return`` and the return type mark."""
+		signature = SubprogramSignature(
+			[SimpleSubtypeSymbol(SimpleName("bit")), SimpleSubtypeSymbol(SimpleName("bit"))],
+			SimpleSubtypeSymbol(SimpleName("natural"))
+		)
+		alias =    Alias("g", SimpleObjectOrFunctionCallSymbol(SimpleName("f")), signature=signature)
+		recorder = FullRecorder()
+
+		alias.Visit(recorder)
+
+		self.assertEqual(
+			["VisitAlias", "VisitIs", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
+			 "VisitSubprogramSignature", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol",
+			 "VisitElementSeparator", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitReturn",
+			 "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "DepartSubprogramSignature",
+			 "VisitTerminator", "DepartAlias"],
 			[event[0] for event in recorder.Events]
 		)
 

@@ -139,6 +139,11 @@ Version 0.45.0 (2026)
      :data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>` stays as shortcut. ``Ieee.LoadVITALPackages()``
      returns the added packages and package bodies; it raises :exc:`~pyVHDLModel.Exception.IEEEFlavorChangeError`, if
      the library has them already.
+   * :class:`~pyVHDLModel.Declaration.Alias` takes a signature (keyword parameter ``signature``, property
+     :attr:`~pyVHDLModel.Declaration.Alias.Signature`, a :class:`~pyVHDLModel.Subprogram.SubprogramSignature`), e.g.
+     ``alias to_slv is to_stdlogicvector [bit_vector return std_logic_vector];``. The analysis resolves its name to the
+     overload of the same parameter and result type profile, also an implicit operation, in a third step
+     (:meth:`~pyVHDLModel.Design.ResolveAliasSignatures`, new); the VHDL writer writes the signature.
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

@@ -1973,7 +1973,9 @@ class DeclarativeRegionMixin(
 		declarative region of that name (e.g. the package or entity containing the place); ``lib.pkg`` by the library
 		(``work`` or a library whose name is visible in the design unit containing the place,
 		:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) and the package's name. Then the suffix is searched
-		among the declarations of the package or region (:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
+		among the declarations of the package or region (:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`). An
+		operator symbol (:attr:`~pyVHDLModel.Name.Name.IsOperatorSymbol`) is looked up by the operator's designator, without
+		the quotation marks, e.g. ``"="`` as ``=``.
 
 		A failure is reported as a warning of the given type, whose label names the kind of name in the message
 		(e.g. ``Type mark``); then no declaration is returned. A name, which is a part of the symbol's name (e.g. the prefix
@@ -1992,7 +1994,7 @@ class DeclarativeRegionMixin(
 
 		namespace =            self._namespace
 		label =                warningType._LABEL
-		normalizedIdentifier = name._normalizedIdentifier
+		normalizedIdentifier = name._normalizedIdentifier[1:-1] if name.IsOperatorSymbol else name._normalizedIdentifier
 		if name is symbol._name:
 			subject = f"{label} '{name!s}'"
 		else:

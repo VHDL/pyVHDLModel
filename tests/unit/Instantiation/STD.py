@@ -38,7 +38,7 @@ from pyVHDLModel.Expression  import IntegerLiteral, StringLiteral, Concatenation
 from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Object      import File, DeferredConstant
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
-                                    ParameterFileInterfaceItem
+                                    ParameterFileInterfaceItem, ParameterSimpleSignalInterfaceItem
 from pyVHDLModel.Declaration import Alias, Attribute
 from pyVHDLModel.Subprogram  import Procedure, Function, Operator
 from pyVHDLModel.Type        import EnumeratedType, ArrayType, AccessType, FileType, Subtype, RecordType
@@ -188,19 +188,21 @@ class Standards(Testcase):
 
 class Booleans(Testcase):
 	def test_LogicalOperators(self) -> None:
-		"""After the operations of an enumerated type: the logical operators."""
+		"""After the operations of an enumerated type: the logical operators, ``rising_edge`` and ``falling_edge``."""
 		boolean = Boolean()
 
 		self.assertIsInstance(boolean, EnumeratedType)
 		self.assertListEqual(
 			[
-				("and",  ("boolean", "boolean"), "boolean"),
-				("or",   ("boolean", "boolean"), "boolean"),
-				("nand", ("boolean", "boolean"), "boolean"),
-				("nor",  ("boolean", "boolean"), "boolean"),
-				("xor",  ("boolean", "boolean"), "boolean"),
-				("xnor", ("boolean", "boolean"), "boolean"),
-				("not",  ("boolean",),           "boolean")
+				("and",          ("boolean", "boolean"), "boolean"),
+				("or",           ("boolean", "boolean"), "boolean"),
+				("nand",         ("boolean", "boolean"), "boolean"),
+				("nor",          ("boolean", "boolean"), "boolean"),
+				("xor",          ("boolean", "boolean"), "boolean"),
+				("xnor",         ("boolean", "boolean"), "boolean"),
+				("not",          ("boolean",),           "boolean"),
+				("rising_edge",  ("boolean",),           "boolean"),
+				("falling_edge", ("boolean",),           "boolean")
 			],
 			_signatures(boolean, 9)
 		)
@@ -208,29 +210,44 @@ class Booleans(Testcase):
 
 class Bits(Testcase):
 	def test_Operators(self) -> None:
-		"""After the operations of an enumerated type: the logical, condition and matching relational operators."""
+		"""
+		After the operations of an enumerated type: the logical, condition and matching relational operators,
+		``rising_edge`` and ``falling_edge``.
+		"""
 		bit = Bit()
 
 		self.assertIsInstance(bit, EnumeratedType)
 		self.assertListEqual(
 			[
-				("and",  ("bit", "bit"), "bit"),
-				("or",   ("bit", "bit"), "bit"),
-				("nand", ("bit", "bit"), "bit"),
-				("nor",  ("bit", "bit"), "bit"),
-				("xor",  ("bit", "bit"), "bit"),
-				("xnor", ("bit", "bit"), "bit"),
-				("not",  ("bit",),       "bit"),
-				("??",   ("bit",),       "boolean"),
-				("?=",   ("bit", "bit"), "bit"),
-				("?/=",  ("bit", "bit"), "bit"),
-				("?<",   ("bit", "bit"), "bit"),
-				("?<=",  ("bit", "bit"), "bit"),
-				("?>",   ("bit", "bit"), "bit"),
-				("?>=",  ("bit", "bit"), "bit")
+				("and",          ("bit", "bit"), "bit"),
+				("or",           ("bit", "bit"), "bit"),
+				("nand",         ("bit", "bit"), "bit"),
+				("nor",          ("bit", "bit"), "bit"),
+				("xor",          ("bit", "bit"), "bit"),
+				("xnor",         ("bit", "bit"), "bit"),
+				("not",          ("bit",),       "bit"),
+				("??",           ("bit",),       "boolean"),
+				("?=",           ("bit", "bit"), "bit"),
+				("?/=",          ("bit", "bit"), "bit"),
+				("?<",           ("bit", "bit"), "bit"),
+				("?<=",          ("bit", "bit"), "bit"),
+				("?>",           ("bit", "bit"), "bit"),
+				("?>=",          ("bit", "bit"), "bit"),
+				("rising_edge",  ("bit",),       "boolean"),
+				("falling_edge", ("bit",),       "boolean")
 			],
 			_signatures(bit, 9)
 		)
+
+	def test_EdgeFunctions(self) -> None:
+		"""``function RISING_EDGE (signal S : BIT) return BOOLEAN;`` - also ``FALLING_EDGE``, also of ``BOOLEAN``."""
+		for enumeration in (Bit(), Boolean()):
+			for function in enumeration.ImplicitOperations[-2:]:
+				self.assertIs(enumeration, function.Parent)
+				s, = function.ParameterItems
+				self.assertIsInstance(s, ParameterSimpleSignalInterfaceItem)
+				self.assertIs(Mode.In, s.Mode)
+				self.assertIs(enumeration, s.Subtype.Reference)
 
 
 class TextIOs(Testcase):

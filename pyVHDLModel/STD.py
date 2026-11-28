@@ -34,6 +34,7 @@
 from typing                  import Iterable, Optional as Nullable
 
 from pyTooling.Decorators    import export
+from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel             import VHDLVersion
 from pyVHDLModel.Base        import SimpleRange, Direction, Mode
@@ -47,18 +48,48 @@ from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, Physi
                                     LogicalOperatorsMixin, MatchingOperatorsMixin
 from pyVHDLModel.Object      import File, DeferredConstant
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
-                                    ParameterFileInterfaceItem
+                                    ParameterFileInterfaceItem, ParameterSimpleSignalInterfaceItem
 from pyVHDLModel.Declaration import Attribute
-from pyVHDLModel.Subprogram  import Procedure, Function, Operator, PredefinedOperation
+from pyVHDLModel.Subprogram  import Procedure, Function, Operator, PredefinedFunction, PredefinedOperation
 from pyVHDLModel.Predefined  import PredefinedLibrary, PredefinedPackage, PredefinedPackageBody
 
 
 @export
-class Boolean(EnumeratedType, LogicalOperatorsMixin):
+class EdgeFunctionsMixin(metaclass=ExtendedType, mixin=True, expects=("_TypeMark", "_Function")):
+	"""
+	A mixin-class for the enumerated types declaring the functions ``rising_edge`` and ``falling_edge`` (IEEE Std
+	1076-2008, 16.3): ``boolean`` and ``bit`` of package ``std.standard``.
+
+	.. seealso::
+
+	   * :class:`Boolean <pyVHDLModel.STD.Boolean>`
+	   * :class:`Bit <pyVHDLModel.STD.Bit>`
+	"""
+
+	def _CreateEdgeFunctions(self) -> list[PredefinedFunction]:
+		"""
+		Create the functions ``rising_edge`` and ``falling_edge`` of this type: ``(signal S : <type>) return BOOLEAN``.
+
+		:returns: List of predefined functions.
+		"""
+		functions = []
+		for identifier in ("rising_edge", "falling_edge"):
+			functions.append(self._Function(
+				identifier,
+				SimpleSubtypeSymbol(SimpleName("boolean")),
+				(ParameterSimpleSignalInterfaceItem(("S", ), Mode.In, self._TypeMark()), )
+			))
+
+		return functions
+
+
+@export
+class Boolean(EnumeratedType, LogicalOperatorsMixin, EdgeFunctionsMixin):
 	"""
 	Represents the predefined type ``boolean`` of package ``std.standard``: ``(false, true)``.
 
-	Besides the operations of an enumerated type, it declares the logical operators (IEEE Std 1076-2008, 9.2.2).
+	Besides the operations of an enumerated type, it declares the logical operators (IEEE Std 1076-2008, 9.2.2) and the
+	functions ``rising_edge`` and ``falling_edge`` (16.3).
 	"""
 
 	def __init__(self) -> None:
@@ -69,23 +100,26 @@ class Boolean(EnumeratedType, LogicalOperatorsMixin):
 
 	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
-		Create the operations this type declares implicitly: those of an enumerated type, then the logical operators.
+		Create the operations this type declares implicitly: those of an enumerated type, the logical operators, then
+		``rising_edge`` and ``falling_edge``.
 
 		:returns: List of predefined operators and predefined functions.
 		"""
 		operations = super()._CreateImplicitOperations()
 		operations.extend(self._CreateLogicalOperators())
+		operations.extend(self._CreateEdgeFunctions())
 
 		return operations
 
 
 @export
-class Bit(EnumeratedType, LogicalOperatorsMixin, MatchingOperatorsMixin):
+class Bit(EnumeratedType, LogicalOperatorsMixin, MatchingOperatorsMixin, EdgeFunctionsMixin):
 	"""
 	Represents the predefined type ``bit`` of package ``std.standard``: ``('0', '1')``.
 
 	Besides the operations of an enumerated type, it declares the logical operators (IEEE Std 1076-2008, 9.2.2), the
-	condition operator ``"??"`` (9.2.9) and the matching relational operators (9.2.3).
+	condition operator ``"??"`` (9.2.9), the matching relational operators (9.2.3) and the functions ``rising_edge`` and
+	``falling_edge`` (16.3).
 	"""
 
 	def __init__(self) -> None:
@@ -97,8 +131,8 @@ class Bit(EnumeratedType, LogicalOperatorsMixin, MatchingOperatorsMixin):
 	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this type declares implicitly: those of an enumerated type, the logical operators, the
-		condition operator ``"??"`` and the matching relational operators ``"?="``, ``"?/="``, ``"?<"``, ``"?<="``,
-		``"?>"`` and ``"?>="``.
+		condition operator ``"??"``, the matching relational operators ``"?="``, ``"?/="``, ``"?<"``, ``"?<="``,
+		``"?>"`` and ``"?>="``, then ``rising_edge`` and ``falling_edge``.
 
 		:returns: List of predefined operators and predefined functions.
 		"""
@@ -106,6 +140,7 @@ class Bit(EnumeratedType, LogicalOperatorsMixin, MatchingOperatorsMixin):
 		operations.extend(self._CreateLogicalOperators())
 		operations.append(self._UnaryOperator("??", SimpleSubtypeSymbol(SimpleName("boolean"))))
 		operations.extend(self._CreateMatchingOperators())
+		operations.extend(self._CreateEdgeFunctions())
 
 		return operations
 

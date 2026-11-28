@@ -31,18 +31,20 @@
 #
 """This module contains the predefined package ``ieee.numeric_bit`` of VHDL library ``IEEE``."""
 
-from typing                 import Iterable
+from typing                  import Iterable
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators    import export
 
-from pyVHDLModel            import VHDLVersion
-from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
-from pyVHDLModel.Expression import StringLiteral
-from pyVHDLModel.Type       import ArrayType
-from pyVHDLModel.Object     import Constant
-from pyVHDLModel.Interface  import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
-from pyVHDLModel.Subprogram import Function, Operator, Procedure
-from pyVHDLModel.Predefined import PredefinedPackage, PredefinedPackageBody
+from pyVHDLModel             import VHDLVersion
+from pyVHDLModel.Name        import SelectedName, SimpleName
+from pyVHDLModel.Symbol      import PossibleReference, Symbol, SimpleSubtypeSymbol
+from pyVHDLModel.Expression  import StringLiteral
+from pyVHDLModel.Type        import ArrayType
+from pyVHDLModel.Object      import Constant
+from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
+from pyVHDLModel.Declaration import Alias
+from pyVHDLModel.Subprogram  import Function, Operator, Procedure, SubprogramSignature
+from pyVHDLModel.Predefined  import PredefinedPackage, PredefinedPackageBody
 
 
 @export
@@ -57,15 +59,16 @@ class Numeric_Bit(PredefinedPackage):
 	* the ordering, equality and matching relational operators, ``minimum`` and ``maximum``
 	* the shift and rotate functions and operators, ``resize``, the conversion functions ``to_integer``,
 	  ``to_unsigned`` and ``to_signed``
-	* the logical and logical reduction operators, the string conversions ``to_ostring`` and ``to_hstring`` and their
-	  aliases (``to_bstring``, ``to_binary_string``, ``to_octal_string``, ``to_hex_string``)
+	* the logical and logical reduction operators, the aliases ``rising_edge`` and ``falling_edge`` of the functions of
+	  ``std.standard.bit``
+	* the string conversions ``to_ostring`` and ``to_hstring`` and their aliases (``to_bstring``, ``to_binary_string``,
+	  ``to_octal_string``, ``to_hex_string``)
 	* the procedures ``read``, ``write``, ``oread``, ``hread``, ``owrite`` and ``hwrite`` and their aliases (``bread``,
 	  ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ``binary_write``, ``octal_write``, ``hex_write``)
 
 	Each alias selects an overload by a signature, e.g. ``alias BREAD is READ [LINE, UNSIGNED];``. ``to_bstring`` and
-	``to_binary_string`` alias the implicit ``to_string`` of ``unsigned`` and ``signed``. The aliases ``rising_edge``
-	and ``falling_edge`` of ``std.standard.rising_edge`` and ``std.standard.falling_edge`` aren't declared, as the model
-	of ``std.standard`` doesn't declare these functions of ``bit``.
+	``to_binary_string`` alias the implicit ``to_string`` of ``unsigned`` and ``signed``; ``rising_edge`` aliases
+	``STD.STANDARD.RISING_EDGE [STD.STANDARD.BIT return STD.STANDARD.BOOLEAN]``.
 
 	.. seealso::
 
@@ -155,6 +158,15 @@ class Numeric_Bit(PredefinedPackage):
 			:param parameterItems: The parameters, in declaration order.
 			"""
 			self._DeclareSubprogram(Procedure(identifier, parameterItems=parameterItems), self._procedures)
+
+		def standard(identifier: str) -> SelectedName:
+			"""
+			Nested function creating the expanded name ``std.standard.<identifier>``.
+
+			:param identifier: The identifier of the declaration of package ``std.standard``.
+			:returns:          The expanded name.
+			"""
+			return SelectedName(identifier, SelectedName("standard", SimpleName("std")))
 
 		# Constant and types
 		notice = Constant(
@@ -311,6 +323,16 @@ class Numeric_Bit(PredefinedPackage):
 					(self._InParameter(("L", ), self._TypeMark(typeName)), ),
 					self._TypeMark("bit")
 				)
+
+		for identifier in ("rising_edge", "falling_edge"):
+			self.AddDeclaredItem(Alias(
+				identifier,
+				Symbol(standard(identifier), PossibleReference.PackageMember | PossibleReference.EnumLiteral),
+				signature=SubprogramSignature(
+					(SimpleSubtypeSymbol(standard("bit")), ),
+					SimpleSubtypeSymbol(standard("boolean"))
+				)
+			))
 
 		# String conversions
 		for identifier in ("to_bstring", "to_binary_string"):

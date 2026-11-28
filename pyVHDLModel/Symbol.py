@@ -1374,8 +1374,8 @@ class ArrayElementResolution(ModelEntity, ResolutionIndicationMixin):
 	   .. code-block:: VHDL
 
 	      subtype std_logic_vector is (resolved) std_ulogic_vector;
-	      --                           ^^^^^^^^^^                      <- array element resolution
-	      --                            ^^^^^^^^                       <- Resolution
+	      --                          ^^^^^^^^^^                       <- array element resolution
+	      --                           ^^^^^^^^                        <- Resolution
 	"""
 
 	_resolution: ResolutionIndicationMixin  #: The resolution indication of the array's elements.
@@ -1555,8 +1555,8 @@ class RecordElementResolution(ModelEntity):
 	   .. code-block:: VHDL
 
 	      subtype pair is (a resolved, b (resolved)) pair_t;
-	      --                             ^                     <- Element
-	      --                               ^^^^^^^^^^          <- Resolution
+	      --                           ^                       <- Element
+	      --                             ^^^^^^^^^^            <- Resolution
 
 	.. seealso::
 

@@ -273,6 +273,21 @@ class TextIOs(Testcase):
 		self.assertIsInstance(line, AccessType)
 		self.assertEqual("string", line.DesignatedSubtype.Name.Identifier)
 		self.assertIs(textio, line.Parent)
+		self.assertNotIn("line_vector", textio.Types)
+
+	def test_LineVector_VHDL2019(self) -> None:
+		"""VHDL-2019: ``type LINE_VECTOR is array (NATURAL range <>) of LINE;`` after ``LINE``."""
+		textio =     TextIO(VHDLVersion.VHDL2019)
+		lineVector = textio.Types["line_vector"]
+
+		self.assertIsInstance(lineVector, ArrayType)
+		self.assertEqual("natural", lineVector.Dimensions[0].Name.Identifier)
+		self.assertEqual("line", lineVector.ElementType.Name.Identifier)
+		self.assertIs(textio, lineVector.Parent)
+		self.assertListEqual(
+			["line", "line_vector", "text", "side", "width", "justify"],
+			[declaration.Identifier for declaration in textio.DeclaredItems[:6]]
+		)
 
 	def test_Text(self) -> None:
 		"""``type TEXT is file of STRING;``"""

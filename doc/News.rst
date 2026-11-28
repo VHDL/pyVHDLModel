@@ -143,6 +143,7 @@ Version 0.45.0 (2026)
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and
      ``file_origin_kind``.
+   * With VHDL-2019, package ``std.textio`` declares the type ``line_vector`` (IEEE Std 1076-2019, 16.4).
 
    .. rubric:: Changes
 

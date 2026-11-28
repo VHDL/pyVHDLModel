@@ -333,10 +333,15 @@ class TextIOs(Testcase):
 	def test_Files(self) -> None:
 		"""``file INPUT : TEXT ...;``, ``file OUTPUT : TEXT ...;``"""
 		textio = TextIO()
-		for identifier in ("input", "output"):
+		for identifier, openKind, logicalName in (
+			("input",  "read_mode",  "STD_INPUT"),
+			("output", "write_mode", "STD_OUTPUT")
+		):
 			file = textio.Files[identifier]
 			self.assertIsInstance(file, File)
 			self.assertEqual("text", file.Subtype.Name.Identifier)
+			self.assertEqual(openKind, file.OpenKind.Name.Identifier)
+			self.assertEqual(logicalName, file.LogicalName.Value)
 
 	def test_Justify(self) -> None:
 		"""``function JUSTIFY (VALUE: STRING; JUSTIFIED: SIDE := RIGHT; FIELD: WIDTH := 0) return STRING;``"""

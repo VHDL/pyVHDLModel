@@ -32,8 +32,9 @@
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Name       import SimpleName
-from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
-from pyVHDLModel.Expression import IntegerLiteral
+from pyVHDLModel.Name       import SimpleName
+from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Expression import IntegerLiteral, StringLiteral
 from pyVHDLModel.Object     import Constant, DeferredConstant, Variable, Signal, SharedVariable, File
 
 from tests.unit             import _subtypeSymbol
@@ -177,10 +178,50 @@ class SharedVariables(Testcase):
 
 
 class Files(Testcase):
-	"""``file`` - not implemented beyond the base ``Obj`` shape (see the ``.. todo::`` in the class
-	docstring); open-mode/logical-name are not modelled at all yet."""
+	"""``file`` declarations, with and without file open information (6.4.2.5)."""
 
 	def test_Construction(self) -> None:
 		file = File(["f"], _subtypeSymbol("text"))
 
 		self.assertEqual(("f",), file.Identifiers)
+		self.assertIsNone(file.OpenKind)
+		self.assertIsNone(file.LogicalName)
+
+	def test_OpenInformation(self) -> None:
+		"""``file f : text open read_mode is "data.txt";``"""
+		openKind =    SimpleObjectOrFunctionCallSymbol(SimpleName("read_mode"))
+		logicalName = StringLiteral("data.txt")
+		file =        File(["f"], _subtypeSymbol("text"), openKind=openKind, logicalName=logicalName)
+
+		self.assertIs(openKind, file.OpenKind)
+		self.assertIs(logicalName, file.LogicalName)
+		self.assertIs(file, openKind.Parent)
+		self.assertIs(file, logicalName.Parent)
+
+	def test_LogicalNameOnly(self) -> None:
+		"""``file f : text is "data.txt";``: without file open kind."""
+		file = File(["f"], _subtypeSymbol("text"), logicalName=StringLiteral("data.txt"))
+
+		self.assertIsNone(file.OpenKind)
+		self.assertEqual("data.txt", file.LogicalName.Value)
+
+	def test_OpenKindWithoutLogicalName(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			File(["f"], _subtypeSymbol("text"), openKind=SimpleObjectOrFunctionCallSymbol(SimpleName("read_mode")))
+
+		self.assertEqual("Parameter 'openKind' is given without parameter 'logicalName'.", str(context.exception))
+
+	def test_Copy(self) -> None:
+		"""A copy has copies of the file open kind and the file logical name."""
+		file = File(
+			["f"],
+			_subtypeSymbol("text"),
+			openKind=SimpleObjectOrFunctionCallSymbol(SimpleName("read_mode")),
+			logicalName=StringLiteral("data.txt")
+		)
+		copy = file.Copy()
+
+		self.assertIsNot(file.OpenKind, copy.OpenKind)
+		self.assertIsNot(file.LogicalName, copy.LogicalName)
+		self.assertIs(copy, copy.OpenKind.Parent)
+		self.assertEqual("data.txt", copy.LogicalName.Value)

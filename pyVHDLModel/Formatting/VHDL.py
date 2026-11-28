@@ -2046,18 +2046,19 @@ class VHDLWriter(Visitor):
 
 	def VisitIs(
 		self,
-		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration |
+		element: ModeViewDeclaration | Alias | AttributeSpecification | File | Subprogram | Architecture | Configuration |
 		         ProcessStatement | CaseStatement
 	) -> None:
 		"""
 		Write the reserved word ``is`` ending the header of a declaration; its body is indented.
 
-		In an alias declaration and an attribute specification, the name or the expression follows on the same line. A
-		subprogram without declared items and statements is a subprogram declaration, which has no ``is``.
+		In an alias declaration, an attribute specification and a file declaration, the name, the expression or the file
+		logical name follows on the same line. A subprogram without declared items and statements is a subprogram
+		declaration, which has no ``is``.
 
 		:param element: The declaration.
 		"""
-		if isinstance(element, (Alias, AttributeSpecification)):
+		if isinstance(element, (Alias, AttributeSpecification, File)):
 			self._Write(f" {self._Keyword(ReservedWord.Is)} ")
 			self._minimum = OperatorPrecedence.Range
 		elif isinstance(element, Subprogram) and not self._IsSubprogramBody(element):
@@ -2235,13 +2236,20 @@ class VHDLWriter(Visitor):
 		"""
 		Write the reserved word ``file`` and the identifiers of a file declaration.
 
-		**Format:** ``file input : text;``
-
-		The model carries no file open information, so none is written.
+		**Format:** ``file input : text;`` or ``file input : text open read_mode is "STD_INPUT";``
 
 		:param file: The file declaration.
 		"""
 		self._WriteObjectDeclaration(file)
+
+	def VisitOpen(self, file: File) -> None:
+		"""
+		Write the reserved word ``open`` before the file open kind of a file declaration.
+
+		:param file: The file declaration.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.Open)} ")
+		self._minimum = OperatorPrecedence.Range
 
 	def VisitGenericConstantInterfaceItem(self, item: GenericConstantInterfaceItem) -> None:
 		"""

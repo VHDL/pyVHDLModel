@@ -21,8 +21,8 @@ Version 0.45.0 (2026)
      floating-point and physical types. The analysis indexes them after the type marks are resolved (see *Changes*).
    * Package ``std.standard`` declares what IEEE Std 1076-2008, 16.3 lists, in its order: new are the subtype
      ``delay_length``, the function ``now``, the type ``real_vector`` and the attribute ``foreign``. The types
-     ``boolean`` and ``bit`` (:class:`~pyVHDLModel.STD.Boolean`, :class:`~pyVHDLModel.STD.Bit`) declare the logical
-     operators, ``bit`` also the condition operator ``??`` and the matching relational operators.
+     ``boolean`` and ``bit`` (:class:`~pyVHDLModel.STD.StandardPkg.Boolean`, :class:`~pyVHDLModel.STD.StandardPkg.Bit`)
+     declare the logical operators, ``bit`` also the condition operator ``??`` and the matching relational operators.
    * Package ``std.textio`` declares what IEEE Std 1076-2008, 16.4 lists, in its order: the types ``text`` and
      ``side``, the subtype ``width``, the function ``justify``, the files ``input`` and ``output``, and the procedures
      ``readline``, ``read``, ``sread``, ``oread``, ``hread``, ``writeline``, ``tee``, ``write``, ``owrite`` and
@@ -172,9 +172,10 @@ Version 0.45.0 (2026)
      procedures (``bread``, ``bwrite``, ``binary_read``, ``octal_read``, ``hex_write``, ...), of ``to_string``,
      ``to_hstring`` and ``to_ostring`` (``to_bstring``, ...) and of ``from_string`` (``from_bstring``, ...). The
      analysis resolves each alias.
-   * Types ``boolean`` and ``bit`` of ``std.standard`` (:class:`~pyVHDLModel.STD.Boolean`,
-     :class:`~pyVHDLModel.STD.Bit`) declare the functions ``rising_edge`` and ``falling_edge`` (``signal S``) of IEEE
-     Std 1076-2008, 16.3 as implicit operations (new :class:`~pyVHDLModel.STD.EdgeFunctionsMixin`). Package
+   * Types ``boolean`` and ``bit`` of ``std.standard`` (:class:`~pyVHDLModel.STD.StandardPkg.Boolean`,
+     :class:`~pyVHDLModel.STD.StandardPkg.Bit`) declare the functions ``rising_edge`` and ``falling_edge``
+     (``signal S``) of IEEE Std 1076-2008, 16.3 as implicit operations (new
+     :class:`~pyVHDLModel.STD.StandardPkg.EdgeFunctionsMixin`). Package
      ``ieee.numeric_bit`` declares its aliases ``rising_edge`` and ``falling_edge`` of
      ``STD.STANDARD.RISING_EDGE [STD.STANDARD.BIT return STD.STANDARD.BOOLEAN]``; the analysis resolves the expanded
      names.
@@ -209,6 +210,10 @@ Version 0.45.0 (2026)
    * :mod:`pyVHDLModel.IEEE` is a package with one module per VHDL package, e.g.
      :mod:`~pyVHDLModel.IEEE.StdLogic1164` for ``ieee.std_logic_1164``. The classes are importable from
      :mod:`pyVHDLModel.IEEE` as before.
+   * :mod:`pyVHDLModel.STD` is a package with one module per VHDL package too: :mod:`~pyVHDLModel.STD.StandardPkg`
+     for ``std.standard``, :mod:`~pyVHDLModel.STD.TextIOPkg` for ``std.textio`` and :mod:`~pyVHDLModel.STD.EnvPkg` for
+     ``std.env``. The modules carry the suffix ``Pkg``, because the classes share the package names. The classes are
+     importable from :mod:`pyVHDLModel.STD` as before.
    * Breaking change: :meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations` yields the implied
      declarations (enumeration literals, physical units), no longer (key, declaration) pairs. A namespace takes the key
      from the new property ``NormalizedDesignator`` of

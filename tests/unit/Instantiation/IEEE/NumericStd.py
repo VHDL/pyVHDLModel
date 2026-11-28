@@ -31,8 +31,9 @@
 from pyTooling.Testing       import Testcase
 from pyTooling.Warning       import WarningCollector
 
-from pyVHDLModel             import Design
+from pyVHDLModel             import Design, VHDLVersion
 from pyVHDLModel.Base        import Mode
+from pyVHDLModel.Declaration import Alias
 from pyVHDLModel.Expression  import CharacterLiteral, IntegerLiteral, StringLiteral
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
 from pyVHDLModel.Object      import Constant
@@ -131,6 +132,26 @@ class NumericStds(Testcase):
 			subtype = numericStd.Subtypes[identifier]
 			self.assertIsInstance(subtype, Subtype)
 			self.assertIs(numericStd.Types["unresolved_signed"], subtype.BaseType)
+
+	def test_Aliases_VHDL2019(self) -> None:
+		"""VHDL-2019: ``alias U_UNSIGNED is UNRESOLVED_UNSIGNED;``, also ``U_SIGNED``; the others stay subtypes."""
+		numericStd =   Numeric_Std(VHDLVersion.VHDL2019)
+		declarations = numericStd.DeclaredItems
+
+		self.assertListEqual(
+			["unresolved_unsigned", "unresolved_signed", "u_unsigned", "u_signed", "unsigned", "signed"],
+			[declaration.Identifier for declaration in declarations[1:7]]
+		)
+		self.assertEqual(257, len(declarations))
+		self.assertListEqual(
+			["unresolved_unsigned", "unresolved_signed"],
+			[alias.Name.Name.Identifier for alias in declarations[3:5]]
+		)
+		for alias in declarations[3:5]:
+			self.assertIsInstance(alias, Alias)
+			self.assertIs(numericStd, alias.Parent)
+
+		self.assertListEqual(["unsigned", "signed"], list(numericStd.Subtypes))
 
 	def test_Operands(self) -> None:
 		"""``"+" (L, R : UNRESOLVED_UNSIGNED)`` has one interface item ``L, R``; ``(L : ...; R : STD_ULOGIC)`` has two."""

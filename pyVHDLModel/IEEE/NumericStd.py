@@ -31,18 +31,20 @@
 #
 """This module contains the predefined package ``ieee.numeric_std`` of VHDL library ``IEEE``."""
 
-from typing                 import Iterable
+from typing                  import Iterable
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators    import export
 
-from pyVHDLModel            import VHDLVersion
-from pyVHDLModel.Symbol     import SimpleSubtypeSymbol
-from pyVHDLModel.Expression import CharacterLiteral, StringLiteral
-from pyVHDLModel.Type       import ArrayType, Subtype
-from pyVHDLModel.Object     import Constant
-from pyVHDLModel.Interface  import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
-from pyVHDLModel.Subprogram import Function, Operator, Procedure
-from pyVHDLModel.Predefined import PredefinedPackage, PredefinedPackageBody
+from pyVHDLModel             import VHDLVersion
+from pyVHDLModel.Name        import SimpleName
+from pyVHDLModel.Symbol      import PossibleReference, Symbol, SimpleSubtypeSymbol
+from pyVHDLModel.Expression  import CharacterLiteral, StringLiteral
+from pyVHDLModel.Type        import ArrayType, Subtype
+from pyVHDLModel.Declaration import Alias
+from pyVHDLModel.Object      import Constant
+from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
+from pyVHDLModel.Subprogram  import Function, Operator, Procedure
+from pyVHDLModel.Predefined  import PredefinedPackage, PredefinedPackageBody
 
 
 @export
@@ -63,6 +65,9 @@ class Numeric_Std(PredefinedPackage):
 	* the procedures ``read``, ``write``, ``oread``, ``hread``, ``owrite`` and ``hwrite``
 
 	The aliases of the package (``to_bstring``, ``bread``, ``hex_write``, ...) aren't declared.
+
+	With :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`, ``u_unsigned`` and ``u_signed`` are aliases of
+	``unresolved_unsigned`` and ``unresolved_signed``, as in the package of IEEE Std 1076-2019.
 
 	.. seealso::
 
@@ -168,12 +173,23 @@ class Numeric_Std(PredefinedPackage):
 		unresolvedSigned =   ArrayType(signedType, (self._TypeMark("natural"), ), self._TypeMark("std_ulogic"))
 		self._DeclareItem(unresolvedUnsigned, self._types)
 		self._DeclareItem(unresolvedSigned, self._types)
-		for identifier, baseType in (
-			("u_unsigned", unresolvedUnsigned),
-			("u_signed",   unresolvedSigned),
-			("unsigned",   unresolvedUnsigned),
-			("signed",     unresolvedSigned)
-		):
+		if vhdlVersion is VHDLVersion.VHDL2019:
+			for identifier, typeName in (("u_unsigned", unsignedType), ("u_signed", signedType)):
+				self.AddDeclaredItem(Alias(
+					identifier,
+					Symbol(SimpleName(typeName), PossibleReference.PackageMember | PossibleReference.EnumLiteral)
+				))
+
+			subtypes = (("unsigned", unresolvedUnsigned), ("signed", unresolvedSigned))
+		else:
+			subtypes = (
+				("u_unsigned", unresolvedUnsigned),
+				("u_signed",   unresolvedSigned),
+				("unsigned",   unresolvedUnsigned),
+				("signed",     unresolvedSigned)
+			)
+
+		for identifier, baseType in subtypes:
 			subtype =           Subtype(identifier, self._TypeMark(baseType._identifier))
 			subtype._baseType = baseType
 			self._DeclareItem(subtype, self._subtypes)

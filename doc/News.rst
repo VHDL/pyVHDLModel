@@ -140,6 +140,12 @@ Version 0.45.0 (2026)
      two-dimensional table types, the deferred constants ``VitalDefDelay01`` and ``VitalDefDelay01Z``, and the 41
      functions and 46 procedures of the gates, buffers, inverters, multiplexers, decoders, truth and state tables
      (``VitalAND2``, ``VitalBUFIF0``, ``VitalMUX4``, ``VitalDECODER8``, ``VitalStateTable``, ...) and ``VitalResolve``.
+   * VITAL package ``ieee.VITAL_Memory`` (:class:`~pyVHDLModel.IEEE.VITALMemoryPkg.VITAL_Memory`) declares what the
+     package lists, in its order: its types (arc, retain and message format kinds, schedule and timing data, port
+     flags, memory words and arrays, memory and violation tables, port and cross port modes), the constants
+     ``DefaultNumBitsPerSubword`` and ``VitalDefaultPortFlag`` (a named aggregate), the impure function
+     ``VitalDeclareMemory``, ``VitalMemoryTimingDataInit`` and 44 procedures (``VitalMemoryAddPathDelay`` with its 24
+     overloads, ``VitalMemorySetupHoldCheck``, ``VitalMemoryTable``, ``VitalMemoryCrossPorts``, ...).
    * New :meth:`Design.LoadVITALPackages() <pyVHDLModel.Design.LoadVITALPackages>`: adds the VITAL packages
      (IEEE Std 1076.4) to the design's library ``ieee`` and its virtual document, after
      :meth:`~pyVHDLModel.Design.LoadIEEELibrary`; the flavor

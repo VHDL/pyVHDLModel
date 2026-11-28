@@ -143,7 +143,7 @@ class NumericStds(Testcase):
 			["unresolved_unsigned", "unresolved_signed", "u_unsigned", "u_signed", "unsigned", "signed"],
 			[declaration.Identifier for declaration in declarations[1:7]]
 		)
-		self.assertEqual(257, len(declarations))
+		self.assertEqual(289, len(declarations))
 		self.assertListEqual(
 			["unresolved_unsigned", "unresolved_signed"],
 			[alias.Name.Name.Identifier for alias in declarations[3:5]]

@@ -56,9 +56,10 @@ class Numeric_Bit_Unsigned(PredefinedPackage):
 	* the arithmetic operators and ``find_leftmost``/``find_rightmost``
 	* the ordering, equality and matching relational operators, ``minimum`` and ``maximum``
 	* the shift and rotate functions and operators, ``resize`` and the conversion functions ``to_integer`` and
-	  ``to_bitvector``
+	  ``to_bitvector`` with its aliases ``to_bit_vector`` and ``to_bv``
 
-	The aliases of the package (``to_bit_vector``, ``to_bv``) aren't declared.
+	Each alias selects an overload by a signature, e.g. ``alias To_BV is To_BitVector [NATURAL, NATURAL return
+	BIT_VECTOR];``.
 
 	.. seealso::
 
@@ -194,6 +195,14 @@ class Numeric_Bit_Unsigned(PredefinedPackage):
 			self._InParameter(("ARG", ), self._TypeMark("natural")),
 			self._InParameter(("SIZE_RES", ), self._TypeMark(vectorType))
 		), self._TypeMark(vectorType))
+		for sizeType in ("natural", vectorType):
+			for identifier in ("to_bit_vector", "to_bv"):
+				self._DeclareAlias(
+					identifier,
+					"to_bitvector",
+					(self._TypeMark("natural"), self._TypeMark(sizeType)),
+					self._TypeMark(vectorType)
+				)
 
 
 @export

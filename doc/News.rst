@@ -58,12 +58,12 @@ Version 0.45.0 (2026)
      ``rising_edge``, ``falling_edge``, ``is_x``, ``to_ostring``, ``to_hstring`` and the ``read``/``write`` procedures.
    * Package ``ieee.numeric_std_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericStdUnsigned.Numeric_Std_Unsigned`)
      declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 79 functions
-     (arithmetic, relational, matching, shift and conversion operators and functions on ``std_ulogic_vector``). The
-     aliases (``to_slv``, ``to_sulv``, ...) aren't declared yet. Its declarations have the package as parent.
+     (arithmetic, relational, matching, shift and conversion operators and functions on ``std_ulogic_vector``). Its
+     declarations have the package as parent.
    * Package ``ieee.numeric_bit_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericBitUnsigned.Numeric_Bit_Unsigned`)
      declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 81 functions
-     (arithmetic, relational, matching, shift and conversion operators and functions on ``bit_vector``). The aliases
-     (``to_bit_vector``, ``to_bv``) aren't declared yet. Its declarations have the package as parent.
+     (arithmetic, relational, matching, shift and conversion operators and functions on ``bit_vector``). Its
+     declarations have the package as parent.
    * Package ``ieee.fixed_float_types`` (:class:`~pyVHDLModel.IEEE.FixedFloatTypes.Fixed_Float_Types`) declares the
      enumerated types ``fixed_round_style_type``, ``fixed_overflow_style_type`` and ``round_type``.
    * Package ``ieee.fixed_generic_pkg`` (:class:`~pyVHDLModel.IEEE.FixedGenericPkg.Fixed_Generic_Pkg`) declares the
@@ -160,6 +160,10 @@ Version 0.45.0 (2026)
      ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ``binary_write``, ``octal_write``, ``hex_write``) of
      ``unsigned`` and ``signed``. The analysis resolves each alias. The aliases ``rising_edge`` and ``falling_edge`` of
      ``numeric_bit`` aren't declared yet.
+   * Packages ``ieee.numeric_std_unsigned`` and ``ieee.numeric_bit_unsigned`` declare the aliases of their conversion
+     functions with their signatures, after the functions: ``to_std_logic_vector``, ``to_slv``,
+     ``to_std_ulogic_vector`` and ``to_sulv`` (8), ``to_bit_vector`` and ``to_bv`` (4). The analysis resolves each alias
+     to the package's function, e.g. ``to_slv [natural, natural return std_logic_vector]``.
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

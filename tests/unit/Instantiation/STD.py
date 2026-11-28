@@ -41,9 +41,9 @@ from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVar
                                     ParameterFileInterfaceItem, ParameterSimpleSignalInterfaceItem
 from pyVHDLModel.Declaration import Alias, Attribute
 from pyVHDLModel.Subprogram  import Procedure, Function, Operator, PredefinedFunction
-from pyVHDLModel.Type        import EnumeratedType, RealType, PhysicalType, ArrayType, AccessType, FileType, Subtype, \
-                                    RecordType
-from pyVHDLModel.STD         import Standard, TextIO, Env, Boolean, Bit, Real, Time, BitVector
+from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, ArrayType, AccessType, \
+                                    FileType, Subtype, RecordType
+from pyVHDLModel.STD         import Standard, TextIO, Env, Boolean, Bit, Real, Time, BitVector, UniversalReal
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -232,6 +232,124 @@ class Standards(Testcase):
 			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
 
 
+class UniversalTypes(Testcase):
+	"""The anonymous types *universal_integer* and *universal_real* of ``std.standard`` (IEEE Std 1076-2008, 16.3)."""
+
+	def test_AnonymousTypes(self) -> None:
+		"""Both are held by the package as its children, but neither is a declared item nor a type of the package."""
+		standard =         Standard()
+		universalInteger = standard.AnonymousTypes["universal_integer"]
+		universalReal =    standard.AnonymousTypes["universal_real"]
+
+		self.assertListEqual(["universal_integer", "universal_real"], list(standard.AnonymousTypes))
+		self.assertIsInstance(universalInteger, IntegerType)
+		self.assertIsInstance(universalReal, UniversalReal)
+		self.assertIsInstance(universalReal, RealType)
+		for anonymousType in standard.AnonymousTypes.values():
+			self.assertIs(standard, anonymousType.Parent)
+			self.assertNotIn(anonymousType, standard.DeclaredItems)
+			self.assertNotIn(anonymousType.NormalizedIdentifier, standard.Types)
+
+	def test_Ranges(self) -> None:
+		"""*universal_integer* has 64 bits, *universal_real* is an IEEE 754 double."""
+		anonymousTypes = Standard().AnonymousTypes
+		for identifier, left, right in (
+			("universal_integer", -2**63,                  2**63 - 1),
+			("universal_real",    -1.7976931348623157e308, 1.7976931348623157e308)
+		):
+			rng = anonymousTypes[identifier].Range
+			self.assertEqual(left, rng.LeftBound.Value)
+			self.assertEqual(right, rng.RightBound.Value)
+			self.assertIs(Direction.To, rng.Direction)
+
+	def test_UniversalInteger(self) -> None:
+		"""The operations of an integer type, ``"**"`` with an ``INTEGER`` exponent."""
+		universalInteger = Standard().AnonymousTypes["universal_integer"]
+		name =             "universal_integer"
+
+		self.assertListEqual(
+			[
+				("=",         (name, name),      "boolean"),
+				("/=",        (name, name),      "boolean"),
+				("<",         (name, name),      "boolean"),
+				("<=",        (name, name),      "boolean"),
+				(">",         (name, name),      "boolean"),
+				(">=",        (name, name),      "boolean"),
+				("minimum",   (name, name),      name),
+				("maximum",   (name, name),      name),
+				("to_string", (name, ),          "string"),
+				("+",         (name, name),      name),
+				("-",         (name, name),      name),
+				("*",         (name, name),      name),
+				("/",         (name, name),      name),
+				("mod",       (name, name),      name),
+				("rem",       (name, name),      name),
+				("+",         (name, ),          name),
+				("-",         (name, ),          name),
+				("abs",       (name, ),          name),
+				("**",        (name, "integer"), name)
+			],
+			_signatures(universalInteger, 0)
+		)
+
+	def test_UniversalReal(self) -> None:
+		"""After the operations of a floating-point type: ``"*"`` and ``"/"`` with a *universal_integer* operand."""
+		universalReal = Standard().AnonymousTypes["universal_real"]
+
+		self.assertEqual(20, len(universalReal.ImplicitOperations))
+		self.assertListEqual(
+			[
+				("**", ("universal_real",    "integer"),           "universal_real"),
+				("*",  ("universal_real",    "universal_integer"), "universal_real"),
+				("*",  ("universal_integer", "universal_real"),    "universal_real"),
+				("/",  ("universal_real",    "universal_integer"), "universal_real")
+			],
+			_signatures(universalReal, -4)
+		)
+		for operator in universalReal.ImplicitOperations[-3:]:
+			self.assertIsInstance(operator, Operator)
+			self.assertIs(universalReal, operator.Parent)
+			self.assertIs(universalReal, operator.ReturnType.Reference)
+
+	def test_IterateDeclarations(self) -> None:
+		"""A use clause imports the declared items, then the operations of the anonymous types."""
+		standard =       Standard()
+		anonymousTypes = standard.AnonymousTypes
+
+		self.assertListEqual(
+			[
+				*standard.DeclaredItems,
+				*anonymousTypes["universal_integer"].ImplicitOperations,
+				*anonymousTypes["universal_real"].ImplicitOperations
+			],
+			list(standard.IterateDeclarations())
+		)
+
+	def test_AnalyzeTypeMarks(self) -> None:
+		"""The analysis resolves the type marks naming *universal_integer*, ``BOOLEAN``, ``INTEGER`` and ``STRING``."""
+		design = Design("design")
+		design.LoadStdLibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		standard =         design.Libraries["std"].Packages["standard"]
+		universalInteger = standard.AnonymousTypes["universal_integer"]
+		universalReal =    standard.AnonymousTypes["universal_real"]
+		for operator in universalReal.ImplicitOperations[-3:]:
+			self.assertIn(universalInteger, [item.Subtype.Reference for item in operator.ParameterItems])
+
+		for anonymousType in standard.AnonymousTypes.values():
+			for operation in anonymousType.ImplicitOperations:
+				for item in operation.ParameterItems:
+					self.assertIsNotNone(item.Subtype.Reference, str(operation))
+
+				self.assertIsNotNone(operation.ReturnType.Reference, str(operation))
+
+		division = standard.Types["time"].ImplicitOperations[-2]
+		self.assertIs(universalInteger, division.ReturnType.Reference)
+
+
 class Booleans(Testcase):
 	def test_LogicalOperators(self) -> None:
 		"""After the operations of an enumerated type: the logical operators, ``rising_edge`` and ``falling_edge``."""
@@ -336,6 +454,13 @@ class Times(Testcase):
 		self.assertListEqual(["value", "unit"], [item.NormalizedIdentifiers[0] for item in function.ParameterItems])
 		for item in function.ParameterItems:
 			self.assertIs(time, item.Subtype.Reference)
+
+	def test_Division(self) -> None:
+		"""Before ``TO_STRING``: ``"/"`` of two ``TIME`` values returns *universal_integer* (9.2.7)."""
+		time = Time()
+
+		self.assertListEqual([("/", ("time", "time"), "universal_integer")], _signatures(time, -2)[:1])
+		self.assertIsInstance(time.ImplicitOperations[-2], Operator)
 
 	def test_Units(self) -> None:
 		"""The primary unit ``fs`` and the secondary units ``ps`` to ``hr``."""

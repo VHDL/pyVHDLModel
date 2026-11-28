@@ -200,7 +200,13 @@ Version 0.45.0 (2026)
      implicit operations ``to_string`` of ``real`` with ``DIGITS`` or ``FORMAT``, ``to_string`` of ``time`` with
      ``UNIT`` (IEEE Std 1076-2008, 16.3), ``to_ostring`` and ``to_hstring`` of ``bit_vector`` (5.3.2.4). Package
      ``std.standard`` declares the aliases ``to_bstring``, ``to_binary_string``, ``to_octal_string`` and
-     ``to_hex_string`` of ``bit_vector`` (16.3); the analysis resolves them to the implicit operations.
+     ``to_hex_string`` of ``bit_vector`` (16.3); the analysis resolves them to the implicit operations. It holds the
+     anonymous types *universal_integer* and *universal_real* (new
+     :data:`Standard.AnonymousTypes <pyVHDLModel.STD.StandardPkg.Standard.AnonymousTypes>`, new
+     :class:`~pyVHDLModel.STD.StandardPkg.UniversalReal`): no name denotes them, their implicit operations are
+     declarations of the package, which a use clause imports; *universal_real* adds ``"*"`` and ``"/"`` with a
+     *universal_integer* operand (9.2.7). Every physical type declares ``"/"`` of two values returning
+     *universal_integer*.
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

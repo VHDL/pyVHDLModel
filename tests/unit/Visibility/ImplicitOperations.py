@@ -37,7 +37,7 @@ from pyTooling.Warning      import WarningCollector
 from pyVHDLModel            import Design
 from pyVHDLModel.Base       import Direction, Mode, SimpleRange
 from pyVHDLModel.DesignUnit import DesignUnit, Entity, LibraryClause, Package
-from pyVHDLModel.Exception  import LibraryNotFoundError
+from pyVHDLModel.Exception  import LibraryNotFoundError, UnresolvedTypeMarkWarning
 from pyVHDLModel.Expression import IntegerLiteral
 from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
 from pyVHDLModel.Name       import SimpleName
@@ -45,8 +45,8 @@ from pyVHDLModel.Subprogram import Operator
 from pyVHDLModel.Symbol     import LibraryReferenceSymbol
 from pyVHDLModel.Type       import IntegerType, Subtype
 
-from tests.unit             import _subtypeSymbol
-from tests.unit.Visibility  import _constant, _design, _use
+from tests.unit             import _subtypeSymbol, _warningsOfType
+from tests.unit.Visibility  import _constant, _design, _distance, _use
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -194,6 +194,92 @@ class Standard(Testcase):
 			_operationsOf(standard.Types["bit_vector"], "to_hstring")[0],
 			entity._namespace.Lookup("to_hstring").Declarations
 		)
+
+
+class Universal(Testcase):
+	"""
+	The operations of the anonymous types *universal_integer* and *universal_real* of ``std.standard`` (16.3).
+
+	A use clause imports them; no name denotes the types (IEEE Std 1076-2008, 5.2.3.1, 5.2.5.1).
+	"""
+
+	def setUp(self) -> None:
+		self._entity =         Entity("e")
+		self._design =         _design(self._entity)
+		self._standard =       self._design.Libraries["std"].Packages["standard"]
+		self._anonymousTypes = self._standard.AnonymousTypes
+
+	def test_Namespace(self) -> None:
+		"""The analysis indexes the operations in the namespace of ``std.standard``; none is hidden."""
+		namespace = self._standard._namespace
+
+		for anonymousType in self._anonymousTypes.values():
+			for operation in anonymousType.ImplicitOperations:
+				self.assertIn(operation, namespace.ImplicitOperations[operation.NormalizedDesignator])
+
+		self.assertSetEqual(set(), namespace.HiddenOperations)
+
+	def test_ImplicitUse(self) -> None:
+		"""A user entity finds ``"*"`` of *universal_real* and *universal_integer*, and ``TO_STRING`` of both."""
+		multiplications = self._entity._namespace.Lookup("*").Declarations
+		toStrings =       self._entity._namespace.Lookup("to_string").Declarations
+
+		for operation in _operationsOf(self._anonymousTypes["universal_real"], "*"):
+			self.assertIn(operation, multiplications)
+
+		for anonymousType in self._anonymousTypes.values():
+			self.assertIn(_operationsOf(anonymousType, "to_string")[0], toStrings)
+
+	def test_UseAll(self) -> None:
+		"""An explicit ``use std.standard.all;`` imports them too."""
+		library = LibraryClause([LibraryReferenceSymbol(SimpleName("std"))])
+		entity =  Entity("e2", [library, _use("std.standard.all")])
+		design =  _design(entity)
+		real =    design.Libraries["std"].Packages["standard"].AnonymousTypes["universal_real"]
+
+		self.assertIn(_operationsOf(real, "/")[-1], entity._namespace.Lookup("/").Declarations)
+
+	def test_NotVisibleByName(self) -> None:
+		"""Neither a user entity nor ``std.standard`` finds a declaration of the pseudo-names."""
+		for identifier in self._anonymousTypes:
+			self.assertTupleEqual((), self._entity._namespace.Lookup(identifier).Declarations)
+			self.assertTupleEqual((), self._standard._namespace.Lookup(identifier).Declarations)
+
+	def test_UnresolvedTypeMark(self) -> None:
+		"""A type mark ``universal_integer`` in a user package is reported."""
+		constant = _constant("c", "universal_integer")
+		design =   _design(Package("p", declaredItems=[constant]), analyze=False)
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		warnings = _warningsOfType(collector, UnresolvedTypeMarkWarning)
+		self.assertEqual(1, len(warnings))
+		self.assertIs(constant.Subtype, warnings[0].Symbol)
+
+	def test_PhysicalType(self) -> None:
+		"""``"/"`` of two values of a user-defined physical type returns *universal_integer* (9.2.7)."""
+		distance =         _distance()
+		design =           _design(Package("p", declaredItems=[distance]))
+		universalInteger = design.Libraries["std"].Packages["standard"].AnonymousTypes["universal_integer"]
+		division =         _operationsOf(distance, "/")[-1]
+
+		self.assertIs(universalInteger, division.ReturnType.Reference)
+		for item in division.ParameterItems:
+			self.assertIs(distance, item.Subtype.Reference)
+
+	def test_Reset(self) -> None:
+		"""Resetting the analysis removes the operations from the namespace; the next analysis adds the same again."""
+		universalInteger = self._anonymousTypes["universal_integer"]
+		operations =       universalInteger.ImplicitOperations
+
+		self._design.ResetAnalysis()
+
+		self.assertNotIn("+", self._standard._namespace.ImplicitOperations)
+
+		self._design.Analyze()
+
+		self.assertIs(operations, universalInteger.ImplicitOperations)
+		self.assertIn(operations[9], self._standard._namespace.ImplicitOperations["+"])
 
 
 class PredefinedTypeMarks(Testcase):

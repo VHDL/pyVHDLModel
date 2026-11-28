@@ -30,18 +30,19 @@
 # ==================================================================================================================== #
 #
 """This module contains the predefined package ``std.standard`` of VHDL library ``STD``."""
+from typing                  import Generator, Optional as Nullable
 
-from pyTooling.Decorators    import export
+from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType
 
 from pyVHDLModel             import VHDLVersion
-from pyVHDLModel.Base        import SimpleRange, Direction, Mode
+from pyVHDLModel.Base        import ModelEntity, SimpleRange, Direction, Mode
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
 from pyVHDLModel.Expression  import EnumerationLiteral, CharacterEnumerationLiteral, IntegerLiteral, \
                                     FloatingPointLiteral, PhysicalIntegerLiteral
-from pyVHDLModel.Type        import EnumeratedType, IntegerType, RealType, PhysicalType, PhysicalUnit, ArrayType, \
-                                    Subtype, LogicalOperatorsMixin, MatchingOperatorsMixin
+from pyVHDLModel.Type        import FullType, EnumeratedType, IntegerType, RealType, PhysicalType, PhysicalUnit, \
+                                    ArrayType, Subtype, LogicalOperatorsMixin, MatchingOperatorsMixin
 from pyVHDLModel.Interface   import ParameterSimpleSignalInterfaceItem
 from pyVHDLModel.Declaration import Attribute
 from pyVHDLModel.Subprogram  import Function, PredefinedFunction, PredefinedOperation
@@ -271,6 +272,54 @@ class BitVector(ArrayType):
 
 
 @export
+class UniversalReal(RealType):
+	"""
+	Represents the anonymous type *universal_real* of package ``std.standard``: an IEEE 754 double.
+
+	Besides the operations of a floating-point type, it declares the multiplying operators with an operand of the
+	anonymous type *universal_integer*: ``"*"`` of *universal_real* and *universal_integer*, ``"*"`` of
+	*universal_integer* and *universal_real*, ``"/"`` of *universal_real* and *universal_integer* (IEEE Std 1076-2008,
+	9.2.7).
+	"""
+
+	def __init__(self, *, parent: Nullable[ModelEntity] = None) -> None:
+		"""
+		Initializes the type *universal_real*.
+
+		Its range is ``-1.7976931348623157e308 to 1.7976931348623157e308``.
+
+		:param parent: Optional, the parent model entity, the package ``std.standard``. Default: ``None``, no parent.
+		"""
+		super().__init__("universal_real", SimpleRange(
+			FloatingPointLiteral(-1.7976931348623157e308),
+			FloatingPointLiteral(1.7976931348623157e308),
+			Direction.To
+		), parent=parent)
+
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this type declares implicitly: those of a floating-point type, then
+		``"*" (L : universal_real; R : universal_integer)``, ``"*" (L : universal_integer; R : universal_real)`` and
+		``"/" (L : universal_real; R : universal_integer)``, each returning *universal_real*.
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		for operatorSymbol, left, right in (
+			("*", self._TypeMark(),                                     SimpleSubtypeSymbol(SimpleName("universal_integer"))),
+			("*", SimpleSubtypeSymbol(SimpleName("universal_integer")), self._TypeMark()),
+			("/", self._TypeMark(),                                     SimpleSubtypeSymbol(SimpleName("universal_integer")))
+		):
+			operations.append(self._Operator(
+				operatorSymbol,
+				self._TypeMark(),
+				(self._Parameter("L", left), self._Parameter("R", right))
+			))
+
+		return operations
+
+
+@export
 class Standard(PredefinedPackage):
 	"""
 	Predefined package ``std.standard`` (IEEE Std 1076-2008, 16.3).
@@ -298,12 +347,16 @@ class Standard(PredefinedPackage):
 	``to_hstring`` (:class:`BitVector`). The implementation-defined ranges are GHDL's: ``integer`` has 32 bits, ``real``
 	is an IEEE 754 double, ``time`` counts femtoseconds in 64 bits.
 
-	The predefined operations of the anonymous types *universal_integer* and *universal_real* aren't declared.
+	The anonymous types *universal_integer* (64 bits, like GHDL's) and *universal_real* (:class:`UniversalReal`) aren't
+	declarations: no name denotes them (:attr:`AnonymousTypes`). Their predefined operations are declarations of the
+	package, which a use clause makes visible (:meth:`IterateDeclarations`).
 
 	.. seealso::
 
 	   Matching :class:`Package Body <pyVHDLModel.STD.StandardPkg.Standard_Body>` declaration.
 	"""
+
+	_anonymousTypes: dict[str, FullType]  #: The anonymous types *universal_integer* and *universal_real*, by pseudo-name.
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
@@ -315,6 +368,16 @@ class Standard(PredefinedPackage):
 		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(vhdlVersion)
+
+		universalInteger = IntegerType(
+			"universal_integer",
+			SimpleRange(IntegerLiteral(-2**63), IntegerLiteral(2**63 - 1), Direction.To),
+			parent=self
+		)
+		self._anonymousTypes = {
+			"universal_integer": universalInteger,
+			"universal_real":    UniversalReal(parent=self)
+		}
 
 		if vhdlVersion is VHDLVersion.VHDL2019:
 			directions =     "ascending", "descending"
@@ -410,6 +473,30 @@ class Standard(PredefinedPackage):
 				self._DeclareItem(enumeration, self._types)
 
 		self.AddDeclaredItem(Attribute("foreign", self._TypeMark("string")))
+
+	@readonly
+	def AnonymousTypes(self) -> dict[str, FullType]:
+		"""
+		Read-only property to access the anonymous types *universal_integer* and *universal_real* (:attr:`_anonymousTypes`).
+
+		They aren't declared items and no name denotes them (IEEE Std 1076-2008, 5.2.3.1, 5.2.5.1); the type marks of
+		implicit operations name them by their pseudo-names
+		(:meth:`~pyVHDLModel.Type.FullType.ResolveImplicitOperationTypeMarks`).
+
+		:returns: Dictionary of anonymous types, indexed by pseudo-name.
+		"""
+		return self._anonymousTypes
+
+	def IterateDeclarations(self) -> Generator[ModelEntity, None, None]:
+		"""
+		Iterate the declarations of this package a use clause can make potentially visible: those of a package, then the
+		predefined operations of the anonymous types (:attr:`AnonymousTypes`).
+
+		:returns: A generator to iterate the declarations, in declaration order.
+		"""
+		yield from super().IterateDeclarations()
+		for anonymousType in self._anonymousTypes.values():
+			yield from anonymousType.ImplicitOperations
 
 
 @export

@@ -278,11 +278,15 @@ class FullType(BaseType):
 
 	def ResolveImplicitOperationTypeMarks(self, standard: Package) -> None:
 		"""
-		Resolve the type marks of the implicit operations naming a type or subtype of package ``std.standard``.
+		Resolve the type marks of the implicit operations naming a type, a subtype or an anonymous type of package
+		``std.standard``.
 
 		An implicit operation names the predefined types ``BOOLEAN``, ``INTEGER`` or ``STRING`` of ``std.standard``
 		(IEEE Std 1076-2008, 9.2), whatever a declaration of the type's region or a use clause makes visible there; the
-		``TO_STRING`` of ``REAL`` with a ``DIGITS`` parameter names the subtype ``NATURAL`` (16.3). The type marks naming
+		``TO_STRING`` of ``REAL`` with a ``DIGITS`` parameter names the subtype ``NATURAL`` (16.3). The division of two
+		values of a physical type returns the anonymous type *universal_integer* (9.2.7), which no name denotes: its type
+		mark carries the pseudo-name, which selects one of the anonymous types of ``std.standard``
+		(:attr:`Standard.AnonymousTypes <pyVHDLModel.STD.StandardPkg.Standard.AnonymousTypes>`). The type marks naming
 		this type are resolved, when the operations are created. The analysis resolves them, when it indexes the implicit
 		operations (:meth:`~pyVHDLModel.Design.IndexImplicitOperations`). Resolving them again changes nothing.
 
@@ -292,8 +296,11 @@ class FullType(BaseType):
 			for symbol in (*(item._subtype for item in operation._parameterItems), operation._returnType):
 				if symbol._reference is None:
 					normalizedIdentifier = symbol._name._normalizedIdentifier
-					if (reference := standard._types.get(normalizedIdentifier)) is None:
-						reference = standard._subtypes[normalizedIdentifier]
+					if (
+						(reference := standard._types.get(normalizedIdentifier)) is None
+						and (reference := standard._subtypes.get(normalizedIdentifier)) is None
+					):
+						reference = standard._anonymousTypes[normalizedIdentifier]
 
 					symbol._reference = reference
 
@@ -1186,10 +1193,9 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""
 		Create the operations this physical type declares implicitly: those of a scalar type, the adding and sign
-		operators, ``"abs"``, ``"mod"`` and ``"rem"``, and the multiplying operators with an ``integer`` or ``real``
-		operand (IEEE Std 1076-2008, 9.2.5 to 9.2.7).
-
-		The division of two physical values, which returns a value of type *universal_integer*, isn't represented.
+		operators, ``"abs"``, ``"mod"`` and ``"rem"``, the multiplying operators with an ``integer`` or ``real`` operand,
+		and the division of two values of this type returning the anonymous type *universal_integer* (IEEE Std 1076-2008,
+		9.2.5 to 9.2.7).
 
 		:returns: List of predefined operators and predefined functions.
 		"""
@@ -1216,6 +1222,8 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 				self._TypeMark(),
 				(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName(scalar))))
 			))
+
+		operations.append(self._BinaryOperator("/", SimpleSubtypeSymbol(SimpleName("universal_integer"))))
 
 		return operations
 

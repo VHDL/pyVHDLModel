@@ -628,7 +628,8 @@ class ImplicitOperations(Testcase):
 				("/",   ("my_time", "integer"), "my_time"),
 				("*",   ("my_time", "real"),    "my_time"),
 				("*",   ("real", "my_time"),    "my_time"),
-				("/",   ("my_time", "real"),    "my_time")
+				("/",   ("my_time", "real"),    "my_time"),
+				("/",   ("my_time", "my_time"), "universal_integer")
 			],
 			_signatures(physicalType)
 		)

@@ -40,9 +40,10 @@ from pyVHDLModel.Object      import File, DeferredConstant
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
                                     ParameterFileInterfaceItem, ParameterSimpleSignalInterfaceItem
 from pyVHDLModel.Declaration import Alias, Attribute
-from pyVHDLModel.Subprogram  import Procedure, Function, Operator
-from pyVHDLModel.Type        import EnumeratedType, ArrayType, AccessType, FileType, Subtype, RecordType
-from pyVHDLModel.STD         import Standard, TextIO, Env, Boolean, Bit
+from pyVHDLModel.Subprogram  import Procedure, Function, Operator, PredefinedFunction
+from pyVHDLModel.Type        import EnumeratedType, RealType, PhysicalType, ArrayType, AccessType, FileType, Subtype, \
+                                    RecordType
+from pyVHDLModel.STD         import Standard, TextIO, Env, Boolean, Bit, Real, Time, BitVector
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -185,6 +186,15 @@ class Standards(Testcase):
 		self.assertIsInstance(foreign, Attribute)
 		self.assertEqual("string", foreign.Subtype.Name.Identifier)
 
+	def test_TypeClasses(self) -> None:
+		"""Package ``std.standard`` declares ``real``, ``time`` and ``bit_vector`` by these classes."""
+		standard = Standard()
+
+		self.assertIsInstance(standard.Types["real"], Real)
+		self.assertIsInstance(standard.Types["time"], Time)
+		self.assertIsInstance(standard.Types["bit_vector"], BitVector)
+		self.assertIs(standard.Types["time"], standard.Subtypes["delay_length"].BaseType)
+
 
 class Booleans(Testcase):
 	def test_LogicalOperators(self) -> None:
@@ -248,6 +258,79 @@ class Bits(Testcase):
 				self.assertIsInstance(s, ParameterSimpleSignalInterfaceItem)
 				self.assertIs(Mode.In, s.Mode)
 				self.assertIs(enumeration, s.Subtype.Reference)
+
+
+class Reals(Testcase):
+	def test_ToString(self) -> None:
+		"""After the operations of a floating-point type: ``TO_STRING`` with ``DIGITS`` and with ``FORMAT``."""
+		real = Real()
+
+		self.assertIsInstance(real, RealType)
+		self.assertListEqual(
+			[
+				("to_string", ("real", "natural"), "string"),
+				("to_string", ("real", "string"),  "string")
+			],
+			_signatures(real, -2)
+		)
+		self.assertListEqual(
+			[("value", "digits"), ("value", "format")],
+			[
+				tuple(item.NormalizedIdentifiers[0] for item in function.ParameterItems)
+				for function in real.ImplicitOperations[-2:]
+			]
+		)
+		for function in real.ImplicitOperations[-2:]:
+			self.assertIsInstance(function, PredefinedFunction)
+			self.assertIs(real, function.Parent)
+			self.assertIs(real, function.ParameterItems[0].Subtype.Reference)
+
+
+class Times(Testcase):
+	def test_ToString(self) -> None:
+		"""After the operations of a physical type: ``TO_STRING`` with ``UNIT``."""
+		time = Time()
+
+		self.assertIsInstance(time, PhysicalType)
+		self.assertListEqual([("to_string", ("time", "time"), "string")], _signatures(time, -1))
+
+		function = time.ImplicitOperations[-1]
+		self.assertIsInstance(function, PredefinedFunction)
+		self.assertIs(time, function.Parent)
+		self.assertListEqual(["value", "unit"], [item.NormalizedIdentifiers[0] for item in function.ParameterItems])
+		for item in function.ParameterItems:
+			self.assertIs(time, item.Subtype.Reference)
+
+	def test_Units(self) -> None:
+		"""The primary unit ``fs`` and the secondary units ``ps`` to ``hr``."""
+		time = Time()
+
+		self.assertEqual("fs", time.PrimaryUnit.NormalizedIdentifier)
+		self.assertListEqual(
+			["ps", "ns", "us", "ms", "sec", "min", "hr"],
+			[unit.NormalizedIdentifier for unit in time.SecondaryUnits]
+		)
+
+
+class BitVectors(Testcase):
+	def test_StringConversions(self) -> None:
+		"""After the operations of an array type of ``bit``: ``TO_OSTRING`` and ``TO_HSTRING``."""
+		bitVector = BitVector()
+
+		self.assertIsInstance(bitVector, ArrayType)
+		self.assertEqual("natural", bitVector.Dimensions[0].Name.Identifier)
+		self.assertEqual("bit", bitVector.ElementType.Name.Identifier)
+		self.assertListEqual(
+			[
+				("to_ostring", ("bit_vector", ), "string"),
+				("to_hstring", ("bit_vector", ), "string")
+			],
+			_signatures(bitVector, -2)
+		)
+		for function in bitVector.ImplicitOperations[-2:]:
+			self.assertIsInstance(function, PredefinedFunction)
+			self.assertIs(bitVector, function.Parent)
+			self.assertIs(bitVector, function.ParameterItems[0].Subtype.Reference)
 
 
 class TextIOs(Testcase):

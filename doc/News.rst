@@ -195,6 +195,10 @@ Version 0.45.0 (2026)
      ``ieee.numeric_bit`` declares its aliases ``rising_edge`` and ``falling_edge`` of
      ``STD.STANDARD.RISING_EDGE [STD.STANDARD.BIT return STD.STANDARD.BOOLEAN]``; the analysis resolves the expanded
      names.
+   * Types ``real``, ``time`` and ``bit_vector`` of ``std.standard`` (new :class:`~pyVHDLModel.STD.StandardPkg.Real`,
+     :class:`~pyVHDLModel.STD.StandardPkg.Time`, :class:`~pyVHDLModel.STD.StandardPkg.BitVector`) declare the
+     implicit operations ``to_string`` of ``real`` with ``DIGITS`` or ``FORMAT``, ``to_string`` of ``time`` with
+     ``UNIT`` (IEEE Std 1076-2008, 16.3), ``to_ostring`` and ``to_hstring`` of ``bit_vector`` (5.3.2.4).
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

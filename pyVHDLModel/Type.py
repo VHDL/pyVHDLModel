@@ -278,20 +278,24 @@ class FullType(BaseType):
 
 	def ResolveImplicitOperationTypeMarks(self, standard: Package) -> None:
 		"""
-		Resolve the type marks of the implicit operations naming a type of package ``std.standard``.
+		Resolve the type marks of the implicit operations naming a type or subtype of package ``std.standard``.
 
 		An implicit operation names the predefined types ``BOOLEAN``, ``INTEGER`` or ``STRING`` of ``std.standard``
 		(IEEE Std 1076-2008, 9.2), whatever a declaration of the type's region or a use clause makes visible there; the
-		type marks naming this type are resolved, when the operations are created. The analysis resolves them, when it
-		indexes the implicit operations (:meth:`~pyVHDLModel.Design.IndexImplicitOperations`). Resolving them again
-		changes nothing.
+		``TO_STRING`` of ``REAL`` with a ``DIGITS`` parameter names the subtype ``NATURAL`` (16.3). The type marks naming
+		this type are resolved, when the operations are created. The analysis resolves them, when it indexes the implicit
+		operations (:meth:`~pyVHDLModel.Design.IndexImplicitOperations`). Resolving them again changes nothing.
 
 		:param standard: The package ``std.standard``.
 		"""
 		for operation in self.ImplicitOperations:
 			for symbol in (*(item._subtype for item in operation._parameterItems), operation._returnType):
 				if symbol._reference is None:
-					symbol._reference = standard._types[symbol._name._normalizedIdentifier]
+					normalizedIdentifier = symbol._name._normalizedIdentifier
+					if (reference := standard._types.get(normalizedIdentifier)) is None:
+						reference = standard._subtypes[normalizedIdentifier]
+
+					symbol._reference = reference
 
 	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
 		"""

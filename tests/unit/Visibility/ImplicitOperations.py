@@ -32,6 +32,7 @@
 Implicit operations in namespaces: indexed by the analysis after the type marks are resolved, imported by use clauses.
 """
 from pyTooling.Testing      import Testcase
+from pyTooling.Warning      import WarningCollector
 
 from pyVHDLModel            import Design
 from pyVHDLModel.Base       import Direction, Mode, SimpleRange
@@ -179,9 +180,27 @@ class Standard(Testcase):
 		for operation in operations:
 			self.assertIn(operation, declarations)
 
+	def test_ToString(self) -> None:
+		"""A user entity finds ``TO_STRING`` of ``real`` with ``DIGITS`` and ``TO_HSTRING`` of ``bit_vector``."""
+		entity =   Entity("e")
+		design =   _design(entity)
+		standard = design.Libraries["std"].Packages["standard"]
+
+		self.assertIn(
+			_operationsOf(standard.Types["real"], "to_string")[1],
+			entity._namespace.Lookup("to_string").Declarations
+		)
+		self.assertIn(
+			_operationsOf(standard.Types["bit_vector"], "to_hstring")[0],
+			entity._namespace.Lookup("to_hstring").Declarations
+		)
+
 
 class PredefinedTypeMarks(Testcase):
-	"""The type marks naming ``BOOLEAN``, ``INTEGER`` or ``STRING`` reference the types of ``std.standard`` (9.2)."""
+	"""
+	The type marks naming ``BOOLEAN``, ``INTEGER`` or ``STRING`` reference the types of ``std.standard`` (9.2), the one
+	naming ``NATURAL`` its subtype (16.3).
+	"""
 
 	def test_Boolean(self) -> None:
 		"""``"="`` of a user-defined integer type returns ``std.standard.BOOLEAN``."""
@@ -226,6 +245,41 @@ class PredefinedTypeMarks(Testcase):
 							self.assertIsNotNone(item.Subtype.Reference, f"{package.Identifier}.{operation}")
 
 						self.assertIsNotNone(operation.ReturnType.Reference, f"{package.Identifier}.{operation}")
+
+	def test_Standard_VITAL(self) -> None:
+		"""
+		The analysis of ``std``, ``ieee`` and the VITAL packages raises no warning and resolves every type mark of the
+		implicit operations; no operation of ``std.standard`` is hidden.
+		"""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+		design.LoadVITALPackages()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		for library in design.Libraries.values():
+			for package in library.Packages.values():
+				for fullType in package.Types.values():
+					for operation in fullType.ImplicitOperations:
+						for item in operation.ParameterItems:
+							self.assertIsNotNone(item.Subtype.Reference, f"{package.Identifier}.{operation}")
+
+						self.assertIsNotNone(operation.ReturnType.Reference, f"{package.Identifier}.{operation}")
+
+		self.assertSetEqual(set(), design.Libraries["std"].Packages["standard"]._namespace.HiddenOperations)
+
+	def test_Natural(self) -> None:
+		"""``TO_STRING`` of ``REAL`` takes ``DIGITS`` of subtype ``NATURAL``, ``FORMAT`` of type ``STRING``."""
+		design =     _design(Package("p"))
+		standard =   design.Libraries["std"].Packages["standard"]
+		toStrings =  _operationsOf(standard.Types["real"], "to_string")
+		withDigits = toStrings[1]
+		withFormat = toStrings[2]
+
+		self.assertIs(standard.Subtypes["natural"], withDigits.ParameterItems[1].Subtype.Reference)
+		self.assertIs(standard.Types["string"], withFormat.ParameterItems[1].Subtype.Reference)
 
 	def test_NoStdLibrary(self) -> None:
 		"""Indexing the implicit operations needs library ``std``."""

@@ -41,7 +41,8 @@ from pyVHDLModel.Interface            import ParameterConstantInterfaceItem, Par
                                              ParameterSimpleSignalInterfaceItem
 from pyVHDLModel.Name                 import SimpleName
 from pyVHDLModel.Subprogram           import Procedure, Function, Operator
-from pyVHDLModel.Symbol               import ConstrainedScalarSubtypeSymbol, LibraryReferenceSymbol
+from pyVHDLModel.Symbol               import ConstrainedScalarSubtypeSymbol, LibraryReferenceSymbol, \
+                                             ResolutionFunctionSymbol, ArrayElementResolution
 from pyVHDLModel.Type                 import ArrayType, Subtype
 from pyVHDLModel.IEEE.StdLogic1164Pkg import Std_Logic_1164, StdULogic
 
@@ -108,6 +109,18 @@ class StdLogic1164s(Testcase):
 		self.assertIs(package.Types["std_ulogic"], package.Subtypes["std_logic"].BaseType)
 		self.assertIs(package.Types["std_ulogic_vector"], package.Subtypes["std_logic_vector"].BaseType)
 
+	def test_Subtypes_Resolution(self) -> None:
+		"""``subtype STD_LOGIC is resolved STD_ULOGIC;`` and ``STD_LOGIC_VECTOR is (resolved) STD_ULOGIC_VECTOR``."""
+		package = Std_Logic_1164()
+
+		stdLogic = package.Subtypes["std_logic"].Type.Resolution
+		self.assertIsInstance(stdLogic, ResolutionFunctionSymbol)
+		self.assertEqual("resolved", stdLogic.Name.Identifier)
+		stdLogicVector = package.Subtypes["std_logic_vector"].Type.Resolution
+		self.assertIsInstance(stdLogicVector, ArrayElementResolution)
+		self.assertIsInstance(stdLogicVector.Resolution, ResolutionFunctionSymbol)
+		self.assertEqual("resolved", stdLogicVector.Resolution.Name.Identifier)
+
 	def test_RangeSubtypes(self) -> None:
 		"""``subtype X01 is resolved STD_ULOGIC range 'X' to '1';`` and its relatives."""
 		package = Std_Logic_1164()
@@ -120,6 +133,7 @@ class StdLogic1164s(Testcase):
 			subtype = package.Subtypes[identifier]
 			self.assertIsInstance(subtype, Subtype)
 			self.assertIsInstance(subtype.Type, ConstrainedScalarSubtypeSymbol)
+			self.assertIsInstance(subtype.Type.Resolution, ResolutionFunctionSymbol)
 			self.assertIs(package.Types["std_ulogic"], subtype.BaseType)
 			self.assertEqual(low, subtype.Range.LeftBound.Value)
 			self.assertEqual(high, subtype.Range.RightBound.Value)
@@ -271,6 +285,25 @@ class StdLogic1164s(Testcase):
 
 		self.assertIs(package.Functions["to_stdlogicvector"][1], aliases[5].Name.Reference)
 		self.assertIs(package.Types["std_ulogic_vector"], aliases[10].Name.Reference.Parent)
+
+	def test_AnalyzeResolutionFunctions(self) -> None:
+		"""The analysis resolves the resolution function names of the subtypes to the function ``resolved``."""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		package =  design.Libraries["ieee"].Packages["std_logic_1164"]
+		resolved = package.Functions["resolved"][0]
+		for identifier in ("std_logic", "x01", "x01z", "ux01", "ux01z"):
+			with self.subTest(subtype=identifier):
+				self.assertIs(resolved, package.Subtypes[identifier].ResolutionFunction)
+
+		stdLogicVector = package.Subtypes["std_logic_vector"]
+		self.assertIsNone(stdLogicVector.ResolutionFunction)
+		self.assertIs(resolved, stdLogicVector.Type.Resolution.Resolution.Function)
 
 
 class StdULogics(Testcase):

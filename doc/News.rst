@@ -226,6 +226,11 @@ Version 0.45.0 (2026)
      element symbols reference the record elements. A name without such a function, an element resolution of a type,
      which isn't an array or record type, and an unknown record element are an
      :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+   * The subtypes of the predefined packages carry their resolution indications of IEEE Std 1076-2008: ``resolved``
+     for ``std_logic``, ``x01``, ``x01z``, ``ux01`` and ``ux01z`` of ``ieee.std_logic_1164``, ``(resolved)`` for its
+     ``std_logic_vector``, for ``unsigned`` and ``signed`` of ``ieee.numeric_std``, ``ufixed`` and ``sfixed`` of
+     ``ieee.fixed_generic_pkg`` and ``float`` of ``ieee.float_generic_pkg``. The analysis resolves them to the function
+     ``resolved`` of ``ieee.std_logic_1164``.
 
    .. rubric:: Changes
 

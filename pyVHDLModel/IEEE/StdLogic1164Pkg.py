@@ -38,7 +38,7 @@ from pyVHDLModel.Base       import SimpleRange, Direction, Mode
 from pyVHDLModel.Expression import CharacterEnumerationLiteral, CharacterLiteral
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Predefined import PredefinedPackage, PredefinedPackageBody
-from pyVHDLModel.Symbol     import ConstrainedScalarSubtypeSymbol
+from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, ResolutionFunctionSymbol
 from pyVHDLModel.Type       import EnumeratedType, ArrayType, Subtype, MatchingOperatorsMixin
 from pyVHDLModel.Interface  import ParameterSimpleSignalInterfaceItem
 from pyVHDLModel.Subprogram import Procedure, Function, Operator, PredefinedOperation
@@ -123,11 +123,19 @@ class Std_Logic_1164(PredefinedPackage):
 			self._functions
 		)
 
-		stdLogic =           Subtype("std_logic", self._TypeMark("std_ulogic"))
+		def resolved() -> ResolutionFunctionSymbol:
+			"""
+			Nested function creating the resolution function name ``resolved`` of a subtype indication.
+
+			:returns: The resolution function name.
+			"""
+			return ResolutionFunctionSymbol(SimpleName("resolved"))
+
+		stdLogic =           Subtype("std_logic", SimpleSubtypeSymbol(SimpleName("std_ulogic"), resolution=resolved()))
 		stdLogic._baseType = stdULogic
 		self._DeclareItem(stdLogic, self._subtypes)
 
-		stdLogicVector =           Subtype("std_logic_vector", self._TypeMark("std_ulogic_vector"))
+		stdLogicVector =           Subtype("std_logic_vector", self._ElementResolvedTypeMark("std_ulogic_vector"))
 		stdLogicVector._baseType = stdULogicVector
 		self._DeclareItem(stdLogicVector, self._subtypes)
 
@@ -138,7 +146,8 @@ class Std_Logic_1164(PredefinedPackage):
 			("ux01z", "U", "Z")
 		):
 			subtypeRange =      SimpleRange(CharacterLiteral(low), CharacterLiteral(high), Direction.To)
-			subtype =           Subtype(identifier, ConstrainedScalarSubtypeSymbol(SimpleName("std_ulogic"), subtypeRange))
+			typeMark =          ConstrainedScalarSubtypeSymbol(SimpleName("std_ulogic"), subtypeRange, resolution=resolved())
+			subtype =           Subtype(identifier, typeMark)
 			subtype._baseType = stdULogic
 			self._DeclareItem(subtype, self._subtypes)
 

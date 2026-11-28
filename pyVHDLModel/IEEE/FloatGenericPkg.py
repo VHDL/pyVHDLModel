@@ -285,7 +285,7 @@ class Float_Generic_Pkg(PredefinedPackage):
 
 		self._DeclareItem(unresolvedFloat, self._types)
 		alias("u_float", floatType)
-		subtype("float", self._TypeMark(floatType))
+		subtype("float", self._ElementResolvedTypeMark(floatType))
 		for width, exponentWidth, fractionWidth in ((32, 8, 23), (64, 11, 52), (128, 15, 112)):
 			subtype(f"unresolved_float{width}", constrained(floatType, exponentWidth, fractionWidth))
 			alias(f"u_float{width}", f"unresolved_float{width}")

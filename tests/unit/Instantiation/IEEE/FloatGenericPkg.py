@@ -40,7 +40,7 @@ from pyVHDLModel.Expression  import CharacterLiteral, NegationExpression
 from pyVHDLModel.Interface   import GenericConstantInterfaceItem, GenericPackageInterfaceItem
 from pyVHDLModel.Object      import Constant, DeferredConstant
 from pyVHDLModel.Subprogram  import Function, Operator, Procedure
-from pyVHDLModel.Symbol      import ConstrainedArraySubtypeSymbol
+from pyVHDLModel.Symbol      import ConstrainedArraySubtypeSymbol, ArrayElementResolution
 from pyVHDLModel.Type        import ArrayType, EnumeratedType, Subtype
 from pyVHDLModel.IEEE        import Float_Generic_Pkg
 
@@ -118,6 +118,8 @@ class FloatGenericPkgs(Testcase):
 		self.assertIs(Direction.DownTo, float32.Constraints[0].Direction)
 		self.assertEqual("float", subtypes["float128"].Type.Name.Identifier)
 		self.assertEqual(15, subtypes["float128"].Type.Constraints[0].LeftBound.Value)
+		self.assertIsInstance(subtypes["float"].Type.Resolution, ArrayElementResolution)
+		self.assertIsNone(float32.Resolution)
 
 	def test_Aliases(self) -> None:
 		"""``alias U_float32 is UNRESOLVED_float32;``"""
@@ -361,6 +363,8 @@ class FloatGenericPkgs(Testcase):
 		self.assertIs(fixedGenericPkg, floatGenericPkg.GenericItems[7].PackageReference.Reference)
 		self.assertIs(fixedGenericPkg.Types["unresolved_ufixed"], toFloat.ParameterItems[0].Subtype.Reference)
 		self.assertIs(floatGenericPkg.Types["valid_fpstate"], floatGenericPkg.Functions["classfp"][0].ReturnType.Reference)
+		resolved = ieee.Packages["std_logic_1164"].Functions["resolved"][0]
+		self.assertIs(resolved, floatGenericPkg.Subtypes["float"].Type.Resolution.Resolution.Function)
 
 	def test_AnalyzeAliases(self) -> None:
 		"""

@@ -40,6 +40,7 @@ from pyVHDLModel.Expression  import CharacterLiteral, IntegerLiteral
 from pyVHDLModel.Interface   import GenericConstantInterfaceItem
 from pyVHDLModel.Object      import Constant
 from pyVHDLModel.Subprogram  import Function, Operator, Procedure
+from pyVHDLModel.Symbol      import ArrayElementResolution
 from pyVHDLModel.Type        import ArrayType, Subtype
 from pyVHDLModel.IEEE        import Fixed_Generic_Pkg
 
@@ -146,6 +147,9 @@ class FixedGenericPkgs(Testcase):
 		self.assertIs(fixedGenericPkg.Types["unresolved_sfixed"], fixedGenericPkg.Subtypes["sfixed"].BaseType)
 		self.assertEqual("integer", fixedGenericPkg.Types["unresolved_ufixed"].Dimensions[0].Name.Identifier)
 		self.assertEqual("std_ulogic", fixedGenericPkg.Types["unresolved_ufixed"].ElementType.Name.Identifier)
+		for identifier in ("ufixed", "sfixed"):
+			with self.subTest(subtype=identifier):
+				self.assertIsInstance(fixedGenericPkg.Subtypes[identifier].Type.Resolution, ArrayElementResolution)
 
 	def test_MixedOperands(self) -> None:
 		"""``"+" (l : UNRESOLVED_ufixed; r : NATURAL)`` and ``"+" (l : INTEGER; r : UNRESOLVED_sfixed)``."""
@@ -326,6 +330,10 @@ class FixedGenericPkgs(Testcase):
 		self.assertIs(numericStd.Types["unresolved_signed"], scalb.ParameterItems[1].Subtype.Reference)
 		self.assertIs(fixedGenericPkg.Types["unresolved_ufixed"], fixedGenericPkg.DeclaredItems[3].Name.Reference)
 		self.assertIsNotNone(fixedGenericPkg.GenericItems[0].Subtype.Reference)
+		resolved = design.Libraries["ieee"].Packages["std_logic_1164"].Functions["resolved"][0]
+		for identifier in ("ufixed", "sfixed"):
+			with self.subTest(subtype=identifier):
+				self.assertIs(resolved, fixedGenericPkg.Subtypes[identifier].Type.Resolution.Resolution.Function)
 
 	def test_Aliases(self) -> None:
 		"""``alias bread is READ [LINE, UNRESOLVED_ufixed];``: 64 aliases with a signature, after their subprograms."""

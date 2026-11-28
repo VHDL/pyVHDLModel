@@ -36,7 +36,7 @@ from pyTooling.Decorators   import export
 from pyVHDLModel            import VHDLVersion
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Symbol     import SimpleObjectOrFunctionCallSymbol
-from pyVHDLModel.Expression import EnumerationLiteral, IntegerLiteral
+from pyVHDLModel.Expression import EnumerationLiteral, IntegerLiteral, StringLiteral
 from pyVHDLModel.Type       import EnumeratedType, ArrayType, AccessType, FileType, Subtype
 from pyVHDLModel.Object     import File
 from pyVHDLModel.Interface  import ParameterFileInterfaceItem
@@ -52,7 +52,7 @@ class TextIO(PredefinedPackage):
 	Its declarations, in the order of the standard:
 
 	* types ``line``, ``text`` and ``side``, subtype ``width`` and function ``justify``
-	* files ``input`` and ``output``
+	* files ``input`` and ``output``, opened for reading and writing as ``STD_INPUT`` and ``STD_OUTPUT``
 	* the input procedures ``readline``, ``read``, ``sread``, ``oread`` and ``hread``, and their aliases
 	  (``string_read``, ``bread``, ``binary_read``, ``octal_read``, ``hex_read``)
 	* the output procedures ``writeline``, ``tee``, ``write``, ``owrite`` and ``hwrite``, and their aliases (``swrite``,
@@ -95,8 +95,16 @@ class TextIO(PredefinedPackage):
 			self._functions
 		)
 
-		for identifier in ("input", "output"):
-			file =                    File((identifier,), self._TypeMark("text"))
+		for identifier, openKind, logicalName in (
+			("input",  "read_mode",  "STD_INPUT"),
+			("output", "write_mode", "STD_OUTPUT")
+		):
+			file = File(
+				(identifier,),
+				self._TypeMark("text"),
+				openKind=SimpleObjectOrFunctionCallSymbol(SimpleName(openKind)),
+				logicalName=StringLiteral(logicalName)
+			)
 			self._files[identifier] = file
 			self.AddDeclaredItem(file)
 

@@ -32,12 +32,12 @@
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, SimpleRange
-from pyVHDLModel.Expression import IntegerLiteral
+from pyVHDLModel.Expression import IntegerLiteral, StringLiteral
 from pyVHDLModel.Name       import SimpleName
 from pyVHDLModel.Object     import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
 from pyVHDLModel.Symbol     import SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
                                    ConstrainedRecordSubtypeSymbol, RecordElementSymbol, ArrayElementConstraint, \
-                                   RecordElementConstraint
+                                   RecordElementConstraint, SimpleObjectOrFunctionCallSymbol
 
 from tests.unit.Visitor     import FullRecorder
 
@@ -330,5 +330,24 @@ class Objects(Testcase):
 		self.assertEqual(
 			["VisitFile", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitTerminator",
 			 "DepartFile"],
+			[event[0] for event in recorder.Events]
+		)
+
+	def test_File_OpenInformation(self) -> None:
+		"""The file open kind follows ``open``, the file logical name ``is``."""
+		file = File(
+			["input"],
+			SimpleSubtypeSymbol(SimpleName("text")),
+			openKind=SimpleObjectOrFunctionCallSymbol(SimpleName("read_mode")),
+			logicalName=StringLiteral("STD_INPUT")
+		)
+		recorder = FullRecorder()
+
+		file.Visit(recorder)
+
+		self.assertEqual(
+			["VisitFile", "VisitSymbol", "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitOpen", "VisitSymbol",
+			 "VisitSimpleName", "DepartSimpleName", "DepartSymbol", "VisitIs", "VisitStringLiteral", "DepartStringLiteral",
+			 "VisitTerminator", "DepartFile"],
 			[event[0] for event in recorder.Events]
 		)

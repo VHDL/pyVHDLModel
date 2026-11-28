@@ -279,11 +279,12 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def VisitIs(
 		self,
-		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration |
+		element: ModeViewDeclaration | Alias | AttributeSpecification | File | Subprogram | Architecture | Configuration |
 		         ProcessStatement | CaseStatement
 	) -> None:
 		"""
-		Visit the reserved word ``is`` between the header and the body of a declaration or statement.
+		Visit the reserved word ``is`` between the header and the body of a declaration or statement, or before the file
+		logical name of a file declaration.
 
 		:param element: The declaration.
 		"""
@@ -1351,7 +1352,14 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def DepartFile(self, file: File) -> None:
 		"""
-		Depart from a file declaration, after its subtype.
+		Depart from a file declaration, after its subtype and its file open information.
+
+		:param file: The file declaration.
+		"""
+
+	def VisitOpen(self, file: File) -> None:
+		"""
+		Visit the reserved word ``open`` before the file open kind of a file declaration.
 
 		:param file: The file declaration.
 		"""

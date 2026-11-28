@@ -688,8 +688,8 @@ class LogicalOperatorsMixin(
 
 	.. seealso::
 
-	   * :class:`Boolean <pyVHDLModel.STD.Boolean>`
-	   * :class:`Bit <pyVHDLModel.STD.Bit>`
+	   * :class:`Boolean <pyVHDLModel.STD.StandardPkg.Boolean>`
+	   * :class:`Bit <pyVHDLModel.STD.StandardPkg.Bit>`
 	"""
 
 	def _CreateLogicalOperators(self) -> list[PredefinedOperator]:
@@ -719,7 +719,7 @@ class MatchingOperatorsMixin(metaclass=ExtendedType, mixin=True, expects=("_Type
 
 	.. seealso::
 
-	   * :class:`Bit <pyVHDLModel.STD.Bit>`
+	   * :class:`Bit <pyVHDLModel.STD.StandardPkg.Bit>`
 	"""
 
 	def _CreateMatchingOperators(self) -> list[PredefinedOperator]:

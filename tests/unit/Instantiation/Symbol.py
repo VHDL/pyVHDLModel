@@ -51,7 +51,9 @@ from pyVHDLModel.Symbol import PossibleReference, Symbol, LibraryReferenceSymbol
                                SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
                                ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
                                ArrayElementConstraint, RecordElementConstraint, SimpleObjectOrFunctionCallSymbol, \
-                               IndexedObjectOrFunctionCallSymbol, AggregateSymbol, LoopSymbol
+                               IndexedObjectOrFunctionCallSymbol, AggregateSymbol, LoopSymbol, \
+                               ResolutionIndicationMixin, ResolutionFunctionSymbol, ArrayElementResolution, \
+                               RecordResolution, RecordElementResolution
 
 from tests.unit         import _Element
 
@@ -505,3 +507,271 @@ class AggregateSymbols(Testcase):
 			["Got 1 target(s).", "A single target in parentheses is no aggregate; use the target's symbol."],
 			context.exception.__notes__
 		)
+
+
+class ResolutionFunctionSymbols(Testcase):
+	"""``subtype std_logic is resolved std_ulogic;``"""
+
+	def test_Construction(self) -> None:
+		name =   SimpleName("resolved")
+		symbol = ResolutionFunctionSymbol(name)
+
+		self.assertIsInstance(symbol, Symbol)
+		self.assertIsInstance(symbol, ResolutionIndicationMixin)
+		self.assertIs(PossibleReference.Function, symbol._possibleReferences)
+		self.assertIs(name, symbol.Name)
+		self.assertIs(symbol, name.Parent)
+		self.assertIsNone(symbol.Function)
+		self.assertEqual("resolved?", str(symbol))
+
+	def test_Function(self) -> None:
+		symbol = ResolutionFunctionSymbol(SimpleName("resolved"))
+		target = object()
+
+		symbol.Function = target
+
+		self.assertIs(target, symbol.Function)
+		self.assertIs(target, symbol.Reference)
+		self.assertEqual("resolved", str(symbol))
+
+	def test_Parent(self) -> None:
+		parent = _Element()
+		symbol = ResolutionFunctionSymbol(SimpleName("resolved"), parent=parent)
+
+		self.assertIs(parent, symbol.Parent)
+
+
+class ArrayElementResolutions(Testcase):
+	"""``subtype std_logic_vector is (resolved) std_ulogic_vector;``"""
+
+	def test_Construction(self) -> None:
+		function =   ResolutionFunctionSymbol(SimpleName("resolved"))
+		resolution = ArrayElementResolution(function)
+
+		self.assertIsInstance(resolution, ResolutionIndicationMixin)
+		self.assertIsNone(resolution.Parent)
+		self.assertIs(function, resolution.Resolution)
+		self.assertIs(resolution, function.Parent)
+		self.assertEqual("(resolved?)", str(resolution))
+
+	def test_Nested(self) -> None:
+		"""``((resolved))``: the elements of a multi-level array."""
+		inner =      ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		resolution = ArrayElementResolution(inner)
+
+		self.assertIs(inner, resolution.Resolution)
+		self.assertIs(resolution, inner.Parent)
+		self.assertEqual("((resolved?))", str(resolution))
+
+	def test_Parent(self) -> None:
+		parent =     _Element()
+		resolution = ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")), parent=parent)
+
+		self.assertIs(parent, resolution.Parent)
+
+	def test_Resolution_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			ArrayElementResolution(None)
+
+		self.assertEqual("Parameter 'resolution' is None.", str(context.exception))
+
+	def test_Resolution_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			ArrayElementResolution(SimpleName("resolved"))
+
+		self.assertEqual("Parameter 'resolution' is not of type 'ResolutionIndicationMixin'.", str(context.exception))
+		self.assertEqual(["Got type 'pyVHDLModel.Name.SimpleName'."], context.exception.__notes__)
+
+
+class RecordResolutions(Testcase):
+	"""``subtype pair is (a resolved, b (resolved)) pair_t;``"""
+
+	def test_Construction(self) -> None:
+		a =          RecordElementResolution(
+			RecordElementSymbol(SimpleName("a")),
+			ResolutionFunctionSymbol(SimpleName("resolved"))
+		)
+		b =          RecordElementResolution(
+			RecordElementSymbol(SimpleName("b")),
+			ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		)
+		resolution = RecordResolution([a, b])
+
+		self.assertIsInstance(resolution, ResolutionIndicationMixin)
+		self.assertIsNone(resolution.Parent)
+		self.assertListEqual([a, b], resolution.Elements)
+		self.assertIs(resolution, a.Parent)
+		self.assertIs(resolution, b.Parent)
+		self.assertEqual("(a resolved?, b (resolved?))", str(resolution))
+
+	def test_Parent(self) -> None:
+		parent =     _Element()
+		element =    RecordElementResolution(
+			RecordElementSymbol(SimpleName("a")),
+			ResolutionFunctionSymbol(SimpleName("resolved"))
+		)
+		resolution = RecordResolution([element], parent=parent)
+
+		self.assertIs(parent, resolution.Parent)
+
+	def test_Elements_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			RecordResolution(None)
+
+		self.assertEqual("Parameter 'elements' is None.", str(context.exception))
+
+	def test_Elements_NotIterable(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			RecordResolution(5)
+
+		self.assertEqual("Parameter 'elements' is not iterable.", str(context.exception))
+		self.assertEqual(["Got type 'int'."], context.exception.__notes__)
+
+	def test_Elements_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			RecordResolution([ResolutionFunctionSymbol(SimpleName("resolved"))])
+
+		self.assertEqual(
+			"Element of parameter 'elements' is not of type 'RecordElementResolution'.",
+			str(context.exception)
+		)
+		self.assertEqual(["Got type 'pyVHDLModel.Symbol.ResolutionFunctionSymbol'."], context.exception.__notes__)
+
+	def test_Elements_Empty(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			RecordResolution([])
+
+		self.assertEqual("Parameter 'elements' is empty.", str(context.exception))
+
+
+class RecordElementResolutions(Testcase):
+	"""``b (resolved)`` in ``(a resolved, b (resolved))``"""
+
+	def test_Construction(self) -> None:
+		element =    RecordElementSymbol(SimpleName("b"))
+		inner =      ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		resolution = RecordElementResolution(element, inner)
+
+		self.assertIsNone(resolution.Parent)
+		self.assertIs(element, resolution.Element)
+		self.assertIs(inner, resolution.Resolution)
+		self.assertIs(resolution, element.Parent)
+		self.assertIs(resolution, inner.Parent)
+		self.assertEqual("b (resolved?)", str(resolution))
+
+	def test_Parent(self) -> None:
+		parent =     _Element()
+		resolution = RecordElementResolution(
+			RecordElementSymbol(SimpleName("a")),
+			ResolutionFunctionSymbol(SimpleName("resolved")),
+			parent=parent
+		)
+
+		self.assertIs(parent, resolution.Parent)
+
+	def test_Element_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			RecordElementResolution(None, ResolutionFunctionSymbol(SimpleName("resolved")))
+
+		self.assertEqual("Parameter 'element' is None.", str(context.exception))
+
+	def test_Element_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			RecordElementResolution(SimpleName("a"), ResolutionFunctionSymbol(SimpleName("resolved")))
+
+		self.assertEqual("Parameter 'element' is not of type 'RecordElementSymbol'.", str(context.exception))
+		self.assertEqual(["Got type 'pyVHDLModel.Name.SimpleName'."], context.exception.__notes__)
+
+	def test_Resolution_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			RecordElementResolution(RecordElementSymbol(SimpleName("a")), None)
+
+		self.assertEqual("Parameter 'resolution' is None.", str(context.exception))
+
+	def test_Resolution_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			RecordElementResolution(RecordElementSymbol(SimpleName("a")), SimpleName("resolved"))
+
+		self.assertEqual("Parameter 'resolution' is not of type 'ResolutionIndicationMixin'.", str(context.exception))
+		self.assertEqual(["Got type 'pyVHDLModel.Name.SimpleName'."], context.exception.__notes__)
+
+
+class SubtypeSymbolResolutions(Testcase):
+	"""``signal s : resolved std_ulogic;``: the resolution indication of a subtype indication."""
+
+	def test_None(self) -> None:
+		symbol = SimpleSubtypeSymbol(SimpleName("std_ulogic"))
+
+		self.assertIsNone(symbol.Resolution)
+		self.assertEqual("std_ulogic?", str(symbol))
+
+	def test_SimpleSubtypeSymbol(self) -> None:
+		resolution = ResolutionFunctionSymbol(SimpleName("resolved"))
+		symbol =     SimpleSubtypeSymbol(SimpleName("std_ulogic"), resolution=resolution)
+
+		self.assertIs(resolution, symbol.Resolution)
+		self.assertIs(symbol, resolution.Parent)
+		self.assertEqual("resolved? std_ulogic?", str(symbol))
+
+	def test_ConstrainedScalarSubtypeSymbol(self) -> None:
+		"""``subtype x01 is resolved std_ulogic range 'X' to '1';``"""
+		resolution = ResolutionFunctionSymbol(SimpleName("resolved"))
+		constraint = SimpleRange(IntegerLiteral(0), IntegerLiteral(1), Direction.To)
+		symbol =     ConstrainedScalarSubtypeSymbol(SimpleName("std_ulogic"), constraint, resolution=resolution)
+
+		self.assertIs(resolution, symbol.Resolution)
+		self.assertIs(symbol, resolution.Parent)
+		self.assertIs(constraint, symbol.Constraint)
+
+	def test_ConstrainedArraySubtypeSymbol(self) -> None:
+		"""``signal v : (resolved) std_ulogic_vector(7 downto 0);``"""
+		resolution = ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		constraint = SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)
+		symbol =     ConstrainedArraySubtypeSymbol(SimpleName("std_ulogic_vector"), [constraint], resolution=resolution)
+
+		self.assertIs(resolution, symbol.Resolution)
+		self.assertIs(symbol, resolution.Parent)
+		self.assertListEqual([constraint], symbol.Constraints)
+
+	def test_ConstrainedRecordSubtypeSymbol(self) -> None:
+		"""``signal p : (a resolved) pair_t(b(3 downto 0));``"""
+		resolution = RecordResolution([
+			RecordElementResolution(RecordElementSymbol(SimpleName("a")), ResolutionFunctionSymbol(SimpleName("resolved")))
+		])
+		element =    RecordElementSymbol(SimpleName("b"))
+		constraint = ArrayElementConstraint([SimpleRange(IntegerLiteral(3), IntegerLiteral(0), Direction.DownTo)])
+		symbol =     ConstrainedRecordSubtypeSymbol(SimpleName("pair_t"), {element: constraint}, resolution=resolution)
+
+		self.assertIs(resolution, symbol.Resolution)
+		self.assertIs(symbol, resolution.Parent)
+		self.assertIs(constraint, symbol.Constraints[element])
+
+	def test_SimpleSubtypeSymbol_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			SimpleSubtypeSymbol(SimpleName("std_ulogic"), resolution=SimpleName("resolved"))
+
+		self.assertEqual("Parameter 'resolution' is not of type 'ResolutionIndicationMixin'.", str(context.exception))
+		self.assertEqual(["Got type 'pyVHDLModel.Name.SimpleName'."], context.exception.__notes__)
+
+	def test_ConstrainedScalarSubtypeSymbol_Type(self) -> None:
+		constraint = SimpleRange(IntegerLiteral(0), IntegerLiteral(1), Direction.To)
+
+		with self.assertRaises(TypeError) as context:
+			ConstrainedScalarSubtypeSymbol(SimpleName("std_ulogic"), constraint, resolution=SimpleName("resolved"))
+
+		self.assertEqual("Parameter 'resolution' is not of type 'ResolutionIndicationMixin'.", str(context.exception))
+		self.assertEqual(["Got type 'pyVHDLModel.Name.SimpleName'."], context.exception.__notes__)
+
+	def test_ConstrainedArraySubtypeSymbol_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			ConstrainedArraySubtypeSymbol(SimpleName("std_ulogic_vector"), [], resolution=SimpleName("resolved"))
+
+		self.assertEqual("Parameter 'resolution' is not of type 'ResolutionIndicationMixin'.", str(context.exception))
+		self.assertEqual(["Got type 'pyVHDLModel.Name.SimpleName'."], context.exception.__notes__)
+
+	def test_ConstrainedRecordSubtypeSymbol_Type(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			ConstrainedRecordSubtypeSymbol(SimpleName("pair_t"), {}, resolution=SimpleName("resolved"))
+
+		self.assertEqual("Parameter 'resolution' is not of type 'ResolutionIndicationMixin'.", str(context.exception))
+		self.assertEqual(["Got type 'pyVHDLModel.Name.SimpleName'."], context.exception.__notes__)

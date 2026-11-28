@@ -42,16 +42,16 @@ from pyTooling.Common        import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators    import export, readonly
 from pyTooling.MetaClasses   import ExtendedType, abstractclass, mustoverride
 
-from pyVHDLModel.Base        import ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, BaseChoice, \
-                                    BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, AssertStatementMixin, \
-                                    BlockStatementMixin, WaveformElement, ChoicesMixin, ReservedWord
+from pyVHDLModel.Base        import ExpressionUnion, ModelEntity, LabeledEntityMixin, DocumentedEntityMixin, Range, \
+                                    BaseChoice, BaseCase, IfBranchMixin, ElsifBranchMixin, ElseBranchMixin, \
+                                    AssertStatementMixin, BlockStatementMixin, WaveformElement, ChoicesMixin, \
+                                    ReservedWord
 from pyVHDLModel.Exception   import AlreadyInDesignError, DuplicateLabelError, NotAChildError
 from pyVHDLModel.Regions     import ConcurrentDeclarationRegionMixin, DeclarativeRegionMixin, \
                                     SequentialDeclarationRegionMixin, WithGenericsMixin, WithPortsMixin
 from pyVHDLModel.Name        import Name
 from pyVHDLModel.Symbol      import ComponentInstantiationSymbol, EntityInstantiationSymbol, ArchitectureSymbol, \
                                     ConfigurationInstantiationSymbol, Symbol, SignalSymbol
-from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
 from pyVHDLModel.Association import ParameterAssociationItem, GenericAssociationItem, PortAssociationItem, \
                                     GenericMapAspectMixin, PortMapAspectMixin
 from pyVHDLModel.Interface   import PortInterfaceItemMixin, GenericInterfaceItemMixin, GenericGroup, PortGroup
@@ -64,14 +64,6 @@ if TYPE_CHECKING:
 	from pyVHDLModel.Visitor   import Visitor
 
 
-ExpressionUnion = Union[
-	BaseExpression,
-	QualifiedExpression,
-	FunctionCall,
-	TypeConversion,
-	# ConstantOrSymbol,     TODO: ObjectSymbol
-	Literal,
-]
 
 
 @export
@@ -1217,13 +1209,13 @@ class ConcurrentBlockStatement(
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> tuple[ModelEntity, ...]:
+	def _InterfaceDeclarations(self) -> tuple[ModelEntity, ...]:
 		"""
-		Return all declarations of this block: its generics and ports share the declarative region.
+		Return the interface items of this block: its generics and ports share the declarative region.
 
-		:returns: Tuple of declarations: the generics, the ports, then the declared items.
+		:returns: Tuple of the generics, then the ports.
 		"""
-		return (*self._genericItems, *self._portItems, *super()._Declarations())
+		return (*self._genericItems, *self._portItems)
 
 
 @export

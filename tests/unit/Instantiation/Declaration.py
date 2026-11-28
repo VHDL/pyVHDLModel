@@ -34,9 +34,10 @@ from pyTooling.Testing       import Testcase
 from pyVHDLModel.Base        import ReservedWord
 from pyVHDLModel.Name        import SimpleName
 from pyVHDLModel.Symbol      import ConstrainedArraySubtypeSymbol, Symbol, PossibleReference, \
-                                    SimpleObjectOrFunctionCallSymbol
+                                    SimpleObjectOrFunctionCallSymbol, SimpleSubtypeSymbol
 from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Declaration import Alias, AttributeSpecification, EntityClass
+from pyVHDLModel.Subprogram  import SubprogramSignature
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -85,6 +86,48 @@ class Aliases(Testcase):
 		self.assertEqual("a", alias.Identifier)
 		self.assertIs(name, alias.Name)
 		self.assertIs(subtype, alias.Subtype)
+		self.assertIsNone(alias.Signature)
+
+	def test_WithSignature(self) -> None:
+		"""``alias to_slv is to_stdlogicvector [bit_vector return std_logic_vector];``"""
+		parameterType = SimpleSubtypeSymbol(SimpleName("bit_vector"))
+		returnType =    SimpleSubtypeSymbol(SimpleName("std_logic_vector"))
+		signature =     SubprogramSignature([parameterType], returnType)
+		name =          SimpleObjectOrFunctionCallSymbol(SimpleName("to_stdlogicvector"))
+		alias =         Alias("to_slv", name, signature=signature)
+
+		self.assertIs(signature, alias.Signature)
+		self.assertIs(alias, signature.Parent)
+		self.assertIs(signature, parameterType.Parent)
+		self.assertIs(signature, returnType.Parent)
+		self.assertTrue(alias.IsOverloadable)
+		self.assertEqual("alias to_slv is to_stdlogicvector? [bit_vector return std_logic_vector]", str(alias))
+
+	def test_WithSignature_Procedure(self) -> None:
+		"""A procedure's signature has no return type mark."""
+		parameterType = SimpleSubtypeSymbol(SimpleName("bit"))
+		signature =     SubprogramSignature([parameterType])
+		alias =         Alias("p2", SimpleObjectOrFunctionCallSymbol(SimpleName("p")), signature=signature)
+
+		self.assertIs(alias.Signature, parameterType.Parent)
+		self.assertEqual("alias p2 is p? [bit]", str(alias))
+
+	def test_Signature_WrongType(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			Alias("b", SimpleObjectOrFunctionCallSymbol(SimpleName("s")), signature="[bit]")
+
+		self.assertEqual("Parameter 'signature' is not of type 'SubprogramSignature'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)
+
+	def test_Signature_WithSubtype(self) -> None:
+		"""An object alias has no signature."""
+		subtype =   ConstrainedArraySubtypeSymbol(SimpleName("bit_vector"), [])
+		signature = SubprogramSignature([SimpleSubtypeSymbol(SimpleName("bit"))])
+
+		with self.assertRaises(ValueError) as context:
+			Alias("a", Symbol(SimpleName("s"), PossibleReference.Object), subtype, signature=signature)
+
+		self.assertEqual("Parameter 'signature' is given together with a subtype indication.", str(context.exception))
 
 
 class AttributeSpecifications(Testcase):

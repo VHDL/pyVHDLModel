@@ -36,7 +36,7 @@ A helper class to implement namespaces and scopes.
 """
 from __future__            import annotations
 
-from typing                import TYPE_CHECKING, TypeVar, Generic, Optional as Nullable
+from typing                import TYPE_CHECKING, Generic, Iterable, TypeVar, Optional as Nullable
 
 from pyTooling.Common      import getFullyQualifiedName
 from pyTooling.Decorators  import export, readonly
@@ -49,7 +49,8 @@ from pyVHDLModel.Symbol    import ComponentInstantiationSymbol, Symbol, Possible
 from pyVHDLModel.Exception import DuplicateDeclarationWarning, NotInNamespaceError
 if TYPE_CHECKING:
 	from pyVHDLModel.DesignUnit import Component, UseClause as _UseClause
-	from pyVHDLModel.Type       import BaseType
+	from pyVHDLModel.Subprogram import PredefinedOperation
+	from pyVHDLModel.Type       import BaseType, FullType
 
 K = TypeVar("K")
 O = TypeVar("O")
@@ -287,6 +288,8 @@ class Namespace(Generic[K, O]):
 	_subNamespaces:          list[Namespace]        #: List of all nested namespaces, in the order they were linked.
 	_elements:               dict[K, O]             #: All elements declared in this namespace, indexed by name.
 	_implicitDeclarations:   dict[K, list[O]]       #: Enumeration literals and physical units of the declared types.
+	_implicitOperations:     dict[K, list[O]]       #: Implicit operations of the declared types, indexed by the analysis.
+	_hiddenOperations:       set[O]                 #: Implicit operations hidden by an explicit homograph (12.3).
 	_imports:                dict[K, list[Import]]  #: All elements imported into this namespace, indexed by name.
 	_sharesRegionWithParent: bool                   #: ``True`` if the parent namespace is the same declarative region.
 
@@ -312,6 +315,8 @@ class Namespace(Generic[K, O]):
 		self._subNamespaces =          []
 		self._elements =               {}
 		self._implicitDeclarations =   {}
+		self._implicitOperations =     {}
+		self._hiddenOperations =       set()
 		self._imports =                {}
 		self._sharesRegionWithParent = sharesRegionWithParent
 
@@ -432,9 +437,11 @@ class Namespace(Generic[K, O]):
 
 		self._elements[normalizedIdentifier] = element
 
-		for implicitIdentifier, declaration in element.IterateImplicitDeclarations():
-			declarations = self._implicitDeclarations.setdefault(implicitIdentifier, [])
-			if not any(existing is declaration for existing in declarations):
+		for declaration in element.IterateImplicitDeclarations():
+			normalizedDesignator = declaration.NormalizedDesignator
+			if (declarations := self._implicitDeclarations.get(normalizedDesignator)) is None:
+				self._implicitDeclarations[normalizedDesignator] = [declaration]
+			elif not any(existing is declaration for existing in declarations):
 				declarations.append(declaration)
 
 	def RemoveElement(self, normalizedIdentifier: K, element: O) -> None:
@@ -465,11 +472,20 @@ class Namespace(Generic[K, O]):
 
 		del self._elements[normalizedIdentifier]
 
-		for implicitIdentifier, declaration in element.IterateImplicitDeclarations():
-			declarations = self._implicitDeclarations[implicitIdentifier]
+		for declaration in element.IterateImplicitDeclarations():
+			normalizedDesignator = declaration.NormalizedDesignator
+			declarations =         self._implicitDeclarations[normalizedDesignator]
 			declarations.remove(declaration)
 			if len(declarations) == 0:
-				del self._implicitDeclarations[implicitIdentifier]
+				del self._implicitDeclarations[normalizedDesignator]
+
+		# The analysis indexed the implicit operations of a full type (AddImplicitOperations), if it ran.
+		for normalizedDesignator, operations in list(self._implicitOperations.items()):
+			operations[:] = [operation for operation in operations if operation._parent is not element]
+			if len(operations) == 0:
+				del self._implicitOperations[normalizedDesignator]
+
+		self._hiddenOperations = {operation for operation in self._hiddenOperations if operation._parent is not element}
 
 	def AddImport(self, normalizedIdentifier: K, element: O, useClause: Nullable[_UseClause]) -> None:
 		"""
@@ -490,9 +506,30 @@ class Namespace(Generic[K, O]):
 		:param useClause:            The use clause importing the item, or ``None`` for the implicit
 		                             ``use std.standard.all;``.
 		"""
-		imports = self._imports.setdefault(normalizedIdentifier, [])
-		if not any(existing._element is element and existing._useClause is useClause for existing in imports):
+		if (imports := self._imports.get(normalizedIdentifier)) is None:
+			self._imports[normalizedIdentifier] = [Import(element, useClause)]
+		elif not any(existing._element is element and existing._useClause is useClause for existing in imports):
 			imports.append(Import(element, useClause))
+
+	def AddImports(self, declarations: Iterable[ModelEntity], useClause: Nullable[_UseClause]) -> None:
+		"""
+		Add declarations imported by a use clause to this namespace, each with the declarations it implies.
+
+		A declaration is imported by each of its normalized identifiers (:func:`~pyVHDLModel.Base.normalizedIdentifiersOf`),
+		an implied declaration (:meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations`), e.g. an enumeration
+		literal, by its normalized designator.
+
+		:param declarations: The imported declarations, e.g. of a package
+		                     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateDeclarations`).
+		:param useClause:    The use clause importing the declarations, or ``None`` for the implicit
+		                     ``use std.standard.all;``.
+		"""
+		for declaration in declarations:
+			for normalizedIdentifier in normalizedIdentifiersOf(declaration):
+				self.AddImport(normalizedIdentifier, declaration, useClause)
+
+			for implicitDeclaration in declaration.IterateImplicitDeclarations():
+				self.AddImport(implicitDeclaration.NormalizedDesignator, implicitDeclaration, useClause)
 
 	def RemoveImport(self, normalizedIdentifier: K, element: O) -> None:
 		"""
@@ -537,6 +574,83 @@ class Namespace(Generic[K, O]):
 		"""
 		self._imports.clear()
 
+	def AddImplicitOperations(self, fullType: FullType) -> None:
+		"""
+		Add the implicit operations of a full type declared in this namespace's region (:data:`ImplicitOperations`).
+
+		The analysis adds them after the type marks are resolved (:meth:`~pyVHDLModel.Design.IndexImplicitOperations`):
+		the operations of an array type depend on its element type. Adding them again changes nothing.
+
+		An implicit operation, whose homograph - a function of the same designator and the same parameter and result type
+		profile (:meth:`~pyVHDLModel.Subprogram.SubprogramSignature.HasSameTypeProfile`) - is declared explicitly in the
+		type's region, is hidden by it (IEEE Std 1076-2008, 12.3): it's kept apart (:data:`HiddenOperations`), neither
+		found in this namespace nor imported by a use clause (:meth:`ImportImplicitOperations`).
+
+		:param fullType: The full type declaring the operations (:attr:`~pyVHDLModel.Type.FullType.ImplicitOperations`).
+		"""
+		from pyVHDLModel.Subprogram import Function
+
+		region = fullType._parent
+		for operation in fullType.ImplicitOperations:
+			normalizedDesignator = operation.NormalizedDesignator
+			if normalizedDesignator in self._elements and any(
+				isinstance(declaration, Function) and declaration.Signature.HasSameTypeProfile(operation.Signature)
+				for declaration in region._DeclarationsNamed({normalizedDesignator})
+			):
+				self._hiddenOperations.add(operation)
+			elif (operations := self._implicitOperations.get(normalizedDesignator)) is None:
+				self._implicitOperations[normalizedDesignator] = [operation]
+			elif not any(existing is operation for existing in operations):
+				operations.append(operation)
+
+	def ImportImplicitOperations(self) -> None:
+		"""
+		Import the implicit operations of the full types imported into this namespace (IEEE Std 1076-2008, 12.4).
+
+		An imported full type brings its implicit operations along, with the same use clause; so does a subtype a use
+		clause names as package member (``use work.p.S;``), the operations of its base type. The analysis imports them
+		after the implicit operations are created (:meth:`~pyVHDLModel.Design.IndexImplicitOperations`). An operation
+		hidden by an explicit homograph in the type's region (:data:`HiddenOperations`) isn't imported. Importing them
+		again changes nothing.
+		"""
+		from pyVHDLModel.Symbol import PackageMemberReferenceSymbol
+		from pyVHDLModel.Type   import FullType, Subtype
+
+		for normalizedIdentifier, imports in list(self._imports.items()):
+			for imported in imports:
+				element =   imported._element
+				useClause = imported._useClause
+				if isinstance(element, FullType):
+					fullType = element
+				elif (
+					isinstance(element, Subtype)
+					and isinstance(element._baseType, FullType)
+					and useClause is not None
+					and any(
+						isinstance(symbol, PackageMemberReferenceSymbol)
+						and symbol._name._normalizedIdentifier == normalizedIdentifier
+						for symbol in useClause._symbols
+					)
+				):
+					fullType = element._baseType
+				else:
+					continue
+
+				hiddenOperations = fullType._parent._namespace._hiddenOperations
+				for operation in fullType.ImplicitOperations:
+					if operation not in hiddenOperations:
+						self.AddImport(operation.NormalizedDesignator, operation, useClause)
+
+	def ClearImplicitOperations(self) -> None:
+		"""
+		Remove the implicit operations of the declared full types from this namespace (:data:`ImplicitOperations`), also
+		the hidden ones (:data:`HiddenOperations`).
+
+		The declarations (:data:`Elements`) and their enumeration literals and physical units are kept.
+		"""
+		self._implicitOperations.clear()
+		self._hiddenOperations.clear()
+
 	@readonly
 	def Elements(self) -> dict[K, O]:
 		"""
@@ -556,6 +670,31 @@ class Namespace(Generic[K, O]):
 		          (:attr:`~pyVHDLModel.Expression.EnumerationLiteral.NormalizedDesignator`).
 		"""
 		return self._implicitDeclarations
+
+	@readonly
+	def ImplicitOperations(self) -> dict[K, list[PredefinedOperation]]:
+		"""
+		Read-only property to access the implicit operations of the full types declared in this namespace's region
+		(:attr:`_implicitOperations`).
+
+		The analysis indexes them (:meth:`AddImplicitOperations`), after the type marks are resolved.
+
+		:returns: Dictionary of lists of predefined operators and functions, indexed by normalized designator
+		          (:attr:`~pyVHDLModel.Subprogram.Subprogram.NormalizedDesignator`).
+		"""
+		return self._implicitOperations
+
+	@readonly
+	def HiddenOperations(self) -> set[PredefinedOperation]:
+		"""
+		Read-only property to access the implicit operations of the full types declared in this namespace's region, which
+		an explicitly declared homograph hides (:attr:`_hiddenOperations`, IEEE Std 1076-2008, 12.3).
+
+		The analysis collects them (:meth:`AddImplicitOperations`).
+
+		:returns: Set of predefined operators and functions.
+		"""
+		return self._hiddenOperations
 
 	@readonly
 	def Imports(self) -> dict[K, list[Import]]:
@@ -585,7 +724,7 @@ class Namespace(Generic[K, O]):
 		Return the declarations of an identifier in this namespace, each with the item deciding its declaration order.
 
 		An overloadable declaration (:attr:`~pyVHDLModel.Base.ModelEntity.IsOverloadable`) is expanded to all overloads of
-		its declarative region. An enumeration literal or a physical unit is ordered by its type.
+		its declarative region. An enumeration literal, a physical unit or an implicit operation is ordered by its type.
 
 		:param normalizedIdentifier: The normalized (lower case) identifier or designator.
 		:returns:                    List of (declaration, item in declaration order) pairs.
@@ -607,6 +746,9 @@ class Namespace(Generic[K, O]):
 
 		for declaration in self._implicitDeclarations.get(normalizedIdentifier, ()):
 			declarations.append((declaration, declaration._parent))
+
+		for operation in self._implicitOperations.get(normalizedIdentifier, ()):
+			declarations.append((operation, operation._parent))
 
 		return declarations
 

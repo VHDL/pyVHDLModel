@@ -34,23 +34,27 @@ This module contains parts of an abstract document language model for VHDL.
 
 Subprograms are procedures, functions and methods.
 """
-from __future__             import annotations
+from __future__                import annotations
 
-from typing                 import TYPE_CHECKING, Any, ClassVar, Generator, Iterable, Optional as Nullable
+from typing                    import TYPE_CHECKING, Any, ClassVar, Generator, Iterable, Union, Optional as Nullable
 
-from pyTooling.Common       import getFullyQualifiedName
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType, abstractclass
+from pyTooling.Common          import getFullyQualifiedName
+from pyTooling.Decorators      import export, readonly
+from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf, ReservedWord
-from pyVHDLModel.Symbol     import SubtypeSymbol
-from pyVHDLModel.Type       import ProtectedType
-from pyVHDLModel.Regions    import DeclarativeRegionMixin, SequentialDeclarationRegionMixin, WithGenericsMixin, \
-                                   WithParametersMixin
-from pyVHDLModel.Sequential import SequentialStatement, SequentialStatementsMixin
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf, ReservedWord
+from pyVHDLModel.Symbol        import SubtypeSymbol
+from pyVHDLModel.Type          import BaseType, FullType, ArrayType, ProtectedType
+from pyVHDLModel.Regions       import DeclarativeRegionMixin, SequentialDeclarationRegionMixin, WithGenericsMixin, \
+                                      WithParametersMixin
+from pyVHDLModel.Sequential    import SequentialStatement, SequentialStatementsMixin
 
 if TYPE_CHECKING:
-	from pyVHDLModel.Visitor  import Visitor
+	from pyVHDLModel.Declaration import Alias
+	from pyVHDLModel.Visitor     import Visitor
+
+
+__all__ = ["PredefinedOperation"]
 
 
 @export
@@ -63,22 +67,24 @@ class SubprogramSignature(ModelEntity):
 	(IEEE Std 1076-2019, 4.5.3), as an alias declaration or attribute specification writes it:
 	``[natural, natural return boolean]``.
 
-	The parent of a signature is the subprogram declaring it (:data:`Subprogram.Signature`). The type marks stay children
-	of the parameters and of the function declaring them.
+	The parent of a signature is the subprogram declaring it (:data:`Subprogram.Signature`); its type marks stay children
+	of the parameters and of the function declaring them. An alias of a subprogram writes a signature to select one of
+	its overloads (:data:`~pyVHDLModel.Declaration.Alias.Signature`): the alias is the signature's parent, the signature
+	is the parent of its type marks.
 
 	Two signatures are equal, if their parameters' type marks and their return type marks have the same normalized names
 	(:data:`NormalizedParameterTypeNames`, :data:`NormalizedReturnTypeName`); the parent isn't compared. So the
 	signatures of two subprograms compare by their parameter and result type profile, and a signature can be used as a
-	dictionary key or set member. The names are compared as written: ``natural`` and ``std.standard.natural`` differ,
-	because the model doesn't resolve type marks yet.
+	dictionary key or set member. The names are compared as written: ``natural`` and ``std.standard.natural`` differ.
+	:meth:`HasSameTypeProfile` compares the base types of the resolved type marks.
 
 	.. admonition:: Example
 
 	   .. code-block:: VHDL
 
 	      function to_index(value : unsigned; low, high : positive) return natural;
-	      --                        ^^^^^^^^              ^^^^^^^^        ^^^^^^^   <- ParameterTypes and ReturnType
-	      --                                         (twice)
+	      --                        ^^^^^^^^              ^^^^^^^^         ^^^^^^^  <- ParameterTypes and ReturnType
+	      --                                              (twice)
 	"""
 	_parameterTypes:               tuple[SubtypeSymbol, ...]  #: Type marks of the parameters, one per identifier.
 	_returnType:                   Nullable[SubtypeSymbol]    #: Type mark of a function's return value, if a function.
@@ -91,27 +97,30 @@ class SubprogramSignature(ModelEntity):
 	def __init__(
 		self,
 		parameterTypes: Iterable[SubtypeSymbol],
-		returnType:     Nullable[SubtypeSymbol] = None,
+		returnType:     Nullable[SubtypeSymbol] =      None,
 		*,
-		parent:         Nullable[Subprogram] =    None
+		parent:         Nullable[Subprogram | Alias] = None
 	) -> None:
 		"""
 		Initializes a subprogram signature.
 
 		:param parameterTypes: The type marks of the parameters, one per parameter identifier.
 		:param returnType:     Optional, the type mark of a function's return value. Default: ``None``, a procedure.
-		:param parent:         Optional, the subprogram declaring this signature. Default: ``None``.
+		:param parent:         Optional, the subprogram or the alias declaring this signature. Default: ``None``.
 		:raises ValueError:    If parameter 'parameterTypes' is ``None``.
 		:raises TypeError:     If parameter 'parameterTypes' is not iterable.
 		:raises TypeError:     If an element of parameter 'parameterTypes' is not of type
 		                       :class:`~pyVHDLModel.Symbol.SubtypeSymbol`.
 		:raises TypeError:     If parameter 'returnType' is not of type :class:`~pyVHDLModel.Symbol.SubtypeSymbol`.
-		:raises TypeError:     If parameter 'parent' is not of type :class:`~pyVHDLModel.Subprogram.Subprogram`.
+		:raises TypeError:     If parameter 'parent' is not of type :class:`~pyVHDLModel.Subprogram.Subprogram` or
+		                       :class:`~pyVHDLModel.Declaration.Alias`.
 		"""
 		super().__init__(parent)
 
-		if parent is not None and not isinstance(parent, Subprogram):
-			ex = TypeError("Parameter 'parent' is not of type 'Subprogram'.")
+		from pyVHDLModel.Declaration import Alias
+
+		if parent is not None and not isinstance(parent, (Subprogram, Alias)):
+			ex = TypeError("Parameter 'parent' is not of type 'Subprogram' or 'Alias'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(parent)}'.")
 			raise ex
 
@@ -154,6 +163,25 @@ class SubprogramSignature(ModelEntity):
 			self._normalizedReturnTypeName = self._returnTypeName.lower()
 
 		self._hash = hash((self._normalizedParameterTypeNames, self._normalizedReturnTypeName))
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this signature, its parameters' type marks and a function's return type mark with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSubprogramSignature(self)
+		for index, parameterType in enumerate(self._parameterTypes):
+			if index > 0:
+				visitor.VisitElementSeparator(self)
+
+			parameterType.Visit(visitor)
+
+		if self._returnType is not None:
+			visitor.VisitReturn(self)
+			self._returnType.Visit(visitor)
+
+		visitor.DepartSubprogramSignature(self)
 
 	@readonly
 	def ParameterTypes(self) -> tuple[SubtypeSymbol, ...]:
@@ -272,6 +300,42 @@ class SubprogramSignature(ModelEntity):
 		"""
 		return self._hash
 
+	def HasSameTypeProfile(self, other: SubprogramSignature) -> bool:
+		"""
+		Check if two signatures have the same parameter and result type profile (IEEE Std 1076-2008, 4.5.1).
+
+		Both have the same number of parameters, the parameters at each position have the same base type, and so have the
+		return values of two functions. The base types are the ones the resolved type marks reference
+		(:meth:`~pyVHDLModel.Design.ResolveTypeMarks`), not the names compared by :meth:`__eq__`. A signature with an
+		unresolved type mark has no type profile to compare: the result is ``False``.
+
+		:param other:       The other signature.
+		:returns:           ``True``, if both signatures have the same parameter and result type profile.
+		:raises ValueError: If parameter ``other`` is None.
+		:raises TypeError:  If parameter ``other`` is not of type :class:`SubprogramSignature`.
+		"""
+		if other is None:
+			raise ValueError("Parameter 'other' is None.")
+		elif not isinstance(other, SubprogramSignature):
+			ex = TypeError("Parameter 'other' is not of type 'SubprogramSignature'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(other)}'.")
+			raise ex
+
+		if len(self._parameterTypes) != len(other._parameterTypes):
+			return False
+		elif (self._returnType is None) is not (other._returnType is None):
+			return False
+
+		typeMarks =      self._parameterTypes if self._returnType is None else (*self._parameterTypes, self._returnType)
+		otherTypeMarks = other._parameterTypes if other._returnType is None else (*other._parameterTypes, other._returnType)
+		for typeMark, otherTypeMark in zip(typeMarks, otherTypeMarks):
+			if (reference := typeMark._reference) is None or (otherReference := otherTypeMark._reference) is None:
+				return False
+			elif (baseType := reference.BaseType) is None or baseType is not otherReference.BaseType:
+				return False
+
+		return True
+
 	def __str__(self) -> str:
 		"""
 		Return the signature in VHDL's notation: the parameters' type marks, comma separated, and a function's return type
@@ -363,6 +427,20 @@ class Subprogram(
 		self._ConnectParentNamespace(parent)
 
 	@readonly
+	def NormalizedDesignator(self) -> str:
+		"""
+		Read-only property to access the normalized designator (:attr:`_normalizedIdentifier`), the key the subprogram is
+		indexed by in a namespace.
+
+		.. seealso::
+
+		   * :term:`Normalized`
+
+		:returns: The normalized identifier or operator symbol of the subprogram.
+		"""
+		return self._normalizedIdentifier
+
+	@readonly
 	def IsOverloadable(self) -> bool:
 		"""
 		Check if this subprogram is overloadable: always, it may share its designator with other subprograms and
@@ -416,13 +494,13 @@ class Subprogram(
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> tuple[ModelEntity, ...]:
+	def _InterfaceDeclarations(self) -> tuple[ModelEntity, ...]:
 		"""
-		Return all declarations of this subprogram: its generics and parameters share the declarative region.
+		Return the interface items of this subprogram: its generics and parameters share the declarative region.
 
-		:returns: Tuple of declarations: the generics, the parameters, then the declared items.
+		:returns: Tuple of the generics, then the parameters.
 		"""
-		return (*self._genericItems, *self._parameterItems, *super()._Declarations())
+		return (*self._genericItems, *self._parameterItems)
 
 	def _LabelRegion(self) -> Subprogram:
 		"""
@@ -700,6 +778,232 @@ class Function(Subprogram):
 			)
 
 		return self._signature
+
+	def IsResolutionFunctionOf(self, resolvedType: BaseType) -> bool:
+		"""
+		Check if this function can resolve a type (IEEE Std 1076-2008, 4.6).
+
+		A resolution function is pure, has a single parameter of a one-dimensional unconstrained array type, whose element
+		type is the resolved type, and returns the resolved type. The types are the base types of the resolved type marks
+		(:meth:`~pyVHDLModel.Design.ResolveTypeMarks`); with an unresolved type mark, the result is ``False``.
+
+		:param resolvedType: The type to resolve, a base type.
+		:returns:            ``True``, if this function can resolve the type.
+		:raises ValueError:  If parameter ``resolvedType`` is None.
+		:raises TypeError:   If parameter ``resolvedType`` is not of type :class:`~pyVHDLModel.Type.BaseType`.
+		"""
+		if resolvedType is None:
+			raise ValueError("Parameter 'resolvedType' is None.")
+		elif not isinstance(resolvedType, BaseType):
+			ex = TypeError("Parameter 'resolvedType' is not of type 'BaseType'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(resolvedType)}'.")
+			raise ex
+
+		signature = self.Signature
+		if not self._isPure or len(signature._parameterTypes) != 1:
+			return False
+		elif (returnType := self._returnType._reference) is None or returnType.BaseType is not resolvedType:
+			return False
+		elif (parameterType := signature._parameterTypes[0]._reference) is None:
+			return False
+
+		arrayType = parameterType.BaseType
+		if not isinstance(arrayType, ArrayType) or len(arrayType._dimensions) != 1:
+			return False
+		elif not isinstance(arrayType._dimensions[0], SubtypeSymbol):
+			return False
+		elif (elementType := arrayType._elementType._reference) is None:
+			return False
+
+		return elementType.BaseType is resolvedType
+
+
+@export
+class Operator(Function):
+	"""
+	Represents an operator: a function whose designator is an operator symbol (IEEE Std 1076-2008, 4.2).
+
+	Its identifier is the operator symbol without quotation marks, as pyGHDL reads it from VHDL code (``+``, ``and``).
+	The word operators are normalized to lower case, as identifiers.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      function "and" (L, R : my_logic) return my_logic is
+	      --       ^^^^^                                        <- Identifier (and)
+	      begin
+	        return resolve_and(L, R);
+	      end function;
+
+	.. seealso::
+
+	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
+	   * :class:`Predefined operator <pyVHDLModel.Subprogram.PredefinedOperator>`
+	"""
+
+	_OPERATOR_SYMBOLS: ClassVar[frozenset[str]] = frozenset((
+		"and", "or", "nand", "nor", "xor", "xnor",
+		"=", "/=", "<", "<=", ">", ">=", "?=", "?/=", "?<", "?<=", "?>", "?>=",
+		"sll", "srl", "sla", "sra", "rol", "ror",
+		"+", "-", "&", "*", "/", "mod", "rem", "**", "abs", "not", "??"
+	))  #: The operator symbols an operator function may declare (IEEE Std 1076-2008, 9.2).
+
+	def __init__(
+		self,
+		operatorSymbol:  str,
+		returnType:      SubtypeSymbol,
+		isPure:          bool =                                            True,
+		genericItems:    Nullable[Iterable[GenericInterfaceItemMixin]] =   None,
+		parameterItems:  Nullable[Iterable[ParameterInterfaceItemMixin]] = None,
+		declaredItems:   Nullable[Iterable] =                              None,
+		statements:      Nullable[Iterable[SequentialStatement]] =         None,
+		documentation:   Nullable[str] =                                   None,
+		parent:          Nullable[ModelEntity] =                           None,
+		genericGroups:   Nullable[Iterable[GenericGroup]] =                None,
+		parameterGroups: Nullable[Iterable[ParameterGroup]] =              None
+	) -> None:
+		"""
+		Initializes an operator.
+
+		:param operatorSymbol:  The operator symbol without quotation marks.
+		:param returnType:      Reference to the subtype of the function's return value.
+		:param isPure:          Optional, ``True`` if the subprogram was declared pure. Default: ``True``.
+		:param genericItems:    Optional, list of all generics, in declaration order. Default: ``None``, no generics.
+		:param parameterItems:  Optional, list of all parameters, in declaration order. Default: ``None``, no parameters.
+		:param declaredItems:   Optional, list of all declared items in this sequential declaration region.
+		                        Default: ``None``, no declared items.
+		:param statements:      Optional, list of all sequential statements in the subprogram's body.
+		                        Default: ``None``, no statements.
+		:param documentation:   Optional, the documentation comment associated with this declaration.
+		                        Default: ``None``, no documentation.
+		:param parent:          Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param genericGroups:   Optional, list of generic groups partitioning the generics, in declaration order.
+		                        Default: ``None``, one unnamed generic group.
+		:param parameterGroups: Optional, list of parameter groups partitioning the parameters, in declaration order.
+		                        Default: ``None``, one unnamed parameter group.
+		:raises ValueError:     If parameter ``operatorSymbol`` isn't an operator symbol of VHDL.
+		"""
+		super().__init__(
+			operatorSymbol,
+			returnType,
+			isPure,
+			genericItems,
+			parameterItems,
+			declaredItems,
+			statements,
+			documentation,
+			parent,
+			genericGroups,
+			parameterGroups
+		)
+
+		if self._normalizedIdentifier not in self._OPERATOR_SYMBOLS:
+			ex = ValueError("Parameter 'operatorSymbol' isn't an operator symbol.")
+			ex.add_note(f"Got value '{operatorSymbol}'.")
+			ex.add_note(f"Operator symbols: {', '.join(sorted(self._OPERATOR_SYMBOLS))}")
+			raise ex
+
+
+@export
+class PredefinedSubprogramMixin(metaclass=ExtendedType, mixin=True):
+	"""
+	A ``PredefinedSubprogramMixin`` is a mixin class for all subprograms a type declaration declares implicitly
+	(IEEE Std 1076-2008, 5).
+
+	The declaring type is the subprogram's parent; the subprogram has neither declared items nor statements.
+
+	.. seealso::
+
+	   * :class:`Predefined operator <pyVHDLModel.Subprogram.PredefinedOperator>`
+	   * :class:`Predefined function <pyVHDLModel.Subprogram.PredefinedFunction>`
+	   * :attr:`Implicit operations of a full type <pyVHDLModel.Type.FullType.ImplicitOperations>`
+	"""
+
+
+@export
+class PredefinedOperator(Operator, PredefinedSubprogramMixin):
+	"""
+	Represents an operator a type declaration declares implicitly (IEEE Std 1076-2008, 9.2).
+
+	For example, an integer type declares ``"+"`` and ``"<"``.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      type counter is range 0 to 9;
+	      -- implicitly declares, among others:
+	      --   function "<" (L, R : counter) return BOOLEAN;
+
+	.. seealso::
+
+	   * :class:`Operator <pyVHDLModel.Subprogram.Operator>`
+	   * :class:`Predefined function <pyVHDLModel.Subprogram.PredefinedFunction>`
+	"""
+
+	def __init__(
+		self,
+		operatorSymbol: str,
+		returnType:     SubtypeSymbol,
+		parameterItems: Iterable[ParameterInterfaceItemMixin],
+		*,
+		parent:         FullType
+	) -> None:
+		"""
+		Initializes a predefined operator of a type.
+
+		:param operatorSymbol: The operator symbol without quotation marks.
+		:param returnType:     Reference to the subtype of the operator's return value.
+		:param parameterItems: List of all parameters, in declaration order.
+		:param parent:         The type declaring this operator.
+		:raises ValueError:    If parameter ``operatorSymbol`` isn't an operator symbol of VHDL.
+		"""
+		super().__init__(operatorSymbol, returnType, parameterItems=parameterItems, parent=parent)
+
+
+@export
+class PredefinedFunction(Function, PredefinedSubprogramMixin):
+	"""
+	Represents a function a type declaration declares implicitly (IEEE Std 1076-2008, 5).
+
+	For example, a scalar type declares ``MINIMUM`` and ``TO_STRING``.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      type counter is range 0 to 9;
+	      -- implicitly declares, among others:
+	      --   function MINIMUM (L, R : counter) return counter;
+
+	.. seealso::
+
+	   * :class:`Function <pyVHDLModel.Subprogram.Function>`
+	   * :class:`Predefined operator <pyVHDLModel.Subprogram.PredefinedOperator>`
+	"""
+
+	def __init__(
+		self,
+		identifier:     str,
+		returnType:     SubtypeSymbol,
+		parameterItems: Iterable[ParameterInterfaceItemMixin],
+		*,
+		parent:         FullType
+	) -> None:
+		"""
+		Initializes a predefined function of a type.
+
+		:param identifier:     The function's identifier.
+		:param returnType:     Reference to the subtype of the function's return value.
+		:param parameterItems: List of all parameters, in declaration order.
+		:param parent:         The type declaring this function.
+		"""
+		super().__init__(identifier, returnType, parameterItems=parameterItems, parent=parent)
+
+
+PredefinedOperation = Union[PredefinedOperator, PredefinedFunction]
+"""An operation a type declaration declares implicitly: a predefined operator or a predefined function."""
 
 
 @export

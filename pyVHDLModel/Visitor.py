@@ -126,10 +126,11 @@ if TYPE_CHECKING:
 	                                      ElseBranch, IfStatement, SequentialCase, Case, OthersCase, CaseStatement, \
 	                                      LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
 	                                      LoopControlStatement, NextStatement, ExitStatement
-	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
-	from pyVHDLModel.Symbol        import Symbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
-	                                      ConstrainedRecordSubtypeSymbol, ArrayElementConstraint, \
-	                                      RecordElementConstraint, AggregateSymbol
+	from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function, SubprogramSignature
+	from pyVHDLModel.Symbol        import Symbol, SubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
+	                                      ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
+	                                      ArrayElementConstraint, RecordElementConstraint, AggregateSymbol, \
+	                                      ArrayElementResolution, RecordResolution, RecordElementResolution
 	from pyVHDLModel.Type          import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
 	                                      ArrayType, RecordTypeElement, RecordType, AccessType, FileType, ProtectedType, \
 	                                      ProtectedTypeBody
@@ -175,14 +176,16 @@ class Visitor(metaclass=ExtendedType, slots=True):
 	def VisitElementSeparator(
 		self,
 		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
-		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol
+		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol |
+		         SubprogramSignature | RecordResolution
 	) -> None:
 		"""
-		Visit the comma between two elements of a parenthesized list, which is no association list.
+		Visit the comma between two elements of a parenthesized or bracketed list, which is no association list.
 
 		The elements are the indices of an indexed name, the element associations of an aggregate, the discrete ranges of
-		an index constraint, the record element constraints of a record constraint, the literals of an enumerated type, or
-		the index subtype definitions or discrete ranges of an array type.
+		an index constraint, the record element constraints of a record constraint, the literals of an enumerated type,
+		the index subtype definitions or discrete ranges of an array type, the parameters' type marks of a signature, or
+		the record element resolutions of a record resolution.
 
 		:param element: The element containing the list.
 		"""
@@ -278,11 +281,12 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def VisitIs(
 		self,
-		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration |
+		element: ModeViewDeclaration | Alias | AttributeSpecification | File | Subprogram | Architecture | Configuration |
 		         ProcessStatement | CaseStatement
 	) -> None:
 		"""
-		Visit the reserved word ``is`` between the header and the body of a declaration or statement.
+		Visit the reserved word ``is`` between the header and the body of a declaration or statement, or before the file
+		logical name of a file declaration.
 
 		:param element: The declaration.
 		"""
@@ -343,11 +347,11 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param element: The declaration, statement, context item or design unit.
 		"""
 
-	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem) -> None:
+	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem | SubprogramSignature) -> None:
 		"""
-		Visit the reserved word ``return`` before the return type of a function.
+		Visit the reserved word ``return`` before the return type of a function, or of a function's signature.
 
-		:param function: The function.
+		:param function: The function, or the signature.
 		"""
 
 	def VisitSignalAssignment(self, element: SignalAssignmentMixin) -> None:
@@ -728,7 +732,7 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def VisitSymbol(self, symbol: Symbol) -> None:
 		"""
-		Visit a symbol, before its name.
+		Visit a symbol, before its name; a subtype symbol before its resolution indication, if it has one.
 
 		:param symbol: The symbol.
 		"""
@@ -1271,6 +1275,64 @@ class Visitor(metaclass=ExtendedType, slots=True):
 		:param constraint: The record element constraint.
 		"""
 
+	def VisitResolutionIndication(self, element: SubtypeSymbol | RecordElementResolution) -> None:
+		"""
+		Visit the resolution indication of a subtype indication or of a record element, before the resolution function
+		name or the element resolution.
+
+		:param element: The subtype symbol or the record element resolution.
+		"""
+
+	def DepartResolutionIndication(self, element: SubtypeSymbol | RecordElementResolution) -> None:
+		"""
+		Depart from the resolution indication of a subtype indication or of a record element, after the resolution
+		function name or the element resolution.
+
+		:param element: The subtype symbol or the record element resolution.
+		"""
+
+	def VisitArrayElementResolution(self, resolution: ArrayElementResolution) -> None:
+		"""
+		Visit an array element resolution, before the resolution indication of the elements.
+
+		:param resolution: The array element resolution.
+		"""
+
+	def DepartArrayElementResolution(self, resolution: ArrayElementResolution) -> None:
+		"""
+		Depart from an array element resolution, after the resolution indication of the elements.
+
+		:param resolution: The array element resolution.
+		"""
+
+	def VisitRecordResolution(self, resolution: RecordResolution) -> None:
+		"""
+		Visit a record resolution, before its first record element resolution.
+
+		:param resolution: The record resolution.
+		"""
+
+	def DepartRecordResolution(self, resolution: RecordResolution) -> None:
+		"""
+		Depart from a record resolution, after its last record element resolution.
+
+		:param resolution: The record resolution.
+		"""
+
+	def VisitRecordElementResolution(self, resolution: RecordElementResolution) -> None:
+		"""
+		Visit the resolution indication of a record element, before the record element.
+
+		:param resolution: The record element resolution.
+		"""
+
+	def DepartRecordElementResolution(self, resolution: RecordElementResolution) -> None:
+		"""
+		Depart from the resolution indication of a record element, after its resolution indication.
+
+		:param resolution: The record element resolution.
+		"""
+
 	def VisitConstant(self, constant: Constant) -> None:
 		"""
 		Visit a constant declaration, before its subtype.
@@ -1350,7 +1412,14 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def DepartFile(self, file: File) -> None:
 		"""
-		Depart from a file declaration, after its subtype.
+		Depart from a file declaration, after its subtype and its file open information.
+
+		:param file: The file declaration.
+		"""
+
+	def VisitOpen(self, file: File) -> None:
+		"""
+		Visit the reserved word ``open`` before the file open kind of a file declaration.
 
 		:param file: The file declaration.
 		"""
@@ -1744,9 +1813,23 @@ class Visitor(metaclass=ExtendedType, slots=True):
 
 	def DepartAlias(self, alias: Alias) -> None:
 		"""
-		Depart from an alias declaration, after its name.
+		Depart from an alias declaration, after its name and signature.
 
 		:param alias: The alias declaration.
+		"""
+
+	def VisitSubprogramSignature(self, signature: SubprogramSignature) -> None:
+		"""
+		Visit a signature, before its type marks.
+
+		:param signature: The signature.
+		"""
+
+	def DepartSubprogramSignature(self, signature: SubprogramSignature) -> None:
+		"""
+		Depart from a signature, after its type marks.
+
+		:param signature: The signature.
 		"""
 
 	def VisitAttribute(self, attribute: Attribute) -> None:

@@ -38,7 +38,8 @@ from pyVHDLModel.Expression      import IntegerLiteral, FloatingPointLiteral, Ph
                                         DescendingRangeExpression
 from pyVHDLModel.Formatting.VHDL import KeywordCase, IndentStyle, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName, AttributeName
-from pyVHDLModel.Symbol          import ConstrainedArraySubtypeSymbol
+from pyVHDLModel.Symbol          import SimpleSubtypeSymbol, ConstrainedArraySubtypeSymbol, ResolutionFunctionSymbol, \
+                                        ArrayElementResolution
 from pyVHDLModel.Type            import AnonymousType, Subtype, EnumeratedType, IntegerType, RealType, PhysicalType, \
                                         PhysicalUnit, ArrayType, RecordTypeElement, RecordType, AccessType, FileType
 
@@ -190,6 +191,19 @@ class OtherTypes(Testcase):
 
 	def test_Subtype_TypeMark(self) -> None:
 		self.assertEqual("subtype word is integer;\n", VHDLWriter().Format(Subtype("word", _subtypeSymbol("integer"))))
+
+	def test_Subtype_Resolution(self) -> None:
+		resolution = ResolutionFunctionSymbol(SimpleName("resolved"))
+		subtype =    Subtype("std_logic", SimpleSubtypeSymbol(SimpleName("std_ulogic"), resolution=resolution))
+
+		self.assertEqual("subtype std_logic is resolved std_ulogic;\n", VHDLWriter().Format(subtype))
+
+	def test_Subtype_ElementResolution(self) -> None:
+		resolution = ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		symbol =     SimpleSubtypeSymbol(SimpleName("std_ulogic_vector"), resolution=resolution)
+		subtype =    Subtype("std_logic_vector", symbol)
+
+		self.assertEqual("subtype std_logic_vector is (resolved) std_ulogic_vector;\n", VHDLWriter().Format(subtype))
 
 	def test_UpperCase(self) -> None:
 		writer =   VHDLWriter(VHDLStyle(KeywordCase.Upper))

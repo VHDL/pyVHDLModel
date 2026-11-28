@@ -36,7 +36,8 @@ tbd.
 """
 from __future__               import annotations
 
-from typing                   import TYPE_CHECKING, Any, Callable, ClassVar, Generator, Iterable, Optional as Nullable
+from typing                   import TYPE_CHECKING, Any, Callable, ClassVar, Collection, Generator, Iterable, \
+                                     Optional as Nullable
 
 from pyTooling.Common         import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators     import export, readonly
@@ -1972,7 +1973,9 @@ class DeclarativeRegionMixin(
 		declarative region of that name (e.g. the package or entity containing the place); ``lib.pkg`` by the library
 		(``work`` or a library whose name is visible in the design unit containing the place,
 		:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`) and the package's name. Then the suffix is searched
-		among the declarations of the package or region (:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`).
+		among the declarations of the package or region (:meth:`~pyVHDLModel.Namespace.Namespace.FindDeclarations`). An
+		operator symbol (:attr:`~pyVHDLModel.Name.Name.IsOperatorSymbol`) is looked up by the operator's designator, without
+		the quotation marks, e.g. ``"="`` as ``=``.
 
 		A failure is reported as a warning of the given type, whose label names the kind of name in the message
 		(e.g. ``Type mark``); then no declaration is returned. A name, which is a part of the symbol's name (e.g. the prefix
@@ -1991,7 +1994,7 @@ class DeclarativeRegionMixin(
 
 		namespace =            self._namespace
 		label =                warningType._LABEL
-		normalizedIdentifier = name._normalizedIdentifier
+		normalizedIdentifier = name._normalizedIdentifier[1:-1] if name.IsOperatorSymbol else name._normalizedIdentifier
 		if name is symbol._name:
 			subject = f"{label} '{name!s}'"
 		else:
@@ -2306,13 +2309,25 @@ class DeclarativeRegionMixin(
 		return tuple(
 			declaration
 			for region in (self, *self._SharedRegions())
-			for declaration in (*region._Declarations(), *region._Labels())
-			if (
-				declaration is not item
-				and not names.isdisjoint(normalizedDeclaredNamesOf(declaration))
-				and not self._MayShareIdentifier(item, declaration)
-			)
+			for declaration in region._DeclarationsNamed(names)
+			if declaration is not item and not self._MayShareIdentifier(item, declaration)
 		)
+
+	def _DeclarationsNamed(self, names: set[str]) -> list[ModelEntity]:
+		"""
+		Return the declarations (:meth:`_Declarations`) and the labeled statements (``_Labels()``) of this declarative
+		region declaring one of the given names.
+
+		A region with a declarative part finds its declared items by an index (:class:`DeclarationRegionMixin`).
+
+		:param names: The normalized names.
+		:returns:     List of declarations, in the order of :meth:`_Declarations`, then labeled statements.
+		"""
+		return [
+			declaration
+			for declaration in (*self._Declarations(), *self._Labels())
+			if not names.isdisjoint(normalizedDeclaredNamesOf(declaration))
+		]
 
 
 @export
@@ -2352,6 +2367,53 @@ class DeclarativePartMixin(
 	   * :class:`Declarative region mixin <pyVHDLModel.Regions.DeclarativeRegionMixin>`
 	"""
 	_DECLARED_ITEM_TYPES: ClassVar[tuple[type, ...]]  #: Accepted classes of declared items (:mod:`pyVHDLModel`).
+
+	_declaredItemsByName: Nullable[dict[str, list[ModelEntity]]]  #: Declared items by normalized name, or ``None``.
+
+	def __init__(self) -> None:
+		"""
+		Initializes a declarative part: its index of declared items by name is built on first use.
+		"""
+		self._declaredItemsByName = None
+
+	def _InterfaceDeclarations(self) -> tuple[ModelEntity, ...]:
+		"""
+		Return the interface items sharing the declarative region of this declarative part.
+
+		Host classes with interface items override this method, e.g. an entity returns its generics and ports;
+		:meth:`_Declarations` lists them first.
+
+		:returns: An empty tuple.
+		"""
+		return ()
+
+	def _DeclaredItemsNamed(self, names: Collection[str]) -> list[ModelEntity]:
+		"""
+		Return the declared items declaring one of the given names, found by an index (:attr:`_declaredItemsByName`).
+
+		The index is built from the declared items on first use. Appending a declared item extends it; inserting one
+		elsewhere, removing, moving or splitting one drops it, so it's built again on the next use.
+
+		:param names: The normalized names, each once.
+		:returns:     List of declared items, in declaration order.
+		"""
+		if (index := self._declaredItemsByName) is None:
+			self._declaredItemsByName = index = {}
+			for item in self._declaredItems:
+				for name in normalizedDeclaredNamesOf(item):
+					if (items := index.get(name)) is None:
+						index[name] = [item]
+					else:
+						items.append(item)
+
+		if len(names) == 1:
+			return list(index.get(next(iter(names)), ()))
+
+		found = {id(item) for name in names for item in index.get(name, ())}
+		if len(found) == 0:
+			return []
+
+		return [item for item in self._declaredItems if id(item) in found]
 
 	def _IndexOtherDeclaredItem(self, item: ModelEntity) -> None:
 		"""
@@ -2475,12 +2537,9 @@ class DeclarativePartMixin(
 		if not isinstance(declaredItem, (NamedEntityMixin, MultipleNamedEntityMixin)):
 			return []
 
-		identifiers = set(normalizedIdentifiersOf(declaredItem))
 		return [
-			item for item in self._declaredItems
-			if item is not declaredItem
-			and isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin))
-			and not identifiers.isdisjoint(normalizedIdentifiersOf(item))
+			item for item in self._DeclaredItemsNamed(normalizedIdentifiersOf(declaredItem))
+			if item is not declaredItem and isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin))
 		]
 
 	def AddDeclaredItem(self, declaredItem: ModelEntity) -> None:
@@ -2618,6 +2677,16 @@ class DeclarativePartMixin(
 			raise ex
 
 		sharingItems = self._DeclaredItemsSharingIdentifiers(declaredItem)
+
+		if (byName := self._declaredItemsByName) is not None:
+			if index == len(self._declaredItems):
+				for name in normalizedDeclaredNamesOf(declaredItem):
+					if (items := byName.get(name)) is None:
+						byName[name] = [declaredItem]
+					else:
+						items.append(declaredItem)
+			else:
+				self._declaredItemsByName = None
 
 		self._declaredItems.insert(index, declaredItem)
 		declaredItem.Parent = self
@@ -2786,7 +2855,8 @@ class DeclarativePartMixin(
 			self._UnindexDeclaredItem(declaredItem)
 
 		del self._declaredItems[index]
-		declaredItem._parent = None
+		self._declaredItemsByName = None
+		declaredItem._parent =      None
 
 		if reindex:
 			self.IndexDeclaredItems()
@@ -2873,6 +2943,7 @@ class DeclarativePartMixin(
 
 		del self._declaredItems[currentIndex]
 		self._declaredItems.insert(newIndex, declaredItem)
+		self._declaredItemsByName = None
 
 		if reindex:
 			self.IndexDeclaredItems()
@@ -3028,6 +3099,8 @@ class DeclarativePartMixin(
 		for declaration in declarations:
 			declaration.Parent = self
 
+		self._declaredItemsByName = None
+
 		if self._areDeclaredItemsIndexed:
 			self._IndexDeclaredItem(declaredItem)
 			for declaration in declarations:
@@ -3063,6 +3136,39 @@ class DeclarationRegionMixin(DeclarativeRegionMixin, DeclarativePartMixin, mixin
 	   * :class:`Sequential declaration region mixin <pyVHDLModel.Regions.SequentialDeclarationRegionMixin>`
 	   * :class:`Protected type declaration region mixin <pyVHDLModel.Regions.ProtectedTypeDeclarationRegionMixin>`
 	"""
+
+	def __init__(self) -> None:
+		"""
+		Initializes a declaration region: a declarative region, which isn't indexed yet, and its declarative part.
+		"""
+		DeclarativeRegionMixin.__init__(self)
+		DeclarativePartMixin.__init__(self)
+
+	def _DeclarationsNamed(self, names: set[str]) -> list[ModelEntity]:
+		"""
+		Return the declarations and the labeled statements of this declaration region declaring one of the given names.
+
+		The interface items (:meth:`~DeclarativePartMixin._InterfaceDeclarations`) and the labeled statements are searched,
+		the declared items are found by their index (:meth:`~DeclarativePartMixin._DeclaredItemsNamed`), so a check for a
+		new declaration doesn't visit every declared item.
+
+		:param names: The normalized names.
+		:returns:     List of declarations, interface items first, then declared items in declaration order, then labeled
+		              statements.
+		"""
+		return [
+			*(
+				declaration
+				for declaration in self._InterfaceDeclarations()
+				if not names.isdisjoint(normalizedDeclaredNamesOf(declaration))
+			),
+			*self._DeclaredItemsNamed(names),
+			*(
+				statement
+				for statement in self._Labels()
+				if not names.isdisjoint(normalizedDeclaredNamesOf(statement))
+			)
+		]
 
 
 @export
@@ -3281,11 +3387,12 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Return all declarations of this declarative region.
 
-		A host class with interface items extends the list by its interface items, listed first.
+		A host class with interface items provides them (:meth:`~DeclarativePartMixin._InterfaceDeclarations`); they are
+		listed first.
 
-		:returns: Tuple of declarations: the declared items, in declaration order.
+		:returns: Tuple of declarations: the interface items, then the declared items in declaration order.
 		"""
-		return tuple(self._declaredItems)
+		return (*self._InterfaceDeclarations(), *self._declaredItems)
 
 	def IndexDeclaredItems(self) -> None:
 		"""
@@ -3365,12 +3472,20 @@ class ConcurrentDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		elif isinstance(item, Function):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._functions.get(item._normalizedIdentifier)) is None:
+				self._functions[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		elif isinstance(item, Procedure):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._procedures.get(item._normalizedIdentifier)) is None:
+				self._procedures[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		elif isinstance(item, Constant):
 			for normalizedIdentifier in item._normalizedIdentifiers:
@@ -3580,11 +3695,12 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Return all declarations of this declarative region.
 
-		A host class with interface items extends the list by its interface items, listed first.
+		A host class with interface items provides them (:meth:`~DeclarativePartMixin._InterfaceDeclarations`); they are
+		listed first.
 
-		:returns: Tuple of declarations: the declared items, in declaration order.
+		:returns: Tuple of declarations: the interface items, then the declared items in declaration order.
 		"""
-		return tuple(self._declaredItems)
+		return (*self._InterfaceDeclarations(), *self._declaredItems)
 
 	def IndexDeclaredItems(self) -> None:
 		"""
@@ -3639,12 +3755,20 @@ class SequentialDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		elif isinstance(item, Function):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._functions.get(item._normalizedIdentifier)) is None:
+				self._functions[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		elif isinstance(item, Procedure):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._procedures.get(item._normalizedIdentifier)) is None:
+				self._procedures[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		elif isinstance(item, Constant):
 			for normalizedIdentifier in item._normalizedIdentifiers:
@@ -3764,11 +3888,12 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		"""
 		Return all declarations of this declarative region.
 
-		A host class with interface items extends the list by its interface items, listed first.
+		A host class with interface items provides them (:meth:`~DeclarativePartMixin._InterfaceDeclarations`); they are
+		listed first.
 
-		:returns: Tuple of declarations: the declared items, in declaration order.
+		:returns: Tuple of declarations: the interface items, then the declared items in declaration order.
 		"""
-		return tuple(self._declaredItems)
+		return (*self._InterfaceDeclarations(), *self._declaredItems)
 
 	def IndexDeclaredItems(self) -> None:
 		"""
@@ -3807,12 +3932,20 @@ class ProtectedTypeDeclarationRegionMixin(DeclarationRegionMixin, mixin=True):
 		if isinstance(item, Function):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._functions.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._functions.get(item._normalizedIdentifier)) is None:
+				self._functions[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		elif isinstance(item, Procedure):
 			# FIXME: overloads are only appended to a list, not matched/resolved by signature (no
 			#        real overload resolution yet).
-			self._procedures.setdefault(item._normalizedIdentifier, []).append(item)
+			if (overloads := self._procedures.get(item._normalizedIdentifier)) is None:
+				self._procedures[item._normalizedIdentifier] = [item]
+			else:
+				overloads.append(item)
+
 			self._namespace.AddElement(item._normalizedIdentifier, item, overloadable=True)
 		else:
 			self._IndexOtherDeclaredItem(item)

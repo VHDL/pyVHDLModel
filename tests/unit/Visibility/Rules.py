@@ -344,7 +344,7 @@ class DeclarationProperties(Testcase):
 		enumeration = _enumeration("T", "Idle", "'a'")
 
 		self.assertTupleEqual(
-			(("idle", enumeration.Literals[0]), ("'a'", enumeration.Literals[1])),
+			tuple(enumeration.Literals),
 			tuple(enumeration.IterateImplicitDeclarations())
 		)
 
@@ -353,7 +353,7 @@ class DeclarationProperties(Testcase):
 		distance = _distance()
 
 		self.assertTupleEqual(
-			(("mm", distance.PrimaryUnit), ("cm", distance.SecondaryUnits[0])),
+			(distance.PrimaryUnit, *distance.SecondaryUnits),
 			tuple(distance.IterateImplicitDeclarations())
 		)
 

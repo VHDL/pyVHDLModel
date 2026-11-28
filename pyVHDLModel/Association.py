@@ -34,32 +34,23 @@ This module contains parts of an abstract document language model for VHDL.
 
 Associations are used in generic maps, port maps and parameter maps.
 """
-from __future__              import annotations
+from __future__            import annotations
 
-from typing                  import TYPE_CHECKING, Iterable, Optional as Nullable, Union, Self
+from typing                import TYPE_CHECKING, Iterable, Optional as Nullable, Self
 
-from pyTooling.Common        import getFullyQualifiedName, getTypeName
-from pyTooling.Decorators    import export, readonly
-from pyTooling.MetaClasses   import ExtendedType, abstractclass
+from pyTooling.Common      import getFullyQualifiedName, getTypeName
+from pyTooling.Decorators  import export, readonly
+from pyTooling.MetaClasses import ExtendedType, abstractclass
 
-from pyVHDLModel.Base        import ModelEntity
-from pyVHDLModel.Exception   import AlreadyInDesignError, NotAChildError, AssociationOrderError, \
-                                    DuplicateGenericAssociationError, DuplicatePortAssociationError
-from pyVHDLModel.Name        import Name, SimpleName
-from pyVHDLModel.Symbol      import Symbol
-from pyVHDLModel.Expression  import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
+from pyVHDLModel.Base      import ExpressionUnion, ModelEntity
+from pyVHDLModel.Exception import AlreadyInDesignError, NotAChildError, AssociationOrderError, \
+                                  DuplicateGenericAssociationError, DuplicatePortAssociationError
+from pyVHDLModel.Name      import Name, SimpleName
+from pyVHDLModel.Symbol    import Symbol
 if TYPE_CHECKING:
-	from pyVHDLModel.Visitor   import Visitor
+	from pyVHDLModel.Visitor import Visitor
 
 
-ExpressionUnion = Union[
-	BaseExpression,
-	QualifiedExpression,
-	FunctionCall,
-	TypeConversion,
-	# ConstantOrSymbol,     TODO: ObjectSymbol
-	Literal,
-]
 
 
 @export

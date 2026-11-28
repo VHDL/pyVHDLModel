@@ -30,17 +30,27 @@
 # ==================================================================================================================== #
 #
 """This module contains base-classes for predefined library and package declarations."""
-from typing                 import Iterable, Optional as Nullable
+from typing                    import Iterable, Optional as Nullable
 
-from pyTooling.Common       import getTypeName
-from pyTooling.Decorators   import export, readonly
-from pyTooling.MetaClasses  import ExtendedType, abstractclass
+from pyTooling.Common          import getFullyQualifiedName, getTypeName
+from pyTooling.Decorators      import export, readonly
+from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
-from pyVHDLModel            import Library, Package, PackageBody, AllPackageMembersReferenceSymbol, \
-                                   PackageMemberReferenceSymbol
-from pyVHDLModel.Name       import SimpleName, SelectedName, AllName
-from pyVHDLModel.Symbol     import LibraryReferenceSymbol, PackageSymbol
-from pyVHDLModel.DesignUnit import LibraryClause, UseClause
+from pyVHDLModel               import VHDLVersion, Library, Package, PackageBody, Context, \
+                                      AllPackageMembersReferenceSymbol, PackageMemberReferenceSymbol
+from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, Mode, ExpressionUnion
+from pyVHDLModel.Name          import SimpleName, SelectedName, AllName
+from pyVHDLModel.Symbol        import LibraryReferenceSymbol, PackageSymbol, PackageReferenceSymbol, \
+                                      PossibleReference, Symbol, SimpleSubtypeSymbol, \
+                                      SimpleObjectOrFunctionCallSymbol, ResolutionFunctionSymbol, \
+                                      ArrayElementResolution
+from pyVHDLModel.Expression    import IntegerLiteral
+from pyVHDLModel.DesignUnit    import LibraryClause, UseClause
+from pyVHDLModel.Interface     import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
+from pyVHDLModel.Declaration   import Alias
+from pyVHDLModel.Subprogram    import Subprogram, SubprogramSignature
+from pyVHDLModel.Association   import GenericAssociationItem
+from pyVHDLModel.Instantiation import PackageInstantiation
 
 
 @export
@@ -60,18 +70,47 @@ class PredefinedLibrary(Library):
 	   * :class:`Std <pyVHDLModel.STD.Std>`
 	"""
 
-	def __init__(self, packages, documentation: Nullable[str] = None) -> None:
+	_vhdlVersion: VHDLVersion  #: The VHDL version of the library's packages.
+
+	def __init__(self, packages, vhdlVersion: VHDLVersion, documentation: Nullable[str] = None) -> None:
 		"""
 		Initializes a predefined library.
 
 		:param packages:      Dictionary of all packages defined in a library.
+		:param vhdlVersion:   The VHDL version of the library's packages.
 		:param documentation: Optional, documentation of this library, if the caller has one to supply. VHDL defines none
 		                      for a predefined library, so it is empty unless supplied from outside.
 		                      Default: ``None``, no documentation.
+		:raises ValueError:   If parameter 'vhdlVersion' is None.
+		:raises TypeError:    If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError:   If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(getTypeName(self), documentation)
 
+		if vhdlVersion is None:
+			raise ValueError("Parameter 'vhdlVersion' is None.")
+		elif not isinstance(vhdlVersion, VHDLVersion):
+			ex = TypeError("Parameter 'vhdlVersion' is not of type 'VHDLVersion'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(vhdlVersion)}'.")
+			raise ex
+		elif vhdlVersion is not VHDLVersion.VHDL2008 and vhdlVersion is not VHDLVersion.VHDL2019:
+			ex = ValueError("Parameter 'vhdlVersion' is not a supported VHDL version.")
+			ex.add_note(f"Got value '{vhdlVersion}'.")
+			ex.add_note("Supported VHDL versions: VHDL2008, VHDL2019")
+			raise ex
+
+		self._vhdlVersion = vhdlVersion
+
 		self.AddPackages(packages)
+
+	@readonly
+	def VHDLVersion(self) -> VHDLVersion:
+		"""
+		Read-only property to access the VHDL version of the library's packages (:attr:`_vhdlVersion`).
+
+		:returns: The VHDL version.
+		"""
+		return self._vhdlVersion
 
 	@readonly
 	def IsPredefined(self) -> bool:
@@ -82,16 +121,43 @@ class PredefinedLibrary(Library):
 		"""
 		return True
 
-	def AddPackages(self, packages) -> None:
+	def AddContexts(self, contexts: Iterable[type["PredefinedContext"]]) -> None:
+		"""
+		Create the predefined contexts of this library with the library's VHDL version and add them to the library.
+
+		:param contexts: The classes of the predefined contexts.
+		"""
+		for contextType in contexts:
+			context: Context = contextType(self._vhdlVersion)
+			context.Library =                              self
+			self._contexts[context.NormalizedIdentifier] = context
+
+	def AddPackages(
+		self,
+		packages: Iterable[tuple[type["PredefinedPackage"], Nullable[type["PredefinedPackageBody"]]]]
+	) -> tuple[Package | PackageBody, ...]:
+		"""
+		Create the predefined packages and package bodies of this library with the library's VHDL version and add them to
+		the library.
+
+		:param packages: Pairs of a predefined package's class and its package body's class, or ``None`` for a package
+		                 without body.
+		:returns:        Tuple of the added packages and package bodies, each package followed by its body.
+		"""
+		designUnits = []
 		for packageType, packageBodyType in packages:
-			package: Package = packageType()
+			package: Package = packageType(self._vhdlVersion)
 			package.Library = self
 			self._packages[package.NormalizedIdentifier] = package
+			designUnits.append(package)
 
 			if packageBodyType is not None:
-				packageBody: PackageBody = packageBodyType()
+				packageBody: PackageBody = packageBodyType(self._vhdlVersion)
 				packageBody.Library = self
 				self._packageBodies[packageBody.NormalizedIdentifier] = packageBody
+				designUnits.append(packageBody)
+
+		return tuple(designUnits)
 
 
 @export
@@ -110,6 +176,40 @@ class PredefinedPackageMixin(
 	   * :class:`Predefined package <pyVHDLModel.Predefined.PredefinedPackage>`
 	   * :class:`Predefined package body <pyVHDLModel.Predefined.PredefinedPackageBody>`
 	"""
+
+	_vhdlVersion: VHDLVersion  #: The VHDL version of the declarations.
+
+	def __init__(self, vhdlVersion: VHDLVersion) -> None:
+		"""
+		Initializes the VHDL version of a predefined package or package body.
+
+		:param vhdlVersion: The VHDL version of the declarations.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
+		"""
+		if vhdlVersion is None:
+			raise ValueError("Parameter 'vhdlVersion' is None.")
+		elif not isinstance(vhdlVersion, VHDLVersion):
+			ex = TypeError("Parameter 'vhdlVersion' is not of type 'VHDLVersion'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(vhdlVersion)}'.")
+			raise ex
+		elif vhdlVersion is not VHDLVersion.VHDL2008 and vhdlVersion is not VHDLVersion.VHDL2019:
+			ex = ValueError("Parameter 'vhdlVersion' is not a supported VHDL version.")
+			ex.add_note(f"Got value '{vhdlVersion}'.")
+			ex.add_note("Supported VHDL versions: VHDL2008, VHDL2019")
+			raise ex
+
+		self._vhdlVersion = vhdlVersion
+
+	@readonly
+	def VHDLVersion(self) -> VHDLVersion:
+		"""
+		Read-only property to access the VHDL version of the declarations (:attr:`_vhdlVersion`).
+
+		:returns: The VHDL version.
+		"""
+		return self._vhdlVersion
 
 	def _AddLibraryClause(self, libraries: Iterable[str]) -> None:
 		symbols = [LibraryReferenceSymbol(SimpleName(libName)) for libName in libraries]
@@ -139,16 +239,139 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 	A base-class for predefined VHDL packages.
 	"""
 
-	def __init__(self, identifier: Nullable[str] = None) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008, identifier: Nullable[str] = None) -> None:
 		"""
 		Initializes a predefined package.
 
 		By default the VHDL package name is the Python class name. Pass ``identifier`` when the two must
 		differ - e.g. when two vendor flavors of the same VHDL package need distinct Python classes.
 
-		:param identifier: Optional, the VHDL package name. Default: ``None``, the class name.
+		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
+		:param identifier:  Optional, the VHDL package name. Default: ``None``, the class name.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(getTypeName(self) if identifier is None else identifier)
+		PredefinedPackageMixin.__init__(self, vhdlVersion)
+
+	def _DeclareItem(self, declaration: NamedEntityMixin, table: dict[str, ModelEntity]) -> None:
+		"""
+		Add a declaration to this package and to the package's lookup table of its kind.
+
+		:param declaration: The declaration.
+		:param table:       The lookup table of the declaration's kind, e.g. :attr:`_types`.
+		"""
+		table[declaration._normalizedIdentifier] = declaration
+		self.AddDeclaredItem(declaration)
+
+	def _DeclareSubprogram(self, subprogram: Subprogram, table: dict[str, list[Subprogram]]) -> None:
+		"""
+		Add a subprogram to this package and to the package's lookup table of its kind, after its overloads.
+
+		:param subprogram: The subprogram.
+		:param table:      The lookup table of the subprogram's kind, :attr:`_procedures` or :attr:`_functions`.
+		"""
+		if (overloads := table.get(subprogram._normalizedIdentifier)) is None:
+			table[subprogram._normalizedIdentifier] = [subprogram]
+		else:
+			overloads.append(subprogram)
+
+		self.AddDeclaredItem(subprogram)
+
+	def _DeclareAlias(
+		self,
+		identifier:     str,
+		name:           str,
+		parameterTypes: Iterable[SimpleSubtypeSymbol],
+		returnType:     Nullable[SimpleSubtypeSymbol] = None
+	) -> None:
+		"""
+		Add an alias of a subprogram to this package, which selects the overload of the aliased name by a signature.
+
+		The analysis resolves the alias' name to the overload of the signature's parameter and result type profile
+		(:meth:`~pyVHDLModel.Declaration.Alias.ResolveSignature`).
+
+		:param identifier:     The alias' identifier.
+		:param name:           The simple name of the aliased subprogram.
+		:param parameterTypes: The type marks of the signature's parameters.
+		:param returnType:     Optional, the type mark of the signature's return type. Default: ``None``, a procedure.
+		"""
+		self.AddDeclaredItem(Alias(
+			identifier,
+			Symbol(SimpleName(name), PossibleReference.PackageMember | PossibleReference.EnumLiteral),
+			signature=SubprogramSignature(parameterTypes, returnType)
+		))
+
+	@staticmethod
+	def _TypeMark(identifier: str) -> SimpleSubtypeSymbol:
+		"""
+		Create a type mark naming a type or subtype by its simple name.
+
+		:param identifier: The identifier of the type or subtype.
+		:returns:          The type mark.
+		"""
+		return SimpleSubtypeSymbol(SimpleName(identifier))
+
+	@staticmethod
+	def _ElementResolvedTypeMark(identifier: str) -> SimpleSubtypeSymbol:
+		"""
+		Create a subtype indication naming an array type by its simple name, whose elements are resolved by ``resolved``
+		of ``ieee.std_logic_1164``: ``(resolved) identifier``.
+
+		:param identifier: The identifier of the array type.
+		:returns:          The subtype indication.
+		"""
+		resolution = ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		return SimpleSubtypeSymbol(SimpleName(identifier), resolution=resolution)
+
+	@staticmethod
+	def _InParameter(
+		identifiers:       Iterable[str],
+		subtype:           SimpleSubtypeSymbol,
+		defaultExpression: Nullable[ExpressionUnion] = None
+	) -> ParameterConstantInterfaceItem:
+		"""
+		Create a constant parameter of mode ``in`` of a subprogram of a predefined package.
+
+		:param identifiers:       The parameter's identifiers.
+		:param subtype:           The parameter's type mark.
+		:param defaultExpression: Optional, the default value: a literal or a name, e.g. of an enumeration literal or an
+		                          attribute (``TIME'HIGH``). Default: ``None``, no default value.
+		:returns:                 The parameter.
+		"""
+		return ParameterConstantInterfaceItem(identifiers, Mode.In, subtype, defaultExpression)
+
+	@staticmethod
+	def _OutParameter(identifiers: Iterable[str], subtype: SimpleSubtypeSymbol) -> ParameterVariableInterfaceItem:
+		"""
+		Create a variable parameter of mode ``out`` of a subprogram of a predefined package.
+
+		:param identifiers: The parameter's identifiers.
+		:param subtype:     The parameter's type mark.
+		:returns:           The parameter.
+		"""
+		return ParameterVariableInterfaceItem(identifiers, Mode.Out, subtype)
+
+	def _LineParameter(self) -> ParameterVariableInterfaceItem:
+		"""
+		Create the parameter ``L : inout LINE`` of the ``READ`` and ``WRITE`` procedures (IEEE Std 1076-2008, 16.4).
+
+		:returns: The parameter.
+		"""
+		return ParameterVariableInterfaceItem(("L",), Mode.InOut, self._TypeMark("line"))
+
+	def _JustificationParameters(self) -> tuple[ParameterConstantInterfaceItem, ParameterConstantInterfaceItem]:
+		"""
+		Create the parameters ``JUSTIFIED : SIDE := RIGHT`` and ``FIELD : WIDTH := 0`` of the ``WRITE`` procedures
+		(IEEE Std 1076-2008, 16.4).
+
+		:returns: The two parameters.
+		"""
+		return (
+			self._InParameter(("JUSTIFIED",), self._TypeMark("side"), SimpleObjectOrFunctionCallSymbol(SimpleName("right"))),
+			self._InParameter(("FIELD",), self._TypeMark("width"), IntegerLiteral(0))
+		)
 
 
 @export
@@ -158,16 +381,78 @@ class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 	A base-class for predefined VHDL package bodies.
 	"""
 
-	def __init__(self, packageIdentifier: Nullable[str] = None) -> None:
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008, packageIdentifier: Nullable[str] = None) -> None:
 		"""
 		Initializes a predefined package body.
 
 		By default the VHDL package name is the Python class name with the trailing ``_Body`` removed.
 		Pass ``packageIdentifier`` when the two must differ.
 
+		:param vhdlVersion:       Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:param packageIdentifier: Optional, the VHDL name of the package this body implements.
 		                          Default: ``None``, derived from the class name.
+		:raises ValueError:       If parameter 'vhdlVersion' is None.
+		:raises TypeError:        If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError:       If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		identifier = getTypeName(self)[:-5] if packageIdentifier is None else packageIdentifier
 		packageSymbol = PackageSymbol(SimpleName(identifier))
 		super().__init__(packageSymbol)
+		PredefinedPackageMixin.__init__(self, vhdlVersion)
+
+
+@export
+@abstractclass
+class PredefinedPackageInstantiation(PackageInstantiation, PredefinedPackageMixin):
+	"""
+	A base-class for predefined VHDL package instantiations.
+
+	An example is ``ieee.fixed_pkg``, an instantiation of ``ieee.fixed_generic_pkg``.
+	"""
+
+	def __init__(
+		self,
+		vhdlVersion:             VHDLVersion,
+		genericPackage:          PackageReferenceSymbol,
+		genericAssociationItems: Iterable[GenericAssociationItem]
+	) -> None:
+		"""
+		Initializes a predefined package instantiation.
+
+		The VHDL package name is the Python class name.
+
+		:param vhdlVersion:             The VHDL version of the declarations.
+		:param genericPackage:          Reference to the instantiated generic package.
+		:param genericAssociationItems: The generic associations of the generic map aspect.
+		:raises ValueError:             If parameter 'vhdlVersion' is None.
+		:raises TypeError:              If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError:             If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
+		"""
+		super().__init__(getTypeName(self), genericPackage, genericAssociationItems=genericAssociationItems)
+		PredefinedPackageMixin.__init__(self, vhdlVersion)
+
+
+@export
+@abstractclass
+class PredefinedContext(Context, PredefinedPackageMixin):
+	"""
+	A base-class for predefined VHDL context declarations.
+
+	An example is ``ieee.ieee_std_context``. The context items are added by the derived class with
+	:meth:`_AddLibraryClause` and :meth:`_AddPackageClause`.
+	"""
+
+	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008, identifier: Nullable[str] = None) -> None:
+		"""
+		Initializes a predefined context declaration.
+
+		By default the VHDL context name is the Python class name.
+
+		:param vhdlVersion: Optional, the VHDL version of the context items. Default: ``VHDLVersion.VHDL2008``.
+		:param identifier:  Optional, the VHDL context name. Default: ``None``, the class name.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
+		"""
+		super().__init__(getTypeName(self) if identifier is None else identifier)
+		PredefinedPackageMixin.__init__(self, vhdlVersion)

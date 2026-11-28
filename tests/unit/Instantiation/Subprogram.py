@@ -31,13 +31,15 @@
 """Tests for pyVHDLModel.Subprogram."""
 from pyTooling.Testing       import Testcase
 
-from pyVHDLModel.Base        import Mode
+from pyVHDLModel.Base        import Direction, Mode, SimpleRange
+from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, GenericTypeInterfaceItem
 from pyVHDLModel.Name        import SelectedName, SimpleName
 from pyVHDLModel.Symbol      import SimpleSubtypeSymbol
 from pyVHDLModel.Sequential  import NullStatement
-from pyVHDLModel.Type        import ProtectedType, Subtype
-from pyVHDLModel.Subprogram  import Procedure, Function, ProcedureMethod, FunctionMethod, SubprogramSignature
+from pyVHDLModel.Type        import IntegerType, ProtectedType, RecordType, Subtype
+from pyVHDLModel.Subprogram  import Procedure, Function, Operator, PredefinedOperator, PredefinedFunction, \
+                                    PredefinedSubprogramMixin, ProcedureMethod, FunctionMethod, SubprogramSignature
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -105,6 +107,84 @@ class Functions(Testcase):
 		function = Function("func", _returnType(), isPure=False)
 
 		self.assertFalse(function.IsPure)
+
+	def test_NormalizedDesignator(self) -> None:
+		"""The key a namespace indexes the function by: its normalized identifier."""
+		self.assertEqual("func", Function("Func", _returnType()).NormalizedDesignator)
+
+
+class Operators(Testcase):
+	def test_Construction(self) -> None:
+		"""An operator: the operator symbol without quotation marks."""
+		returnType = _returnType("bit")
+		operator =   Operator("and", returnType, parameterItems=[_parameter(("L", "R"), _returnType("bit"))])
+
+		self.assertEqual("and", operator.Identifier)
+		self.assertIs(returnType, operator.ReturnType)
+		self.assertIsInstance(operator, Function)
+
+	def test_UpperCase(self) -> None:
+		"""A word operator is normalized like an identifier."""
+		operator = Operator("AND", _returnType("bit"))
+
+		self.assertEqual("AND", operator.Identifier)
+		self.assertEqual("and", operator.NormalizedIdentifier)
+		self.assertEqual("and", operator.NormalizedDesignator)
+
+	def test_NoOperatorSymbol(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			Operator("func", _returnType())
+
+		self.assertEqual("Parameter 'operatorSymbol' isn't an operator symbol.", str(context.exception))
+		self.assertEqual("Got value 'func'.", context.exception.__notes__[0])
+
+
+class PredefinedOperators(Testcase):
+	def test_Construction(self) -> None:
+		"""A predefined operator of a type: parameters, no body."""
+		recordType = RecordType("rec", None)
+		returnType = _returnType("boolean")
+		left =       _parameter(("L",), SimpleSubtypeSymbol(SimpleName("rec")))
+		right =      _parameter(("R",), SimpleSubtypeSymbol(SimpleName("rec")))
+		operator =   PredefinedOperator("=", returnType, [left, right], parent=recordType)
+
+		self.assertEqual("=", operator.Identifier)
+		self.assertIs(returnType, operator.ReturnType)
+		self.assertListEqual([left, right], operator.ParameterItems)
+		self.assertIs(recordType, operator.Parent)
+		self.assertIs(operator, left.Parent)
+		self.assertTrue(operator.IsPure)
+		self.assertListEqual([], operator.DeclaredItems)
+		self.assertListEqual([], operator.Statements)
+		self.assertIsInstance(operator, Operator)
+		self.assertIsInstance(operator, PredefinedSubprogramMixin)
+
+	def test_NoOperatorSymbol(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			PredefinedOperator("minimum", _returnType(), [], parent=RecordType("rec", None))
+
+		self.assertEqual("Parameter 'operatorSymbol' isn't an operator symbol.", str(context.exception))
+
+
+class PredefinedFunctions(Testcase):
+	def test_Construction(self) -> None:
+		"""A predefined function of a type: an identifier, parameters, no body."""
+		recordType = RecordType("rec", None)
+		returnType = _returnType("rec")
+		left =       _parameter(("L",), SimpleSubtypeSymbol(SimpleName("rec")))
+		right =      _parameter(("R",), SimpleSubtypeSymbol(SimpleName("rec")))
+		function =   PredefinedFunction("minimum", returnType, [left, right], parent=recordType)
+
+		self.assertEqual("minimum", function.Identifier)
+		self.assertIs(returnType, function.ReturnType)
+		self.assertListEqual([left, right], function.ParameterItems)
+		self.assertIs(recordType, function.Parent)
+		self.assertIs(function, left.Parent)
+		self.assertTrue(function.IsPure)
+		self.assertListEqual([], function.DeclaredItems)
+		self.assertListEqual([], function.Statements)
+		self.assertNotIsInstance(function, Operator)
+		self.assertIsInstance(function, PredefinedSubprogramMixin)
 
 
 class MethodMixinHosts(Testcase):
@@ -224,7 +304,7 @@ class Signatures(Testcase):
 		with self.assertRaises(TypeError) as context:
 			SubprogramSignature([], parent=ProtectedType("pt"))
 
-		self.assertEqual("Parameter 'parent' is not of type 'Subprogram'.", str(context.exception))
+		self.assertEqual("Parameter 'parent' is not of type 'Subprogram' or 'Alias'.", str(context.exception))
 
 	def test_Checks(self) -> None:
 		for parameterTypes, returnType, exception in (
@@ -370,3 +450,79 @@ class SignatureComparisons(Testcase):
 			_ = signature != "[]"
 
 		self.assertEqual("Second operand is not supported by != operator.", str(context.exception))
+
+
+class TypeProfiles(Testcase):
+	"""Two signatures have the same parameter and result type profile, if their base types match (4.5.1)."""
+
+	def setUp(self) -> None:
+		self._bit =     IntegerType("bit_like", SimpleRange(IntegerLiteral(0), IntegerLiteral(1), Direction.To))
+		self._integer = IntegerType("int_like", SimpleRange(IntegerLiteral(0), IntegerLiteral(9), Direction.To))
+
+	def _typeMark(self, fullType: IntegerType) -> SimpleSubtypeSymbol:
+		typeMark =         _returnType(fullType.Identifier)
+		typeMark.Subtype = fullType
+
+		return typeMark
+
+	def test_Same(self) -> None:
+		"""Type marks written differently, referencing the same types, have the same profile."""
+		selected =         SimpleSubtypeSymbol(SelectedName("bit_like", SimpleName("p")))
+		selected.Subtype = self._bit
+		first =            SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._integer))
+		second =           SubprogramSignature([selected], self._typeMark(self._integer))
+
+		self.assertNotEqual(first, second)
+		self.assertTrue(first.HasSameTypeProfile(second))
+
+	def test_Same_Procedure(self) -> None:
+		first =  SubprogramSignature([self._typeMark(self._bit), self._typeMark(self._integer)])
+		second = SubprogramSignature([self._typeMark(self._bit), self._typeMark(self._integer)])
+
+		self.assertTrue(first.HasSameTypeProfile(second))
+
+	def test_Different_ParameterType(self) -> None:
+		first =  SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._integer))
+		second = SubprogramSignature([self._typeMark(self._integer)], self._typeMark(self._integer))
+
+		self.assertFalse(first.HasSameTypeProfile(second))
+
+	def test_Different_ReturnType(self) -> None:
+		first =  SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._integer))
+		second = SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._bit))
+
+		self.assertFalse(first.HasSameTypeProfile(second))
+
+	def test_Different_ParameterCount(self) -> None:
+		first =  SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._integer))
+		second = SubprogramSignature([self._typeMark(self._bit), self._typeMark(self._bit)], self._typeMark(self._integer))
+
+		self.assertFalse(first.HasSameTypeProfile(second))
+
+	def test_Different_ProcedureFunction(self) -> None:
+		procedure = SubprogramSignature([self._typeMark(self._bit)])
+		function =  SubprogramSignature([self._typeMark(self._bit)], self._typeMark(self._bit))
+
+		self.assertFalse(procedure.HasSameTypeProfile(function))
+		self.assertFalse(function.HasSameTypeProfile(procedure))
+
+	def test_Unresolved(self) -> None:
+		"""A signature with an unresolved type mark has no profile to compare."""
+		resolved =   SubprogramSignature([self._typeMark(self._bit)])
+		unresolved = SubprogramSignature([_returnType("bit_like")])
+
+		self.assertFalse(resolved.HasSameTypeProfile(unresolved))
+		self.assertFalse(unresolved.HasSameTypeProfile(resolved))
+
+	def test_None(self) -> None:
+		with self.assertRaises(ValueError) as context:
+			SubprogramSignature([]).HasSameTypeProfile(None)
+
+		self.assertEqual("Parameter 'other' is None.", str(context.exception))
+
+	def test_OtherType(self) -> None:
+		with self.assertRaises(TypeError) as context:
+			SubprogramSignature([]).HasSameTypeProfile("[]")
+
+		self.assertEqual("Parameter 'other' is not of type 'SubprogramSignature'.", str(context.exception))
+		self.assertListEqual(["Got type 'str'."], context.exception.__notes__)

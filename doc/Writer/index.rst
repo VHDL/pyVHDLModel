@@ -417,7 +417,9 @@ Type and subtype declarations
    (:class:`~pyVHDLModel.Type.AnonymousType`, ``type node;``) and subtype declarations. A physical type writes its
    units and a record type its element declarations one per line. An index of an array type, which is a
    :class:`~pyVHDLModel.Symbol.SimpleSubtypeSymbol`, is an unbounded index (``natural range <>``); any other index is a
-   range. The model's resolution function of a subtype declaration is not written.
+   range. A resolution indication is written before the type mark of its subtype indication: a resolution function
+   name (``resolved std_ulogic``), an array element resolution (``(resolved) std_ulogic_vector``) or a record
+   resolution (``(a resolved, b (resolved)) pair_t``).
 
 Alias and attribute declarations
    Alias declarations with and without subtype indication, attribute declarations and attribute specifications. The

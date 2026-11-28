@@ -50,7 +50,7 @@ __author__ =            "Patrick Lehmann"
 __email__ =             "Paebbels@gmail.com"
 __copyright__ =         "2016-2026, Patrick Lehmann"
 __license__ =           "Apache License, Version 2.0"
-__version__ =           "0.44.0"
+__version__ =           "0.45.0"
 # __keywords__ =          []
 __project_url__ =       "https://github.com/VHDL/pyVHDLModel"
 __documentation_url__ = "https://vhdl.github.io/pyVHDLModel"
@@ -62,7 +62,7 @@ from pathlib                   import Path
 
 from typing                    import TYPE_CHECKING, Union, cast, Generator, Optional as Nullable
 
-from pyTooling.Common          import getFullyQualifiedName, getTypeName
+from pyTooling.Common          import getFullyQualifiedName, getTypeName, firstValue
 from pyTooling.Decorators      import export, readonly
 from pyTooling.Graph           import Graph, Vertex, Edge
 from pyTooling.Warning         import WarningCollector
@@ -96,7 +96,7 @@ from pyVHDLModel.Object        import Signal, Constant, DeferredConstant, Shared
 from pyVHDLModel.Symbol        import PackageReferenceSymbol, AllPackageMembersReferenceSymbol, \
                                       PackageMemberReferenceSymbol
 from pyVHDLModel.Common        import AllowBlackboxMixin
-from pyVHDLModel.Regions       import DeclarativeRegionMixin, DeclarationRegionMixin, \
+from pyVHDLModel.Regions       import WithGenericsMixin, DeclarativeRegionMixin, DeclarationRegionMixin, \
                                       ConcurrentDeclarationRegionMixin, SequentialDeclarationRegionMixin, \
                                       ProtectedTypeDeclarationRegionMixin
 from pyVHDLModel.Concurrent    import EntityInstantiation, ComponentInstantiation, ConfigurationInstantiation, \
@@ -106,10 +106,10 @@ from pyVHDLModel.DesignUnit    import DesignUnit, PrimaryUnit, Architecture, Pac
                                       Configuration, Package, Component, UseClause
 from pyVHDLModel.PSLModel      import VerificationUnit, VerificationProperty, VerificationMode, PSLEntity
 from pyVHDLModel.Instantiation import PackageInstantiation
-from pyVHDLModel.Type          import BaseType, Subtype
+from pyVHDLModel.Type          import BaseType, FullType, Subtype
 from pyVHDLModel.Configuration import ComponentConfiguration
 from pyVHDLModel.Declaration   import Alias, Attribute, AttributeSpecification
-from pyVHDLModel.Interface     import ModeViewDeclaration
+from pyVHDLModel.Interface     import ModeViewDeclaration, InterfacePackage
 from pyVHDLModel.Subprogram    import Subprogram
 
 if TYPE_CHECKING:
@@ -340,7 +340,7 @@ class VHDLVersion(Enum):
 
 		:returns: ``True``, if the version is a VHDL-AMS version.
 		"""
-		return self in (self.AMS93, self.AMS99, self.AMS2017)
+		return self is self.AMS93 or self is self.AMS99 or self is self.AMS2017
 
 	def __str__(self) -> str:
 		"""
@@ -620,6 +620,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Read-only property to access the compile-order graph (:attr:`_compileOrderGraph`).
 
+		Its vertices are the design's documents; an edge points from a document to a document it depends on, i.e. which
+		must be compiled before (:meth:`ComputeCompileOrder`).
+
 		:returns: Reference to the compile-order graph.
 		"""
 		return self._compileOrderGraph
@@ -628,6 +631,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	def DependencyGraph(self) -> Graph:
 		"""
 		Read-only property to access the dependency graph (:attr:`_dependencyGraph`).
+
+		Its vertices are the design's documents, libraries and design units (key ``kind``,
+		:class:`DependencyGraphVertexKind`), its edges the dependencies between them (key ``kind``,
+		:class:`DependencyGraphEdgeKind`), e.g. a use clause or an instantiation. It also holds the edges of the compile
+		order between the document vertices (kind :data:`DependencyGraphEdgeKind.CompileOrder`), which
+		:meth:`ComputeCompileOrder` adds, so an export shows the compile order beside the dependencies. A consumer
+		interested in one kind filters the edges by their ``kind``.
 
 		:returns: Reference to the dependency graph.
 		"""
@@ -686,19 +696,23 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				topLevels=tuple(root.Value for root in roots)
 			)
 
-	def LoadStdLibrary(self) -> Library:
+	def LoadStdLibrary(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> Library:
 		"""
 		Load the predefined VHDL library ``std`` into the design.
 
 		This will create a virtual source code file ``std.vhdl`` and register VHDL design units of library ``std`` to that file.
 
-		:returns: The library object of library ``std``.
+		:param vhdlVersion: Optional, the VHDL version of the library's packages. Default: ``VHDLVersion.VHDL2008``.
+		:returns:           The library object of library ``std``.
+		:raises ValueError: If parameter 'vhdlVersion' is None.
+		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		from pyVHDLModel.STD import Std
 
-		doc = Document(Path("std.vhdl"), parent=self)
+		library = Std(vhdlVersion)
 
-		library = Std()
+		doc = Document(Path("std.vhdl"), vhdlVersion=vhdlVersion, parent=self)
 		for designUnit in library.IterateDesignUnits():
 			doc._AddDesignUnit(designUnit)
 
@@ -706,25 +720,62 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		return library
 
-	def LoadIEEELibrary(self, flavor: Nullable[IEEEFlavor] = None) -> Library:
+	def LoadIEEELibrary(
+		self,
+		vhdlVersion: VHDLVersion =          VHDLVersion.VHDL2008,
+		flavor:      Nullable[IEEEFlavor] = None
+	) -> Library:
 		"""
 		Load the predefined VHDL library ``ieee`` into the design.
 
 		This will create a virtual source code file ``ieee.vhdl`` and register VHDL design units of library ``ieee`` to that file.
 
-		:param flavor: Optional, select the IEEE library flavor: IEEE, Synopsys, MentorGraphics.
-		               Default: ``None``, the IEEE flavor.
-		:returns:      The library object of library ``ieee``.
+		:param vhdlVersion:             Optional, the VHDL version of the library's packages.
+		                                Default: ``VHDLVersion.VHDL2008``.
+		:param flavor:                  Optional, select the IEEE library flavor: IEEE, Synopsys, MentorGraphics.
+		                                Default: ``None``, the IEEE flavor.
+		:returns:                       The library object of library ``ieee``.
+		:raises ValueError:             If parameter 'vhdlVersion' is None.
+		:raises TypeError:              If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
+		:raises ValueError:             If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
+		:raises UnknownIEEEFlavorError: If the given IEEE library flavor is unknown.
 		"""
 		from pyVHDLModel.IEEE import Ieee
 
-		doc = Document(Path("ieee.vhdl"), parent=self)
+		library = Ieee(vhdlVersion, flavor)
 
-		library = Ieee(flavor)
+		doc = Document(Path("ieee.vhdl"), vhdlVersion=vhdlVersion, parent=self)
 		for designUnit in library.IterateDesignUnits():
 			doc._AddDesignUnit(designUnit)
 
 		self.AddLibrary(library)
+
+		return library
+
+	def LoadVITALPackages(self) -> Library:
+		"""
+		Load the predefined VITAL packages (IEEE Std 1076.4) into the design's library ``ieee``.
+
+		The packages ``VITAL_Timing``, ``VITAL_Primitives`` and ``VITAL_Memory`` and their package bodies are added to the
+		library and registered to its virtual source code file ``ieee.vhdl``, with the library's VHDL version. The flavor
+		:data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>` of :meth:`LoadIEEELibrary` does the same while
+		loading the library.
+
+		:returns:                      The library object of library ``ieee``.
+		:raises LibraryNotFoundError:  If the design has no predefined library ``ieee``. |br|
+		                               Call :meth:`LoadIEEELibrary` before.
+		:raises IEEEFlavorChangeError: If the library has the VITAL packages already.
+		"""
+		from pyVHDLModel.IEEE import Ieee
+
+		if not isinstance(library := self._libraries.get("ieee"), Ieee):
+			ex = LibraryNotFoundError("Library 'ieee' not found in design.", libraryName="ieee")
+			ex.add_note("Call 'LoadIEEELibrary()' before loading the VITAL packages.")
+			raise ex
+
+		document = firstValue(library._packages)._document
+		for designUnit in library.LoadVITALPackages():
+			document._AddDesignUnit(designUnit)
 
 		return library
 
@@ -1261,7 +1312,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			entity.Library = library
 
 		for entityIdentifier, architectures in document._architectures.items():
-			architecturesPerEntity = library._architectures.setdefault(entityIdentifier, {})
+			if (architecturesPerEntity := library._architectures.get(entityIdentifier)) is None:
+				library._architectures[entityIdentifier] = architecturesPerEntity = {}
+
 			for architectureIdentifier, architecture in architectures.items():
 				architecturesPerEntity[architectureIdentifier] = architecture
 				architecture.Library = library
@@ -1426,6 +1479,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		:raises UnhandledCriticalWarningError: If a resolution function name or a record element of a record resolution
+		                                       can't be resolved, and no :class:`~pyTooling.Warning.WarningCollector`
+		                                       collects the :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
 		self.ResetAnalysis()
 		self.AnalyzeDependencies()
@@ -1447,8 +1503,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		3. Clear the references of all design units: referenced libraries, packages and contexts, the symbols of library
 		   clauses, use clauses and context references, and the items imported into namespaces. Use clauses in declarative
 		   regions nested in a design unit are cleared too, as are the references of type marks and alias names
-		   (:meth:`ResolveTypeMarks`) and the base types of subtypes; a subtype of a predefined library
-		   (:attr:`Library.IsPredefined`) keeps its base type.
+		   (:meth:`ResolveTypeMarks`), of resolution function names (:meth:`ResolveResolutionFunctions`) and the base types
+		   of subtypes; a subtype of a predefined library (:attr:`Library.IsPredefined`) keeps its base type. The implicit
+		   operations are removed from the namespaces (:meth:`IndexImplicitOperations`); a type, which isn't predefined,
+		   creates them again on the next access.
 		4. Unlink architectures from entities and package bodies from packages: an entity's architectures, a package's
 		   body, the symbols referencing the entity or package, and the link to the parent namespace.
 		5. Unlink package instantiations from their generic package: the symbol and the components copied from it.
@@ -1493,6 +1551,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		for designUnit in self.IterateDesignUnits(DesignUnitKind.WithDeclaredItems):
 			for region in designUnit.IterateDeclarationRegions():
 				region._namespace.ClearImports()
+				region._namespace.ClearImplicitOperations()
 				for item in region._Declarations():
 					item.ResetReferences(designUnit, region)
 
@@ -2078,7 +2137,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		2. Link every use clause of the design unit's context clause into the design unit's namespace. |br|
 		   |rarr| :meth:`_LinkUseClause`
-		3. Link every use clause in the declarative part of the design unit and of every declarative region nested in it
+		3. Link the uninstantiated package of every interface package in the design unit's generic clause. |br|
+		   |rarr| :meth:`_LinkInterfacePackage`
+		4. Link every use clause in the declarative part of the design unit and of every declarative region nested in it
 		   (e.g. a process, a subprogram or a block) into the namespace of its declarative region. |br|
 		   |rarr| :meth:`_LinkUseClause`
 
@@ -2101,7 +2162,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises PackageNotFoundError:            If a use clause references a package, which doesn't exist in its library.
 		:raises UnhandledCriticalWarningError:   If a use clause names a package member, which the package doesn't declare,
 		                                         a primary unit, which the library doesn't contain, a prefix, which isn't a
-		                                         visible package, or an uninstantiated generic package, and no
+		                                         visible package or a linked interface package, or an uninstantiated
+		                                         generic package, or if the uninstantiated package of an interface package
+		                                         isn't found or isn't a generic package, and no
 		                                         :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                         :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
@@ -2141,8 +2204,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 							dependency = designUnit._dependencyVertex.EdgeToVertex(referencedPackage._dependencyVertex)
 							dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
-							for normalizedIdentifier, declaration in referencedPackage.IterateDeclarations():
-								designUnit._namespace.AddImport(normalizedIdentifier, declaration, None)
+							designUnit._namespace.AddImports(referencedPackage.IterateDeclarations(), None)
 
 			# All secondary units inherit referenced packages from their primary units.
 			else:
@@ -2164,11 +2226,98 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			for packageReference in designUnit._packageReferences:
 				self._LinkUseClause(designUnit, designUnit._namespace, packageReference, True)
 
+			if isinstance(designUnit, WithGenericsMixin):
+				for genericItem in designUnit._genericItems:
+					if isinstance(genericItem, InterfacePackage) and genericItem._packageReference is not None:
+						self._LinkInterfacePackage(designUnit, genericItem)
+
 			if isinstance(designUnit, DeclarativeRegionMixin):
 				for region in designUnit.IterateDeclarationRegions():
 					for item in region._Declarations():
 						if isinstance(item, UseClause):
 							self._LinkUseClause(designUnit, region._namespace, item, False)
+
+	def _LinkInterfacePackage(self, designUnit: DesignUnit, interfacePackage: InterfacePackage) -> None:
+		"""
+		Link the uninstantiated package of an interface package in the generic clause of a design unit.
+
+		.. rubric:: Algorithm
+
+		1. Resolve the package name: with a library name, lookup the package in that library (``work`` is the design unit's
+		   library; another library name must be visible, :meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`);
+		   without, lookup the directly visible package in the design unit's namespace.
+		2. If the package is an uninstantiated generic package, update the package symbol's reference with it and add an
+		   edge in the dependency graph from the design unit to the package.
+
+		Otherwise raise an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+
+		:param designUnit:                     The design unit, whose generic clause declares the interface package.
+		:param interfacePackage:               The interface package.
+		:raises UnhandledCriticalWarningError: If the library name isn't visible, the package isn't found or isn't an
+		                                       uninstantiated generic package, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		packageSymbol =     interfacePackage._packageReference
+		packageName =       packageSymbol._name
+		packageIdentifier = packageName._normalizedIdentifier
+		libraryName =       packageName._prefix
+		if libraryName is None:
+			result =   designUnit._namespace.Lookup(packageIdentifier, interfacePackage)
+			packages = [declaration for declaration in result._declarations if isinstance(declaration, Package)]
+			if len(packages) == 0:
+				WarningCollector.Raise(UnresolvedNameWarning(
+					f"Package '{packageName._identifier}' of interface package '{interfacePackage._identifier}' isn't visible.",
+					symbol=packageSymbol,
+					place=interfacePackage,
+					namespaces=result._searchedNamespaces,
+					conflicts=result._conflicts
+				))
+				return
+
+			package = packages[0]
+		else:
+			libraryIdentifier = libraryName._normalizedIdentifier
+			if libraryIdentifier == "work":
+				library = designUnit._parent
+			elif designUnit.IsLibraryVisible(libraryIdentifier):
+				library = self._libraries[libraryIdentifier]
+			else:
+				WarningCollector.Raise(UnresolvedNameWarning(
+					f"Library '{libraryName._identifier}' of interface package '{interfacePackage._identifier}' isn't visible.",
+					symbol=packageSymbol,
+					place=interfacePackage,
+					namespaces=()
+				))
+				return
+
+			if (package := library._packages.get(packageIdentifier)) is None:
+				WarningCollector.Raise(UnresolvedNameWarning(
+					f"Library '{library._identifier}' has no package '{packageName._identifier}' for interface package "
+					f"'{interfacePackage._identifier}'.",
+					symbol=packageSymbol,
+					place=interfacePackage,
+					namespaces=()
+				))
+				return
+
+		if len(package._genericItems) == 0 or isinstance(package, PackageInstantiation):
+			WarningCollector.Raise(UnresolvedNameWarning(
+				f"Package '{package._identifier}' of interface package '{interfacePackage._identifier}' isn't an "
+				"uninstantiated generic package.",
+				symbol=packageSymbol,
+				place=interfacePackage,
+				namespaces=(package._namespace, )
+			))
+			return
+
+		packageSymbol._reference = package
+
+		dependency = designUnit._dependencyVertex.EdgeToVertex(
+			package._dependencyVertex,
+			edgeValue=interfacePackage
+		)
+		dependency["kind"] = DependencyGraphEdgeKind.PackageInstantiation
 
 	def _LinkUseClause(
 		self,
@@ -2186,7 +2335,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		1. Get the package name from the symbol: the symbol's name for a ``PackageReferenceSymbol`` (``use lib.pkg;``), else
 		   its prefix (``use lib.pkg.all;``, ``use lib.pkg.item;``). Get the library name, the prefix of the package name.
-		   If the symbol is neither of the three package symbol types, raise an exception.
+		   If the symbol is neither of the three package symbol types, raise an exception. A ``PackageReferenceSymbol``
+		   ``x.y``, whose prefix ``x`` is neither ``work`` nor a visible library, but a visible package or interface package
+		   (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`), names the member ``y`` of package ``x`` (``use pkg.item;``,
+		   IEEE Std 1076-2008, 12.4).
 		2. If the use clause names a library (``use work.all;``, ``use lib.unit;``, the prefix is ``work`` or the visible
 		   name of a library (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`), and ``unit`` isn't a package
 		   of it):
@@ -2221,11 +2373,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		   * ``AllPackageMembersReferenceSymbol`` (``use lib.pkg.all;``): every declaration of the package, incl. the
 		     enumeration literals and physical units of its types
-		     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateDeclarations`).
+		     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateDeclarations`,
+		     :meth:`~pyVHDLModel.Namespace.Namespace.AddImports`).
 		   * ``PackageMemberReferenceSymbol`` (``use lib.pkg.item;``): every declaration of the package with the identifier
-		     ``item``, e.g. all overloads of a subprogram, and the enumeration literals and physical units of a type or of a
-		     subtype's base type (:meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations`). If there is none,
-		     raise an :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		     ``item``, e.g. all overloads of a subprogram
+		     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations`), and the enumeration literals and physical
+		     units of a type or of a subtype's base type
+		     (:meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberImplicitDeclarations`). If there is none, raise an
+		     :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		   * ``PackageReferenceSymbol`` (``use lib.pkg;``): the package itself.
 
 		:param designUnit:                          The design unit containing the use clause.
@@ -2269,8 +2424,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			libraryName =       packageName._prefix
 
 			# 'use lib.all;' or 'use lib.unit;' with a primary unit, which isn't a package: the prefix denotes a library.
-			library =        None
-			unitIdentifier = None
+			library =          None
+			unitIdentifier =   None
+			interfacePackage = None
+			isPackageMember =  isinstance(packageMemberSymbol, PackageMemberReferenceSymbol)
 			if libraryName is None:
 				if packageIdentifier == "work":
 					library = designUnit._parent
@@ -2288,8 +2445,17 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 				if library is not None and packageIdentifier in library._packages:
 					library = None
-				else:
+				elif library is not None:
 					unitIdentifier = packageIdentifier
+				elif any(
+					isinstance(declaration, (Package, InterfacePackage))
+					for declaration in namespace.Lookup(libraryIdentifier, useClause)._declarations
+				):
+					# 'use pkg.item;': the prefix denotes a visible package, e.g. a local or an interface package (12.4).
+					isPackageMember =   True
+					packageName =       libraryName
+					packageIdentifier = libraryIdentifier
+					libraryName =       None
 
 			if library is not None:
 				primaryUnitTables = (library._packages, library._entities, library._configurations, library._contexts)
@@ -2314,9 +2480,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 			if libraryName is None:
 
-				# 'use pkg.all;': the prefix denotes a visible package, e.g. made visible by 'use lib.pkg;'.
+				# 'use pkg.all;': the prefix denotes a visible package, e.g. made visible by 'use lib.pkg;', or an interface
+				# package of a generic clause.
 				result =   namespace.Lookup(packageIdentifier, useClause)
-				packages = [declaration for declaration in result._declarations if isinstance(declaration, Package)]
+				packages = [
+					declaration for declaration in result._declarations if isinstance(declaration, (Package, InterfacePackage))
+				]
 				if len(packages) == 0:
 					WarningCollector.Raise(UnresolvedNameWarning(
 						f"Prefix '{packageName._identifier}' of use clause '{name!s}' isn't a visible package.",
@@ -2328,6 +2497,19 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					continue
 
 				package = packages[0]
+				if isinstance(package, InterfacePackage):
+					interfacePackage = package
+					if interfacePackage._packageReference is None or interfacePackage._packageReference._reference is None:
+						WarningCollector.Raise(UnresolvedNameWarning(
+							f"Interface package '{interfacePackage._identifier}' of use clause '{name!s}' isn't linked to an "
+							"uninstantiated package.",
+							symbol=packageMemberSymbol,
+							place=useClause,
+							namespaces=result._searchedNamespaces
+						))
+						continue
+
+					package = interfacePackage._packageReference._reference
 			else:
 				libraryIdentifier = libraryName._normalizedIdentifier
 
@@ -2359,14 +2541,20 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					raise ex from cause
 
 				if isContextItem:
-					designUnit._referencedPackages.setdefault(libraryIdentifier, {})[packageIdentifier] = package
+					if (referencedPackages := designUnit._referencedPackages.get(libraryIdentifier)) is None:
+						designUnit._referencedPackages[libraryIdentifier] = {packageIdentifier: package}
+					else:
+						referencedPackages[packageIdentifier] = package
 
 				dependency =         designUnit._dependencyVertex.EdgeToVertex(package._dependencyVertex, edgeValue=useClause)
 				dependency["kind"] = DependencyGraphEdgeKind.UseClause
 
-			packageMemberSymbol._reference = package
+			if interfacePackage is not None:
+				packageMemberSymbol._reference = interfacePackage
+			else:
+				packageMemberSymbol._reference = package
 
-			if len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
+			if interfacePackage is None and len(package._genericItems) > 0 and not isinstance(package, PackageInstantiation):
 				WarningCollector.Raise(UnresolvedNameWarning(
 					f"Use clause '{name!s}' names the uninstantiated generic package '{package._identifier}'.",
 					symbol=packageMemberSymbol,
@@ -2376,14 +2564,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				continue
 
 			if isAll:
-				for normalizedIdentifier, declaration in package.IterateDeclarations():
-					namespace.AddImport(normalizedIdentifier, declaration, useClause)
+				namespace.AddImports(package.IterateDeclarations(), useClause)
 
-			elif isinstance(packageMemberSymbol, PackageReferenceSymbol):
-				namespace.AddImport(packageIdentifier, package, useClause)
+			elif not isPackageMember:
+				namespace.AddImport(packageIdentifier, packageMemberSymbol._reference, useClause)
 
 			else:
-				members = tuple(package.IterateMemberDeclarations(packageMemberSymbol._name._normalizedIdentifier))
+				memberIdentifier = packageMemberSymbol._name._normalizedIdentifier
+				members =          tuple(package.IterateMemberDeclarations(memberIdentifier))
 				if len(members) == 0:
 					WarningCollector.Raise(UnresolvedNameWarning(
 						f"Package '{package._identifier}' has no declaration '{packageMemberSymbol._name._identifier}'.",
@@ -2392,8 +2580,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 						namespaces=(package._namespace, )
 					))
 
-				for normalizedIdentifier, declaration in members:
-					namespace.AddImport(normalizedIdentifier, declaration, useClause)
+				for member in members:
+					namespace.AddImport(memberIdentifier, member, useClause)
+					for implicitDeclaration in package.IterateMemberImplicitDeclarations(member):
+						namespace.AddImport(implicitDeclaration.NormalizedDesignator, implicitDeclaration, useClause)
 
 	def LinkContextReferences(self) -> None:
 		"""
@@ -2500,7 +2690,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 					contextSymbol.Context = referencedContext
 
-					designUnit._referencedContexts.setdefault(libraryIdentifier, {})[contextIdentifier] = referencedContext
+					if (referencedContexts := designUnit._referencedContexts.get(libraryIdentifier)) is None:
+						designUnit._referencedContexts[libraryIdentifier] = {contextIdentifier: referencedContext}
+					else:
+						referencedContexts[contextIdentifier] = referencedContext
 
 					dependency = designUnit._dependencyVertex.EdgeToVertex(referencedContext._dependencyVertex, edgeValue=contextReference)
 					dependency["kind"] = DependencyGraphEdgeKind.ContextReference
@@ -2514,7 +2707,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					# 	raise VHDLModelException(f"Referenced library '{library.Identifier}' already exists in references for design unit '{designUnit.Identifier}'.")
 
 					designUnit._referencedLibraries[libraryIdentifier] = library
-					designUnit._referencedPackages.setdefault(libraryIdentifier, {})
+					if libraryIdentifier not in designUnit._referencedPackages:
+						designUnit._referencedPackages[libraryIdentifier] = {}
 
 				for libraryIdentifier, packages in context._referencedPackages.items():
 					for packageIdentifier, package in packages.items():
@@ -2913,6 +3107,18 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				newEdge["kind"] = kind
 
 	def ComputeCompileOrder(self) -> None:
+		"""
+		Compute the compile order of the design's documents from the dependency graph.
+
+		.. rubric:: Algorithm
+
+		1. Iterate the edges of the dependency graph, which make a design unit depend on another one: an implementation,
+		   an instantiation, a use clause or a context reference, whose destination isn't predefined.
+		2. Add an edge from the document of the source design unit to the document of the destination design unit in the
+		   compile-order graph (:data:`CompileOrderGraph`), unless both are the same document or the edge exists.
+		3. Add the same edge, of kind :data:`DependencyGraphEdgeKind.CompileOrder`, between the two document vertices of
+		   the dependency graph (:data:`DependencyGraph`).
+		"""
 		def predicate(edge: Edge) -> bool:
 			return (
 				DependencyGraphEdgeKind.Implementation in edge["kind"] or
@@ -2952,6 +3158,12 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		1. Resolve the type marks of all declarations. |br|
 		   |rarr| :meth:`ResolveTypeMarks`
+		2. Create the implicit operations of all full types and index them in the namespaces. |br|
+		   |rarr| :meth:`IndexImplicitOperations`
+		3. Resolve the names of the aliases with a signature to the selected overloads. |br|
+		   |rarr| :meth:`ResolveAliasSignatures`
+		4. Resolve the resolution function names of the subtype indications. |br|
+		   |rarr| :meth:`ResolveResolutionFunctions`
 
 		.. todo::
 
@@ -2968,8 +3180,17 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		:raises UnhandledCriticalWarningError: If no overload matches the signature of an alias, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If a resolution function name or a record element of a record resolution
+		                                       can't be resolved, and no :class:`~pyTooling.Warning.WarningCollector`
+		                                       collects the :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
 		self.ResolveTypeMarks()
+		self.IndexImplicitOperations()
+		self.ResolveAliasSignatures()
+		self.ResolveResolutionFunctions()
 
 	def ResolveTypeMarks(self) -> None:
 		"""
@@ -3021,6 +3242,21 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.DuplicateDeclarationWarning`.
 		"""
+		for designUnit in self._DesignUnitsInAnalysisOrder():
+			for region in designUnit.IterateDeclarationRegions():
+				if not region._areDeclaredItemsIndexed:
+					region.IndexDeclaredItems()
+
+				for item in region._Declarations():
+					item.ResolveReferences(designUnit, region)
+
+	def _DesignUnitsInAnalysisOrder(self) -> list[DesignUnit]:
+		"""
+		Return the design units with declared items in the order the object analysis visits them: the design units of the
+		predefined libraries (:attr:`Library.IsPredefined`), then those of all documents in compile order.
+
+		:returns: List of design units.
+		"""
 		designUnits = []
 		for library in self._libraries.values():
 			if library.IsPredefined:
@@ -3032,13 +3268,124 @@ class Design(ModelEntity, AllowBlackboxMixin):
 					if designUnit not in designUnits:
 						designUnits.append(designUnit)
 
+		return designUnits
+
+	def IndexImplicitOperations(self) -> None:
+		"""
+		Create the implicit operations of all full types (:attr:`~pyVHDLModel.Type.FullType.ImplicitOperations`) and index
+		them in the namespaces.
+
+		It's the second step of :meth:`AnalyzeObjects`, after the type marks are resolved (:meth:`ResolveTypeMarks`): the
+		operations an array type declares depend on its element type.
+
+		.. rubric:: Algorithm
+
+		1. Resolve the type marks of the implicit operations of the anonymous types of ``std.standard``
+		   (:attr:`Standard.AnonymousTypes <pyVHDLModel.STD.StandardPkg.Standard.AnonymousTypes>`) and add the operations
+		   to its namespace. A use clause imports them as declarations of the package
+		   (:meth:`Standard.IterateDeclarations <pyVHDLModel.STD.StandardPkg.Standard.IterateDeclarations>`).
+		2. Iterate the design units in the order of :meth:`ResolveTypeMarks` and their declarative regions: resolve the
+		   type marks of the implicit operations of each full type declared in a region, which name a type of
+		   ``std.standard`` (:meth:`~pyVHDLModel.Type.FullType.ResolveImplicitOperationTypeMarks`), and add the operations
+		   to the region's namespace (:meth:`~pyVHDLModel.Namespace.Namespace.AddImplicitOperations`).
+		3. Iterate them again: import the implicit operations of the full types imported into each region's namespace by
+		   a use clause (:meth:`~pyVHDLModel.Namespace.Namespace.ImportImplicitOperations`).
+
+		.. seealso::
+
+		   :meth:`ResetAnalysis`
+		     Reset everything an analysis derived, including the implicit operations in the namespaces.
+
+		:raises LibraryNotFoundError: If the design has no library ``std``. |br|
+		                              Call :meth:`LoadStdLibrary` before.
+		"""
+		if (std := self._libraries.get("std")) is None:
+			ex = LibraryNotFoundError("Library 'std' not found in design.", libraryName="std")
+			ex.add_note("Call 'LoadStdLibrary()' before analyzing a design.")
+			raise ex
+
+		standard = std._packages["standard"]
+		for anonymousType in standard._anonymousTypes.values():
+			anonymousType.ResolveImplicitOperationTypeMarks(standard)
+			standard._namespace.AddImplicitOperations(anonymousType)
+
+		designUnits = self._DesignUnitsInAnalysisOrder()
 		for designUnit in designUnits:
 			for region in designUnit.IterateDeclarationRegions():
-				if not region._areDeclaredItemsIndexed:
-					region.IndexDeclaredItems()
-
 				for item in region._Declarations():
-					item.ResolveReferences(designUnit, region)
+					if isinstance(item, FullType):
+						item.ResolveImplicitOperationTypeMarks(standard)
+						region._namespace.AddImplicitOperations(item)
+
+		for designUnit in designUnits:
+			for region in designUnit.IterateDeclarationRegions():
+				region._namespace.ImportImplicitOperations()
+
+	def ResolveAliasSignatures(self) -> None:
+		"""
+		Resolve the names of all aliases with a signature to the overload of the same parameter and result type profile.
+
+		It's the third step of :meth:`AnalyzeObjects`, after the type marks are resolved (:meth:`ResolveTypeMarks`) and the
+		implicit operations are indexed (:meth:`IndexImplicitOperations`): the type profiles of all overloads are known
+		then, the implicit operations' too.
+
+		.. rubric:: Algorithm
+
+		1. Iterate the design units in the order of :meth:`ResolveTypeMarks` and their declarative regions: resolve the
+		   name of each alias declared in a region (:meth:`~pyVHDLModel.Declaration.Alias.ResolveSignature`).
+
+		:raises UnhandledCriticalWarningError: If the name of an alias can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If no overload matches the signature of an alias, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		for designUnit in self._DesignUnitsInAnalysisOrder():
+			for region in designUnit.IterateDeclarationRegions():
+				for item in region._Declarations():
+					if isinstance(item, Alias):
+						item.ResolveSignature(region)
+
+	def ResolveResolutionFunctions(self) -> None:
+		"""
+		Resolve the resolution function names of all subtype indications to the functions resolving their types (IEEE Std
+		1076-2008, 4.6).
+
+		It's the fourth step of :meth:`AnalyzeObjects`, after the type marks are resolved (:meth:`ResolveTypeMarks`), the
+		implicit operations are indexed (:meth:`IndexImplicitOperations`) and the aliases with a signature are resolved
+		(:meth:`ResolveAliasSignatures`): the base types of the subtype indications and of the functions' parameters and
+		results are known then, an implicit operation can be a resolution function (e.g. ``maximum`` of
+		``integer_vector``), and so can an alias of a function.
+
+		.. rubric:: Algorithm
+
+		1. Iterate the design units in the order of :meth:`ResolveTypeMarks`, their declarative regions and the regions'
+		   declarations; resolve the resolution indication of each type mark of a declaration
+		   (:meth:`~pyVHDLModel.Base.ModelEntity.IterateTypeMarks`,
+		   :meth:`SubtypeSymbol.ResolveResolutionFunctions <pyVHDLModel.Symbol.SubtypeSymbol.ResolveResolutionFunctions>`):
+
+		   * A resolution function name resolves the base type of its subtype indication: it references the first function
+		     of its name visible at the declaration, which resolves the type
+		     (:meth:`Function.IsResolutionFunctionOf <pyVHDLModel.Subprogram.Function.IsResolutionFunctionOf>`).
+		   * An array element resolution resolves the element type of an array type.
+		   * A record resolution resolves each named record element's type; the record element symbol references the
+		     record element.
+
+		.. seealso::
+
+		   :meth:`ResetAnalysis`
+		     Reset everything an analysis derived, including the references of resolution function names.
+
+		:raises UnhandledCriticalWarningError: If a resolution function name or a record element of a record resolution
+		                                       can't be resolved, and no :class:`~pyTooling.Warning.WarningCollector`
+		                                       collects the :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		for designUnit in self._DesignUnitsInAnalysisOrder():
+			for region in designUnit.IterateDeclarationRegions():
+				for item in region._Declarations():
+					for typeMarkRegion, place, typeMark in item.IterateTypeMarks(region):
+						typeMark.ResolveResolutionFunctions(typeMarkRegion, place)
 
 	def IterateDocumentsInCompileOrder(self) -> Generator[Document, None, None]:
 		"""
@@ -4150,9 +4497,16 @@ class Document(ModelEntity, DocumentedEntityMixin):
 		self._designUnits.insert(index, designUnit)
 		designUnit._document = self
 		if isinstance(designUnit, Architecture):
-			self._architectures.setdefault(entityIdentifier, {})[identifier] = designUnit
+			if (architectures := self._architectures.get(entityIdentifier)) is None:
+				self._architectures[entityIdentifier] = {identifier: designUnit}
+			else:
+				architectures[identifier] = designUnit
+
 			if library is not None:
-				library._architectures.setdefault(entityIdentifier, {})[identifier] = designUnit
+				if (architectures := library._architectures.get(entityIdentifier)) is None:
+					library._architectures[entityIdentifier] = {identifier: designUnit}
+				else:
+					architectures[identifier] = designUnit
 		else:
 			documentUnits[identifier] = designUnit
 			if libraryUnits is not None:

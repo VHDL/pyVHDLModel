@@ -562,7 +562,15 @@ class File(Obj):
 	"""
 	Represents a file.
 
-	.. todo:: File object not implemented.
+	A file declaration may open the file: the file open information names the file's logical name and optionally the
+	file open kind (IEEE Std 1076-2008, 6.4.2.5).
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      file input : text open read_mode is "STD_INPUT";
+	      --                     ^^^^^^^^^    ^^^^^^^^^^^   <- OpenKind, LogicalName
 
 	.. seealso::
 
@@ -571,13 +579,99 @@ class File(Obj):
 
 	_OBJECT_KEYWORD: ClassVar[tuple[ReservedWord, ...]] = (ReservedWord.File,)  #: The reserved words introducing this object class.
 
+	_openKind:    Nullable[ExpressionUnion]  #: The file open kind expression, or ``None`` if none was given.
+	_logicalName: Nullable[ExpressionUnion]  #: The file logical name expression, or ``None`` if the file isn't opened.
+
+	def __init__(
+		self,
+		identifiers:   Iterable[str],
+		subtype:       Symbol,
+		documentation: Nullable[str] =             None,
+		parent:        Nullable[ModelEntity] =     None,
+		*,
+		openKind:      Nullable[ExpressionUnion] = None,
+		logicalName:   Nullable[ExpressionUnion] = None
+	) -> None:
+		"""
+		Initializes a file declaration.
+
+		:param identifiers:   A list of identifiers.
+		:param subtype:       Reference to the object's subtype.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param openKind:      Optional, the file open kind expression. Default: ``None``, no file open kind (the file is
+		                      opened for reading, if it has a logical name).
+		:param logicalName:   Optional, the file logical name expression. Default: ``None``, the file isn't opened.
+		:raises ValueError:   If parameter 'openKind' is given without parameter 'logicalName'.
+		"""
+		super().__init__(identifiers, subtype, documentation, parent)
+
+		if openKind is not None and logicalName is None:
+			ex = ValueError("Parameter 'openKind' is given without parameter 'logicalName'.")
+			ex.add_note("A file open kind is part of the file open information, which needs a file logical name.")
+			raise ex
+
+		self._openKind = openKind
+		if openKind is not None:
+			openKind.Parent = self
+
+		self._logicalName = logicalName
+		if logicalName is not None:
+			logicalName.Parent = self
+
+	@readonly
+	def OpenKind(self) -> Nullable[ExpressionUnion]:
+		"""
+		Read-only property to access the file open kind expression (:attr:`_openKind`).
+
+		:returns: The file open kind expression, or ``None`` if not set.
+		"""
+		return self._openKind
+
+	@readonly
+	def LogicalName(self) -> Nullable[ExpressionUnion]:
+		"""
+		Read-only property to access the file logical name expression (:attr:`_logicalName`).
+
+		:returns: The file logical name expression, or ``None`` if not set.
+		"""
+		return self._logicalName
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this file declaration.
+
+		The copy has no parent and no object vertex. Its subtype, file open kind and file logical name are copies of this
+		declaration's.
+
+		:returns: The new file declaration.
+		"""
+		openKind =    None if self._openKind is None else self._openKind.Copy()
+		logicalName = None if self._logicalName is None else self._logicalName.Copy()
+		return self.__class__(
+			self._identifiers,
+			self._subtype.Copy(),
+			self._documentation,
+			openKind=openKind,
+			logicalName=logicalName
+		)
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this file declaration, its subtype with a visitor.
+		Walk this file declaration, its subtype and its file open information with a visitor.
 
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitFile(self)
 		self._subtype.Visit(visitor)
+		if self._logicalName is not None:
+			if self._openKind is not None:
+				visitor.VisitOpen(self)
+				self._openKind.Visit(visitor)
+
+			visitor.VisitIs(self)
+			self._logicalName.Visit(visitor)
+
 		visitor.VisitTerminator(self)
 		visitor.DepartFile(self)

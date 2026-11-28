@@ -160,7 +160,7 @@ class VHDLLibrary(Testcase):
 
 		design.CreateDependencyGraph()
 
-		self.assertEqual(39, design.DependencyGraph.VertexCount)
+		self.assertEqual(41, design.DependencyGraph.VertexCount)
 
 	def test_LinkContexts(self) -> None:
 		design = self.CreateDesign()
@@ -192,6 +192,7 @@ class VHDLLibrary(Testcase):
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
+		design.IndexPackages()
 		design.LinkArchitectures()
 		design.LinkPackageBodies()
 		design.LinkLibraryReferences()
@@ -201,6 +202,7 @@ class VHDLLibrary(Testcase):
 		design = self.CreateDesign()
 
 		design.CreateDependencyGraph()
+		design.IndexPackages()
 		design.LinkContexts()
 		design.LinkArchitectures()
 		design.LinkPackageBodies()

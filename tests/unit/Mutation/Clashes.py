@@ -542,3 +542,75 @@ class ImportedItems(Testcase):
 		entity.AddPortItem(port)
 
 		self.assertIs(port, entity._namespace._elements["clock"])
+
+
+class DeclaredItemsIndex(Testcase):
+	"""The index of declared items by name follows every mutation, so a clash is found after each of them."""
+
+	def test_Constructor(self) -> None:
+		"""Declared items passed to the constructor are found."""
+		package = Package("p", declaredItems=[_constant("K")])
+
+		with self.assertRaises(DuplicateConstantError):
+			package.AddDeclaredItem(_constant("K"))
+
+	def test_Append(self) -> None:
+		"""An appended declared item extends the index."""
+		package = Package("p")
+		package.AddDeclaredItem(_constant("A"))
+		package.AddDeclaredItem(_constant("B"))
+
+		with self.assertRaises(DuplicateConstantError):
+			package.AddDeclaredItem(_constant("B"))
+
+	def test_Insert(self) -> None:
+		"""A declared item inserted before others is found."""
+		package = Package("p")
+		package.AddDeclaredItem(_constant("A"))
+		package.InsertDeclaredItem(0, _constant("B"))
+
+		with self.assertRaises(DuplicateConstantError):
+			package.AddDeclaredItem(_constant("B"))
+
+	def test_Remove(self) -> None:
+		"""A removed declared item is no clash any more."""
+		package =  Package("p")
+		constant = _constant("A")
+		package.AddDeclaredItem(constant)
+		package.RemoveDeclaredItem(constant)
+		again = _constant("A")
+
+		package.AddDeclaredItem(again)
+
+		self.assertListEqual([again], package._declaredItems)
+
+	def test_Move(self) -> None:
+		"""A moved declared item is still found."""
+		package = Package("p")
+		package.AddDeclaredItem(_constant("A"))
+		moved = _constant("B")
+		package.AddDeclaredItem(moved)
+		package.MoveDeclaredItem(moved, 0)
+
+		with self.assertRaises(DuplicateConstantError):
+			package.AddDeclaredItem(_constant("B"))
+
+	def test_Split(self) -> None:
+		"""Each identifier of a split declaration is found."""
+		package = Package("p")
+		package.AddDeclaredItem(_constant("A", "B"))
+		package.SplitDeclaredItem(package._declaredItems[0])
+
+		with self.assertRaises(DuplicateConstantError):
+			package.AddDeclaredItem(_constant("B"))
+
+	def test_Overloads(self) -> None:
+		"""The overloads of a subprogram are found in declaration order."""
+		package = Package("p")
+		first =   _function("f")
+		second =  _function("f")
+		package.AddDeclaredItem(first)
+		package.AddDeclaredItem(_constant("K"))
+		package.AddDeclaredItem(second)
+
+		self.assertListEqual([first, second], package._DeclaredItemsNamed({"f"}))

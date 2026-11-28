@@ -32,13 +32,18 @@
 from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Association     import GenericAssociationItem, PortAssociationItem, ParameterAssociationItem
+from pyVHDLModel.Base            import Direction, SimpleRange
 from pyVHDLModel.Exception       import VHDLWriterError
+from pyVHDLModel.Expression      import CharacterLiteral, IntegerLiteral
 from pyVHDLModel.Formatting.VHDL import VHDLWriter
 from pyVHDLModel.Name            import SimpleName, ParenthesisName, SelectedName, AllName, OpenName
 from pyVHDLModel.Object          import Signal
 from pyVHDLModel.Symbol          import LibraryReferenceSymbol, AllPackageMembersReferenceSymbol, \
                                         EntityInstantiationSymbol, SignalSymbol, SimpleSubtypeSymbol, \
-                                        IndexedObjectOrFunctionCallSymbol
+                                        IndexedObjectOrFunctionCallSymbol, ConstrainedScalarSubtypeSymbol, \
+                                        ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
+                                        RecordElementSymbol, ArrayElementConstraint, ResolutionFunctionSymbol, \
+                                        ArrayElementResolution, RecordResolution, RecordElementResolution
 
 from tests.unit                  import _subtypeSymbol
 from tests.unit.Writer           import _object
@@ -86,6 +91,72 @@ class Symbols(Testcase):
 		]))
 
 		self.assertEqual("rising_edge(clk)", VHDLWriter().Format(symbol))
+
+
+class ResolutionIndications(Testcase):
+	"""A resolution indication is written before the type mark of its subtype indication."""
+
+	def test_ResolutionFunction(self) -> None:
+		symbol = SimpleSubtypeSymbol(SimpleName("std_ulogic"), resolution=ResolutionFunctionSymbol(SimpleName("resolved")))
+
+		self.assertEqual("resolved std_ulogic", VHDLWriter().Format(symbol))
+
+	def test_ResolutionFunction_SelectedName(self) -> None:
+		resolution = ResolutionFunctionSymbol(SelectedName("resolved", SelectedName("p", SimpleName("work"))))
+		symbol =     SimpleSubtypeSymbol(SimpleName("std_ulogic"), resolution=resolution)
+
+		self.assertEqual("work.p.resolved std_ulogic", VHDLWriter().Format(symbol))
+
+	def test_ArrayElementResolution(self) -> None:
+		resolution = ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		symbol =     SimpleSubtypeSymbol(SimpleName("std_ulogic_vector"), resolution=resolution)
+
+		self.assertEqual("(resolved) std_ulogic_vector", VHDLWriter().Format(symbol))
+
+	def test_ArrayElementResolution_Nested(self) -> None:
+		resolution = ArrayElementResolution(ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved"))))
+		symbol =     SimpleSubtypeSymbol(SimpleName("matrix"), resolution=resolution)
+
+		self.assertEqual("((resolved)) matrix", VHDLWriter().Format(symbol))
+
+	def test_RecordResolution(self) -> None:
+		resolution = RecordResolution([
+			RecordElementResolution(RecordElementSymbol(SimpleName("a")), ResolutionFunctionSymbol(SimpleName("resolved"))),
+			RecordElementResolution(
+				RecordElementSymbol(SimpleName("b")),
+				ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+			)
+		])
+		symbol =     SimpleSubtypeSymbol(SimpleName("pair_t"), resolution=resolution)
+
+		self.assertEqual("(a resolved, b (resolved)) pair_t", VHDLWriter().Format(symbol))
+
+	def test_ConstrainedScalarSubtypeSymbol(self) -> None:
+		constraint = SimpleRange(CharacterLiteral("X"), CharacterLiteral("1"), Direction.To)
+		resolution = ResolutionFunctionSymbol(SimpleName("resolved"))
+		symbol =     ConstrainedScalarSubtypeSymbol(SimpleName("std_ulogic"), constraint, resolution=resolution)
+
+		self.assertEqual("resolved std_ulogic range 'X' to '1'", VHDLWriter().Format(symbol))
+
+	def test_ConstrainedArraySubtypeSymbol(self) -> None:
+		constraint = SimpleRange(IntegerLiteral(7), IntegerLiteral(0), Direction.DownTo)
+		resolution = ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		symbol =     ConstrainedArraySubtypeSymbol(SimpleName("std_ulogic_vector"), [constraint], resolution=resolution)
+
+		self.assertEqual("(resolved) std_ulogic_vector(7 downto 0)", VHDLWriter().Format(symbol))
+
+	def test_ConstrainedRecordSubtypeSymbol(self) -> None:
+		constraint = ArrayElementConstraint([SimpleRange(IntegerLiteral(3), IntegerLiteral(0), Direction.DownTo)])
+		resolution = RecordResolution([
+			RecordElementResolution(RecordElementSymbol(SimpleName("a")), ResolutionFunctionSymbol(SimpleName("resolved")))
+		])
+		symbol =     ConstrainedRecordSubtypeSymbol(
+			SimpleName("pair_t"),
+			{RecordElementSymbol(SimpleName("b")): constraint},
+			resolution=resolution
+		)
+
+		self.assertEqual("(a resolved) pair_t(b(3 downto 0))", VHDLWriter().Format(symbol))
 
 
 class AssociationItems(Testcase):

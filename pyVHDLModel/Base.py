@@ -61,9 +61,14 @@ ExpressionUnion = Union[
 	'QualifiedExpression',
 	'FunctionCall',
 	'TypeConversion',
-	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
+	'Symbol',
 ]
+"""
+An expression in the model: an operation, a qualified expression, a function call, a type conversion, a literal, or a
+name in an expression, which is a symbol (e.g. :class:`~pyVHDLModel.Symbol.SimpleObjectOrFunctionCallSymbol` for
+``read_mode``, :class:`~pyVHDLModel.Symbol.IndexedObjectOrFunctionCallSymbol` for ``TIME'HIGH``).
+"""
 
 
 @export
@@ -355,13 +360,15 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		"""
 		return False
 
-	def IterateImplicitDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+	def IterateImplicitDeclarations(self) -> Generator[ModelEntity, None, None]:
 		"""
 		Iterate the declarations this declaration implies.
 
-		An enumerated type implies its enumeration literals, a physical type its units; they override this method.
+		A full type implies its implicit operations, an enumerated type also its enumeration literals, a physical type
+		its units; they override this method. Each implied declaration provides the key it's indexed by in a namespace
+		as ``NormalizedDesignator``.
 
-		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order: none.
+		:returns: A generator to iterate the implied declarations, in declaration order: none.
 		"""
 		yield from ()
 
@@ -399,7 +406,8 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
-		Reset the references :meth:`ResolveReferences` derived: the references of this declaration's type marks.
+		Reset the references :meth:`ResolveReferences` derived: the references of this declaration's type marks, and those
+		of their resolution indications (:meth:`~pyVHDLModel.Design.ResolveResolutionFunctions`).
 
 		A use clause, an alias and a subtype extend this method.
 
@@ -408,6 +416,7 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		"""
 		for _, _, typeMark in self.IterateTypeMarks(region):
 			typeMark._reference = None
+			typeMark.ResetResolutionFunctions()
 
 	def DenoteBy(
 		self,

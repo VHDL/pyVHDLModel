@@ -55,9 +55,11 @@ from pyVHDLModel.Exception     import InstantiationNotLinkedError, \
                                       PackageNotFoundError, ContextNotFoundError, NotLinkedError, \
                                       LibraryReferenceNotLinkedError, UnknownKindError, UnknownSymbolKindError, \
                                       NotAGenericPackageError
+from pyVHDLModel.Expression    import IntegerLiteral
 from pyVHDLModel.Instantiation import PackageInstantiation
 from pyVHDLModel.Interface     import GenericTypeInterfaceItem
 from pyVHDLModel.Name          import SelectedName, SimpleName
+from pyVHDLModel.Object        import Constant
 from pyVHDLModel.Symbol        import ContextReferenceSymbol, EntityInstantiationSymbol, LibraryReferenceSymbol, \
                                       PackageReferenceSymbol
 from pyVHDLModel.Type          import Subtype
@@ -240,6 +242,68 @@ class UsePackage(Testcase):
 		_design(Entity("e"), architecture)
 
 		self.assertTupleEqual((localType, ), architecture._namespace.Lookup("t", signal).Declarations)
+
+	def test_LocalPackage_EnclosingRegions(self) -> None:
+		"""A local package's declarations see the enclosing regions: ``integer`` and a type of the architecture."""
+		localType =    _enumeration("T", "a", "b")
+		standard =     _constant("K", "integer")
+		enclosing =    _constant("L", "T")
+		localPackage = Package("lp", declaredItems=[standard, enclosing])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[localType, localPackage])
+		with WarningCollector() as collector:
+			design = _design(Entity("e"), architecture, analyze=False)
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		self.assertIs(design.Libraries["std"].Packages["standard"].Types["integer"], standard.Subtype.Reference)
+		self.assertIs(localType, enclosing.Subtype.Reference)
+
+	def test_LocalPackage_DeclaredAfter(self) -> None:
+		"""A type of the architecture declared after the local package isn't visible in it."""
+		constant =     _constant("L", "T")
+		architecture = Architecture(
+			"rtl",
+			_entitySymbol("e"),
+			declaredItems=[Package("lp", declaredItems=[constant]), _enumeration("T", "a")]
+		)
+		with WarningCollector() as collector:
+			_design(Entity("e"), architecture, analyze=False).Analyze()
+
+		self.assertListEqual(["Type mark 'T' not found in: lp, rtl, e."], [str(warning) for warning in collector.Warnings])
+		self.assertIsNone(constant.Subtype.Reference)
+
+	def test_LocalPackage_Item(self) -> None:
+		"""``use lp.T;``: the prefix of the two-part name denotes a local package, not a library (12.4)."""
+		localType =    _enumeration("T", "a", "b")
+		localPackage = Package("lp", declaredItems=[localType, _enumeration("U", "c")])
+		signal =       _signal("s", "T")
+		useClause =    _use("lp.T")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[localPackage, useClause, signal])
+		_design(Entity("e"), architecture)
+
+		self.assertTupleEqual((localType, ), architecture._namespace.Lookup("t", signal).Declarations)
+		self.assertFalse(architecture._namespace.Lookup("u", signal).IsVisible)
+		self.assertIs(localPackage, useClause.Symbols[0].Reference)
+
+	def test_SimpleNamePrefix_Item(self) -> None:
+		"""``use work.p; use p.K;``: the prefix ``p`` denotes the visible package; ``K`` is imported, ``L`` isn't."""
+		constant = _constant("K", "integer")
+		package =  Package("p", declaredItems=[constant, _constant("L", "integer")])
+		entity =   Entity("e", [_use("work.p"), _use("p.K")])
+		_design(package, entity)
+
+		self.assertTupleEqual((constant, ), entity._namespace.Lookup("k").Declarations)
+		self.assertFalse(entity._namespace.Lookup("l").IsVisible)
+
+	def test_LocalPackage_Item_NotDeclared(self) -> None:
+		"""``use lp.X;`` of a member the local package doesn't declare is reported."""
+		localPackage = Package("lp", declaredItems=[_enumeration("T", "a")])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[localPackage, _use("lp.X")])
+		with WarningCollector() as collector:
+			_design(Entity("e"), architecture, analyze=False).Analyze()
+
+		messages = [str(warning) for warning in collector.Warnings if isinstance(warning, UnresolvedNameWarning)]
+		self.assertListEqual(["Package 'lp' has no declaration 'X'."], messages)
 
 
 class UseLibrary(Testcase):
@@ -1093,25 +1157,45 @@ class PackageDeclarations(Testcase):
 	"""The declarations of a package a use clause can make potentially visible."""
 
 	def test_IterateDeclarations(self) -> None:
-		"""A declared item, then the enumeration literals of an enumerated type."""
+		"""The declared items; their implied declarations come from each item."""
 		constant =   _constant("K", "integer")
 		enumerated = _enumeration("T", "a", "'b'")
 		package =    Package("p", declaredItems=[constant, enumerated])
 
 		self.assertListEqual(
-			[("k", constant), ("t", enumerated), ("a", enumerated.Literals[0]), ("'b'", enumerated.Literals[1])],
+			[constant, enumerated],
 			list(package.IterateDeclarations())
 		)
 
 	def test_IterateMemberDeclarations(self) -> None:
-		"""The member with its identifier, and the enumeration literals of a type."""
+		"""The declarations with the member's identifier."""
 		enumerated = _enumeration("T", "a")
 		package =    Package("p", declaredItems=[_constant("K", "integer"), enumerated])
 
-		self.assertListEqual(
-			[("t", enumerated), ("a", enumerated.Literals[0])],
-			list(package.IterateMemberDeclarations("t"))
-		)
+		self.assertListEqual([enumerated], list(package.IterateMemberDeclarations("t")))
+
+	def test_IterateMemberDeclarations_MultipleNamed(self) -> None:
+		"""A member of a multiple-named declaration (``constant A, B : integer``) is found by each of its identifiers."""
+		constant = Constant(("A", "B"), _subtypeSymbol("integer"), IntegerLiteral(1))
+		package =  Package("p", declaredItems=[constant])
+
+		self.assertListEqual([constant], list(package.IterateMemberDeclarations("b")))
+
+	def test_IterateMemberImplicitDeclarations(self) -> None:
+		"""A type brings its enumeration literals along."""
+		enumerated = _enumeration("T", "a")
+		package =    Package("p", declaredItems=[enumerated])
+
+		self.assertListEqual([enumerated.Literals[0]], list(package.IterateMemberImplicitDeclarations(enumerated)))
+
+	def test_IterateMemberImplicitDeclarations_Subtype(self) -> None:
+		"""A subtype brings those of its base type along, found by simple names in the package."""
+		enumerated = _enumeration("T", "a")
+		subtype =    Subtype("S", _subtypeSymbol("T"))
+		package =    Package("p", declaredItems=[enumerated, subtype])
+		package.IndexDeclaredItems()
+
+		self.assertListEqual([enumerated.Literals[0]], list(package.IterateMemberImplicitDeclarations(subtype)))
 
 
 class LinkingOrder(Testcase):

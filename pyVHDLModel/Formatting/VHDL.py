@@ -102,10 +102,11 @@ from pyVHDLModel.Sequential    import IndexedChoice, SequentialProcedureCall, Se
                                       ElseBranch, IfStatement, SequentialCase, Case, OthersCase, CaseStatement, \
                                       LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
                                       LoopControlStatement, NextStatement, ExitStatement
-from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function
-from pyVHDLModel.Symbol        import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
+from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function, SubprogramSignature
+from pyVHDLModel.Symbol        import SubtypeSymbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
                                       ConstrainedRecordSubtypeSymbol, ArrayElementConstraint, \
-                                      RecordElementConstraint, AggregateSymbol
+                                      RecordElementConstraint, AggregateSymbol, ArrayElementResolution, \
+                                      RecordResolution, RecordElementResolution
 from pyVHDLModel.Type          import AnonymousType, FullType, Subtype, EnumeratedType, IntegerType, RealType, \
                                       PhysicalType, ArrayType, RecordTypeElement, RecordType, AccessType, FileType, \
                                       ProtectedType, ProtectedTypeBody
@@ -1018,12 +1019,13 @@ class VHDLWriter(Visitor):
 	def VisitElementSeparator(
 		self,
 		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
-		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol
+		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol |
+		         SubprogramSignature | RecordResolution
 	) -> None:
 		"""
-		Write the comma between two elements of a parenthesized list, which is no association list.
+		Write the comma between two elements of a parenthesized or bracketed list, which is no association list.
 
-		**Format:** ``m(i, j)`` or ``(Idle, Busy)``
+		**Format:** ``m(i, j)``, ``(Idle, Busy)`` or ``[natural, natural]``
 
 		:param element: The element containing the list.
 		"""
@@ -2045,18 +2047,19 @@ class VHDLWriter(Visitor):
 
 	def VisitIs(
 		self,
-		element: ModeViewDeclaration | Alias | AttributeSpecification | Subprogram | Architecture | Configuration |
+		element: ModeViewDeclaration | Alias | AttributeSpecification | File | Subprogram | Architecture | Configuration |
 		         ProcessStatement | CaseStatement
 	) -> None:
 		"""
 		Write the reserved word ``is`` ending the header of a declaration; its body is indented.
 
-		In an alias declaration and an attribute specification, the name or the expression follows on the same line. A
-		subprogram without declared items and statements is a subprogram declaration, which has no ``is``.
+		In an alias declaration, an attribute specification and a file declaration, the name, the expression or the file
+		logical name follows on the same line. A subprogram without declared items and statements is a subprogram
+		declaration, which has no ``is``.
 
 		:param element: The declaration.
 		"""
-		if isinstance(element, (Alias, AttributeSpecification)):
+		if isinstance(element, (Alias, AttributeSpecification, File)):
 			self._Write(f" {self._Keyword(ReservedWord.Is)} ")
 			self._minimum = OperatorPrecedence.Range
 		elif isinstance(element, Subprogram) and not self._IsSubprogramBody(element):
@@ -2116,6 +2119,64 @@ class VHDLWriter(Visitor):
 		Write the right parenthesis of a record constraint.
 
 		:param element: The constrained subtype symbol or the record element constraint.
+		"""
+		self._Write(")")
+
+	def VisitResolutionIndication(self, element: SubtypeSymbol | RecordElementResolution) -> None:
+		"""
+		Write the space between a record element and its resolution indication.
+
+		**Format:** ``(a resolved, b (resolved))``
+
+		:param element: The subtype symbol or the record element resolution.
+		"""
+		if isinstance(element, RecordElementResolution):
+			self._Write(" ")
+
+	def DepartResolutionIndication(self, element: SubtypeSymbol | RecordElementResolution) -> None:
+		"""
+		Write the space between the resolution indication of a subtype indication and its type mark.
+
+		**Format:** ``resolved std_ulogic``
+
+		:param element: The subtype symbol or the record element resolution.
+		"""
+		if isinstance(element, SubtypeSymbol):
+			self._Write(" ")
+
+	def VisitArrayElementResolution(self, resolution: ArrayElementResolution) -> None:
+		"""
+		Write the left parenthesis of an array element resolution.
+
+		**Format:** ``(resolved) std_ulogic_vector``
+
+		:param resolution: The array element resolution.
+		"""
+		self._Write("(")
+
+	def DepartArrayElementResolution(self, resolution: ArrayElementResolution) -> None:
+		"""
+		Write the right parenthesis of an array element resolution.
+
+		:param resolution: The array element resolution.
+		"""
+		self._Write(")")
+
+	def VisitRecordResolution(self, resolution: RecordResolution) -> None:
+		"""
+		Write the left parenthesis of a record resolution.
+
+		**Format:** ``(a resolved, b (resolved)) pair_t``
+
+		:param resolution: The record resolution.
+		"""
+		self._Write("(")
+
+	def DepartRecordResolution(self, resolution: RecordResolution) -> None:
+		"""
+		Write the right parenthesis of a record resolution.
+
+		:param resolution: The record resolution.
 		"""
 		self._Write(")")
 
@@ -2234,13 +2295,20 @@ class VHDLWriter(Visitor):
 		"""
 		Write the reserved word ``file`` and the identifiers of a file declaration.
 
-		**Format:** ``file input : text;``
-
-		The model carries no file open information, so none is written.
+		**Format:** ``file input : text;`` or ``file input : text open read_mode is "STD_INPUT";``
 
 		:param file: The file declaration.
 		"""
 		self._WriteObjectDeclaration(file)
+
+	def VisitOpen(self, file: File) -> None:
+		"""
+		Write the reserved word ``open`` before the file open kind of a file declaration.
+
+		:param file: The file declaration.
+		"""
+		self._Write(f" {self._Keyword(ReservedWord.Open)} ")
+		self._minimum = OperatorPrecedence.Range
 
 	def VisitGenericConstantInterfaceItem(self, item: GenericConstantInterfaceItem) -> None:
 		"""
@@ -2534,8 +2602,6 @@ class VHDLWriter(Visitor):
 
 		**Format:** ``subtype byte is bit_vector(7 downto 0);``
 
-		The model's resolution function of a subtype is not written.
-
 		:param subtype: The subtype declaration.
 		"""
 		self._WriteIndentation()
@@ -2689,6 +2755,24 @@ class VHDLWriter(Visitor):
 		if alias.Subtype is not None:
 			self._Write(" : ")
 
+	def VisitSubprogramSignature(self, signature: SubprogramSignature) -> None:
+		"""
+		Write the left bracket of a signature, after the name of an alias declaration.
+
+		**Format:** ``alias to_slv is to_stdlogicvector [bit_vector return std_logic_vector];``
+
+		:param signature: The signature.
+		"""
+		self._Write(" [")
+
+	def DepartSubprogramSignature(self, signature: SubprogramSignature) -> None:
+		"""
+		Write the right bracket of a signature.
+
+		:param signature: The signature.
+		"""
+		self._Write("]")
+
 	def VisitAttribute(self, attribute: Attribute) -> None:
 		"""
 		Write the reserved word ``attribute`` and the identifier of an attribute declaration.
@@ -2757,13 +2841,18 @@ class VHDLWriter(Visitor):
 
 		return subprogram.Parent is not None and not isinstance(subprogram.Parent, (Package, ProtectedType))
 
-	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem) -> None:
+	def VisitReturn(self, function: Function | GenericFunctionInterfaceItem | SubprogramSignature) -> None:
 		"""
-		Write the reserved word ``return`` before the return type of a function.
+		Write the reserved word ``return`` before the return type of a function, or of a function's signature.
 
-		:param function: The function.
+		**Format:** ``function f return natural``, ``[bit return natural]`` or ``[return natural]``
+
+		:param function: The function, or the signature.
 		"""
-		self._Write(f" {self._Keyword(ReservedWord.Return)} ")
+		if isinstance(function, SubprogramSignature) and len(function._parameterTypes) == 0:
+			self._Write(f"{self._Keyword(ReservedWord.Return)} ")
+		else:
+			self._Write(f" {self._Keyword(ReservedWord.Return)} ")
 
 	def VisitFormalParameterList(self, element: WithParametersMixin) -> None:
 		"""

@@ -6,6 +6,332 @@ News
 See :gh:`pyVHDLModel Release Pages <VHDL/pyVHDLModel/releases>` for detail release notes on every release.
 
 
+Version 0.45.0 (2026)
+*********************
+
+.. topic:: :gh:`v0.45.0 - unreleased <VHDL/pyVHDLModel/releases/v0.45.0>`
+
+   .. rubric:: New Features
+
+   * New class :class:`~pyVHDLModel.Subprogram.Operator`: a function whose designator is an operator symbol.
+   * A full type declares its predefined operations (IEEE Std 1076-2008, 5) as
+     :class:`~pyVHDLModel.Subprogram.PredefinedOperator` and :class:`~pyVHDLModel.Subprogram.PredefinedFunction`
+     objects (:data:`~pyVHDLModel.Type.FullType.ImplicitOperations`): equality for every type except file and protected
+     types; ordering, ``MINIMUM``, ``MAXIMUM`` and ``TO_STRING`` for scalar types; the arithmetic operators of integer,
+     floating-point and physical types. The analysis indexes them after the type marks are resolved (see *Changes*).
+   * Package ``std.standard`` declares what IEEE Std 1076-2008, 16.3 lists, in its order: new are the subtype
+     ``delay_length``, the function ``now``, the type ``real_vector`` and the attribute ``foreign``. The types
+     ``boolean`` and ``bit`` (:class:`~pyVHDLModel.STD.StandardPkg.Boolean`, :class:`~pyVHDLModel.STD.StandardPkg.Bit`)
+     declare the logical operators, ``bit`` also the condition operator ``??`` and the matching relational operators.
+   * Package ``std.textio`` declares what IEEE Std 1076-2008, 16.4 lists, in its order: the types ``text`` and
+     ``side``, the subtype ``width``, the function ``justify``, the files ``input`` and ``output``, and the procedures
+     ``readline``, ``read``, ``sread``, ``oread``, ``hread``, ``writeline``, ``tee``, ``write``, ``owrite`` and
+     ``hwrite`` with all their overloads.
+   * Package ``std.env`` declares what IEEE Std 1076-2008, 16.5 lists: the procedures ``stop`` and ``finish``, each
+     with and without a ``STATUS`` parameter, and the function ``resolution_limit``.
+   * A one-dimensional array type declares, depending on its element type, the concatenation operator ``&``, the
+     ordering operators and ``MINIMUM``/``MAXIMUM`` (discrete elements), ``MINIMUM``/``MAXIMUM`` of its elements
+     (scalar elements), the logical, shift and logical reduction operators (``bit``, ``boolean``), the matching
+     operators ``?=``/``?/=`` (``bit``) and ``TO_STRING`` (elements of a character type with only character literals).
+     The new :class:`~pyVHDLModel.Type.MatchingOperatorsMixin` marks the element types with matching operators.
+   * Package ``ieee.math_real`` declares what IEEE Std 1076-2008, 16.8.2 lists: the constant ``copyrightnotice``, the
+     mathematical constants (``math_e``, ``math_pi``, ...), the functions and operators ``"mod"`` and ``"**"`` on
+     ``real``, and the procedure ``uniform``.
+   * Package ``ieee.math_complex`` (:class:`~pyVHDLModel.IEEE.MathComplexPkg.Math_Complex`) declares what IEEE Std
+     1076-2008, 16.8.3 lists, in its order: the record types ``complex`` and ``complex_polar``, the subtypes
+     ``positive_real`` and ``principal_value``, the constants ``math_cbase_1``, ``math_cbase_j`` and ``math_czero``, and
+     58 operators and functions, e.g. ``"+"`` of two complex numbers or of a complex number and a ``real``.
+   * Package ``ieee.numeric_std`` (:class:`~pyVHDLModel.IEEE.NumericStdPkg.Numeric_Std`) declares what the VHDL-2008
+     package lists, in its order: the constant ``CopyRightNotice``, the subtypes ``u_unsigned`` and ``u_signed``, 232
+     functions (arithmetic, relational, matching, shift, conversion and logical operators and functions) and 18
+     procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). Its declarations have the package
+     as parent.
+   * Package ``ieee.numeric_bit`` (:class:`~pyVHDLModel.IEEE.NumericBitPkg.Numeric_Bit`) declares what the VHDL-2008
+     package lists, in its order: the constant ``CopyRightNotice``, the types ``unsigned`` and ``signed``, 218
+     functions (arithmetic, relational, matching, shift, conversion and logical operators and functions) and 18
+     procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). Its declarations have the package
+     as parent.
+   * Package ``ieee.std_logic_1164`` declares what IEEE Std 1076-2008, 16.7 lists, in its order: the types
+     ``std_ulogic`` (:class:`~pyVHDLModel.IEEE.StdLogic1164Pkg.StdULogic`, with the matching relational operators) and
+     ``std_ulogic_vector``, the function ``resolved``, the subtypes ``std_logic``, ``std_logic_vector``, ``x01``,
+     ``x01z``, ``ux01``, ``ux01z``, the logical and shift operators, the conversion functions, ``"??"``,
+     ``rising_edge``, ``falling_edge``, ``is_x``, ``to_ostring``, ``to_hstring`` and the ``read``/``write`` procedures.
+   * Package ``ieee.numeric_std_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericStdUnsignedPkg.Numeric_Std_Unsigned`)
+     declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 79 functions
+     (arithmetic, relational, matching, shift and conversion operators and functions on ``std_ulogic_vector``). Its
+     declarations have the package as parent.
+   * Package ``ieee.numeric_bit_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericBitUnsignedPkg.Numeric_Bit_Unsigned`)
+     declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 81 functions
+     (arithmetic, relational, matching, shift and conversion operators and functions on ``bit_vector``). Its
+     declarations have the package as parent.
+   * Package ``ieee.fixed_float_types`` (:class:`~pyVHDLModel.IEEE.FixedFloatTypesPkg.Fixed_Float_Types`) declares the
+     enumerated types ``fixed_round_style_type``, ``fixed_overflow_style_type`` and ``round_type``.
+   * Package ``ieee.fixed_generic_pkg`` (:class:`~pyVHDLModel.IEEE.FixedGenericPkg.Fixed_Generic_Pkg`) declares the
+     generics ``fixed_round_style``, ``fixed_overflow_style``, ``fixed_guard_bits`` and ``no_warning``, the constant
+     ``CopyRightNotice``, the types ``unresolved_ufixed`` and ``unresolved_sfixed``, the aliases ``u_ufixed`` and
+     ``u_sfixed``, the subtypes ``ufixed`` and ``sfixed``, the arithmetic operators and functions (``divide``,
+     ``reciprocal``, ``remainder``, ``modulo``, ``add_carry``, ``scalb``, ``is_negative``), the relational and matching
+     operators, ``std_match``, ``maximum``, ``minimum``, the shift operators, ``shift_left``, ``shift_right``, the
+     logical operators, the conversion functions, ``resize``, ``saturate``, ``to_01``, ``is_x``, the ``read``/``write``
+     procedures, ``to_string`` and ``from_string`` with their octal and hexadecimal variants: 401 declarations in the
+     package's order.
+   * Package ``ieee.fixed_pkg`` (:class:`~pyVHDLModel.IEEE.FixedPkg.Fixed_Pkg`) instantiates ``ieee.fixed_generic_pkg``
+     with the generic map of IEEE Std 1076-2008, 16.10: a use clause ``use ieee.fixed_pkg.all;`` makes ``ufixed``,
+     ``to_ufixed``, ... visible. New base class :class:`~pyVHDLModel.Predefined.PredefinedPackageInstantiation` for
+     predefined package instantiations.
+   * An interface package (:class:`~pyVHDLModel.Interface.GenericPackageInterfaceItem`) holds its uninstantiated
+     package (:data:`~pyVHDLModel.Interface.InterfacePackage.PackageReference`) and the form of its generic map aspect
+     (:class:`~pyVHDLModel.Interface.InterfacePackageGenericMap`: ``<>``, ``default`` or associations). The analysis
+     links the package, and a use clause naming the interface package (``use fixed_pkg.all;``) imports the declarations
+     of the generic package.
+   * Package ``ieee.float_generic_pkg`` (:class:`~pyVHDLModel.IEEE.FloatGenericPkg.Float_Generic_Pkg`) declares the
+     generics (``float_exponent_width`` ... ``no_warning`` and the package generic ``fixed_pkg``), the constant
+     ``CopyRightNotice``, the use clause ``use fixed_pkg.all;``, the type ``unresolved_float``, the subtypes ``float``,
+     ``float32``, ``float64``, ``float128`` (and their unresolved forms and aliases), the type ``valid_fpstate``, the
+     deferred constant ``fphdlsynth_or_real``, ``classfp``, the arithmetic operators and functions, the comparison
+     functions and relational operators, ``resize``, the conversion functions, ``to_01``, ``is_x``, ``break_number``,
+     ``normalize``, the operators with ``real`` and ``integer`` operands, the logical operators, ``copysign``,
+     ``scalb``, ``logb``, ``nextafter``, the special values (``zerofp``, ``nanfp``, ...), the ``read``/``write``
+     procedures, ``to_string`` and ``from_string`` with their octal and hexadecimal variants: 247 declarations in the
+     package's order.
+   * Package ``ieee.float_pkg`` (:class:`~pyVHDLModel.IEEE.FloatPkg.Float_Pkg`) instantiates ``ieee.float_generic_pkg``
+     with the generic map of IEEE Std 1076-2008, 16.11, ``fixed_pkg => IEEE.fixed_pkg`` included: a use clause
+     ``use ieee.float_pkg.all;`` makes ``float32``, ``to_float``, ... visible.
+   * Library ``ieee`` declares the contexts ``ieee_std_context``
+     (:class:`~pyVHDLModel.IEEE.IeeeStdContext.Ieee_Std_Context`) and ``ieee_bit_context``
+     (:class:`~pyVHDLModel.IEEE.IeeeBitContext.Ieee_Bit_Context`) of IEEE Std 1076-2008, 16.9.
+     New base class :class:`~pyVHDLModel.Predefined.PredefinedContext` and
+     :meth:`PredefinedLibrary.AddContexts() <pyVHDLModel.Predefined.PredefinedLibrary.AddContexts>`.
+   * Synopsys package ``ieee.std_logic_unsigned`` (:class:`~pyVHDLModel.IEEE.StdLogicUnsignedPkg.Std_Logic_Unsigned`,
+     loaded with :data:`IEEEFlavor.Synopsys <pyVHDLModel.IEEEFlavor.Synopsys>`) declares its 33 operators and functions
+     (arithmetic and relational operators on ``std_logic_vector``, ``shl``, ``shr``, ``conv_integer``). The module
+     carries Synopsys' copyright notice, as the package requires for derivative work.
+   * Synopsys package ``ieee.std_logic_signed`` (:class:`~pyVHDLModel.IEEE.StdLogicSignedPkg.Std_Logic_Signed`) declares
+     its 35 operators and functions (as ``std_logic_unsigned``, and the unary ``"-"`` and ``"abs"``), with Synopsys'
+     copyright notice.
+   * Synopsys package ``ieee.std_logic_misc`` (:class:`~pyVHDLModel.IEEE.StdLogicMiscPkg.Std_Logic_Misc`) declares the
+     types ``strength`` and ``minomax`` and its 29 functions (``strength_map``, ``drive``, ``sense``, the conversions to
+     ``bit``/``bit_vector``, the reduction functions ``and_reduce`` ..., ``fun_buf3s`` ...), with Synopsys' copyright
+     notice.
+   * Synopsys package ``ieee.std_logic_textio`` (:class:`~pyVHDLModel.IEEE.StdLogicTextIOPkg.Std_Logic_TextIO_Synopsys`)
+     declares its 21 procedures (``read``, ``write`` of ``std_ulogic``, ``std_ulogic_vector`` and ``std_logic_vector``,
+     ``hread``, ``hwrite``, ``oread``, ``owrite``), with Synopsys' copyright notice.
+   * Synopsys package ``ieee.std_logic_arith`` (:class:`~pyVHDLModel.IEEE.StdLogicArithPkg.Std_Logic_Arith_Synopsys`)
+     declares the types ``unsigned`` and ``signed``, the subtype ``small_int`` and its 134 functions (arithmetic and
+     relational operators, ``shl``, ``shr``, the ``conv_*`` conversions, ``ext``, ``sxt``), with Synopsys' copyright
+     notice.
+   * Mentor Graphics package ``ieee.std_logic_arith``
+     (:class:`~pyVHDLModel.IEEE.StdLogicArithPkg.Std_Logic_Arith_MentorGraphics`, loaded with
+     :data:`IEEEFlavor.MentorGraphics <pyVHDLModel.IEEEFlavor.MentorGraphics>`) declares its use clause
+     ``use ieee.std_logic_1164.all;``, the types ``signed`` and ``unsigned`` and 139 functions (conversions,
+     arithmetic, shift and logical operators, the comparison functions ``eq`` ... ``ge``), with Mentor Graphics'
+     copyright notice.
+   * VITAL package ``ieee.VITAL_Timing`` (:class:`~pyVHDLModel.IEEE.VITALTimingPkg.VITAL_Timing`, loaded with
+     :data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>`) declares its types (transitions, delays, maps,
+     records of timing, period, glitch, path and skew data, table and edge symbols), constants (zero delays, default
+     maps, initial values), the attributes ``VITAL_Level0`` and ``VITAL_Level1`` and ``VitalTimingDataInit``.
+   * Package ``ieee.VITAL_Timing`` declares its 19 subprograms, in its order: ``VitalExtendToFillDelay`` and
+     ``VitalCalcDelay`` of each delay type, the procedures ``VitalPathDelay``, ``VitalPathDelay01``,
+     ``VitalPathDelay01Z``, ``VitalWireDelay`` and ``VitalSignalDelay``, and the timing checks ``VitalSetupHoldCheck``,
+     ``VitalRecoveryRemovalCheck``, ``VitalPeriodPulseCheck``, ``VitalInPhaseSkewCheck`` and ``VitalOutPhaseSkewCheck``
+     with their signal and variable parameters and default values (``TIME'HIGH``, ``""``, ``0 ns``, ``WARNING``).
+   * VITAL package ``ieee.VITAL_Primitives`` (:class:`~pyVHDLModel.IEEE.VITALPrimitivesPkg.VITAL_Primitives`) declares
+     what the package lists, in its order: the subtypes ``VitalTruthSymbolType`` and ``VitalStateSymbolType``, the
+     two-dimensional table types, the deferred constants ``VitalDefDelay01`` and ``VitalDefDelay01Z``, and the 41
+     functions and 46 procedures of the gates, buffers, inverters, multiplexers, decoders, truth and state tables
+     (``VitalAND2``, ``VitalBUFIF0``, ``VitalMUX4``, ``VitalDECODER8``, ``VitalStateTable``, ...) and ``VitalResolve``.
+   * VITAL package ``ieee.VITAL_Memory`` (:class:`~pyVHDLModel.IEEE.VITALMemoryPkg.VITAL_Memory`) declares what the
+     package lists, in its order: its types (arc, retain and message format kinds, schedule and timing data, port
+     flags, memory words and arrays, memory and violation tables, port and cross port modes), the constants
+     ``DefaultNumBitsPerSubword`` and ``VitalDefaultPortFlag`` (a named aggregate), the impure function
+     ``VitalDeclareMemory``, ``VitalMemoryTimingDataInit`` and 44 procedures (``VitalMemoryAddPathDelay`` with its 24
+     overloads, ``VitalMemorySetupHoldCheck``, ``VitalMemoryTable``, ``VitalMemoryCrossPorts``, ...).
+   * New :meth:`Design.LoadVITALPackages() <pyVHDLModel.Design.LoadVITALPackages>`: adds the VITAL packages
+     (IEEE Std 1076.4) to the design's library ``ieee`` and its virtual document, after
+     :meth:`~pyVHDLModel.Design.LoadIEEELibrary`; the flavor
+     :data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>` stays as shortcut. ``Ieee.LoadVITALPackages()``
+     returns the added packages and package bodies; it raises :exc:`~pyVHDLModel.Exception.IEEEFlavorChangeError`, if
+     the library has them already.
+   * :class:`~pyVHDLModel.Declaration.Alias` takes a signature (keyword parameter ``signature``, property
+     :attr:`~pyVHDLModel.Declaration.Alias.Signature`, a :class:`~pyVHDLModel.Subprogram.SubprogramSignature`), e.g.
+     ``alias to_slv is to_stdlogicvector [bit_vector return std_logic_vector];``. The analysis resolves its name to the
+     overload of the same parameter and result type profile, also an implicit operation, in a third step
+     (:meth:`~pyVHDLModel.Design.ResolveAliasSignatures`, new); the VHDL writer writes the signature.
+   * Package ``std.textio`` declares its 15 aliases of procedures (``string_read``, ``bread``, ``binary_read``,
+     ``octal_read``, ``hex_read``, ``swrite``, ``string_write``, ``bwrite``, ``binary_write``, ``octal_write``,
+     ``hex_write``) with their signatures, at their places in the order of IEEE Std 1076-2008, 16.4, e.g.
+     ``alias BREAD is READ [LINE, BIT_VECTOR];``. The analysis resolves each alias to its procedure.
+   * Package ``ieee.std_logic_1164`` declares its 26 aliases of functions and procedures with their signatures, at
+     their places in the order of IEEE Std 1076-2008, 16.7: the conversions (``to_bit_vector``, ``to_bv``,
+     ``to_std_logic_vector``, ``to_slv``, ``to_std_ulogic_vector``, ``to_sulv``), the string conversions
+     (``to_bstring``, ``to_binary_string``, ``to_octal_string``, ``to_hex_string``) and the ``read``/``write``
+     procedures (``bread``, ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ``binary_write``,
+     ``octal_write``, ``hex_write``). The analysis resolves each alias, ``to_bstring`` to the implicit ``to_string`` of
+     ``std_ulogic_vector``.
+   * Packages ``ieee.numeric_std`` and ``ieee.numeric_bit`` declare their 32 aliases of functions and procedures each,
+     with their signatures, at their places in the package's order: the string conversions (``to_bstring``,
+     ``to_binary_string``, ``to_octal_string``, ``to_hex_string``) and the ``read``/``write`` procedures (``bread``,
+     ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ``binary_write``, ``octal_write``, ``hex_write``) of
+     ``unsigned`` and ``signed``. The analysis resolves each alias.
+   * Packages ``ieee.numeric_std_unsigned`` and ``ieee.numeric_bit_unsigned`` declare the aliases of their conversion
+     functions with their signatures, after the functions: ``to_std_logic_vector``, ``to_slv``,
+     ``to_std_ulogic_vector`` and ``to_sulv`` (8), ``to_bit_vector`` and ``to_bv`` (4). The analysis resolves each alias
+     to the package's function, e.g. ``to_slv [natural, natural return std_logic_vector]``.
+   * Package ``ieee.fixed_generic_pkg`` declares its 64 aliases of subprograms with their signatures, at their places in
+     the package's order: of ``to_slv`` and ``to_sulv`` (``to_stdlogicvector``, ``to_std_logic_vector``, ...), of the
+     ``read``/``write`` procedures (``bread``, ``binary_read``, ``octal_read``, ``hex_read``, ``bwrite``, ...), of
+     ``to_string`` (``to_bstring``, ...) and of ``from_string`` (``from_bstring``, ``from_binary_string``,
+     ``from_octal_string``, ``from_hex_string``). The analysis resolves each alias, ``to_bstring`` to the package's
+     ``to_string``.
+   * Package ``ieee.float_generic_pkg`` declares its 28 aliases of subprograms with their signatures, at their places in
+     the package's order: of ``to_slv`` and ``to_sulv`` (``to_stdlogicvector``, ...), of the ``read``/``write``
+     procedures (``bread``, ``bwrite``, ``binary_read``, ``octal_read``, ``hex_write``, ...), of ``to_string``,
+     ``to_hstring`` and ``to_ostring`` (``to_bstring``, ...) and of ``from_string`` (``from_bstring``, ...). The
+     analysis resolves each alias.
+   * Types ``boolean`` and ``bit`` of ``std.standard`` (:class:`~pyVHDLModel.STD.StandardPkg.Boolean`,
+     :class:`~pyVHDLModel.STD.StandardPkg.Bit`) declare the functions ``rising_edge`` and ``falling_edge``
+     (``signal S``) of IEEE Std 1076-2008, 16.3 as implicit operations (new
+     :class:`~pyVHDLModel.STD.StandardPkg.EdgeFunctionsMixin`). Package
+     ``ieee.numeric_bit`` declares its aliases ``rising_edge`` and ``falling_edge`` of
+     ``STD.STANDARD.RISING_EDGE [STD.STANDARD.BIT return STD.STANDARD.BOOLEAN]``; the analysis resolves the expanded
+     names.
+   * Types ``real``, ``time`` and ``bit_vector`` of ``std.standard`` (new :class:`~pyVHDLModel.STD.StandardPkg.Real`,
+     :class:`~pyVHDLModel.STD.StandardPkg.Time`, :class:`~pyVHDLModel.STD.StandardPkg.BitVector`) declare the
+     implicit operations ``to_string`` of ``real`` with ``DIGITS`` or ``FORMAT``, ``to_string`` of ``time`` with
+     ``UNIT`` (IEEE Std 1076-2008, 16.3), ``to_ostring`` and ``to_hstring`` of ``bit_vector`` (5.3.2.4). Package
+     ``std.standard`` declares the aliases ``to_bstring``, ``to_binary_string``, ``to_octal_string`` and
+     ``to_hex_string`` of ``bit_vector`` (16.3); the analysis resolves them to the implicit operations. It holds the
+     anonymous types *universal_integer* and *universal_real* (new
+     :data:`Standard.AnonymousTypes <pyVHDLModel.STD.StandardPkg.Standard.AnonymousTypes>`, new
+     :class:`~pyVHDLModel.STD.StandardPkg.UniversalReal`): no name denotes them, their implicit operations are
+     declarations of the package, which a use clause imports; *universal_real* adds ``"*"`` and ``"/"`` with a
+     *universal_integer* operand (9.2.7). Every physical type declares ``"/"`` of two values returning
+     *universal_integer*. With VHDL-2019, every array type, whose element type has a string representation, and every
+     record type, whose element types have one, declare ``to_string`` (IEEE Std 1076-2019, 5.3.2.4, 5.3.3.3), e.g.
+     ``string`` and ``integer_vector``; the VHDL version is the predefined package's or the document's.
+   * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
+     Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
+     before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and
+     ``file_origin_kind``.
+   * With VHDL-2019, package ``std.textio`` declares the type ``line_vector`` (IEEE Std 1076-2019, 16.4).
+   * With VHDL-2019, package ``std.env`` declares the additions of IEEE Std 1076-2019, 16.5 after
+     ``resolution_limit``: the date and time API (``time_record``, ``localtime``, ``epoch``, ...), ``getenv``, the tool
+     information (``vhdl_version``, ``tool_name``, ...), the directory API (``directory``, ``dir_open``,
+     ``dir_separator``, ...), the call path API (``call_path_vector``, ``get_call_path``, ``file_name``, ...) and the
+     assert and PSL API (``getvhdlassertcount``, ``setvhdlassertenable``, ``clearpslstate``, ...): 82 declarations in
+     the order of the IEEE package ``std/env.vhdl``.
+   * With VHDL-2019, ``u_unsigned`` and ``u_signed`` of package ``ieee.numeric_std`` are aliases of
+     ``unresolved_unsigned`` and ``unresolved_signed`` (subtypes in VHDL-2008).
+   * Resolution indications (IEEE Std 1076-2008, 6.3): every subtype symbol takes a keyword parameter ``resolution``
+     (property :data:`SubtypeSymbol.Resolution <pyVHDLModel.Symbol.SubtypeSymbol.Resolution>`), a resolution function
+     name (:class:`~pyVHDLModel.Symbol.ResolutionFunctionSymbol`, ``resolved std_ulogic``), an array element resolution
+     (:class:`~pyVHDLModel.Symbol.ArrayElementResolution`, ``(resolved) std_ulogic_vector``) or a record resolution
+     (:class:`~pyVHDLModel.Symbol.RecordResolution` of :class:`~pyVHDLModel.Symbol.RecordElementResolution`,
+     ``(a resolved, b (resolved)) pair_t``), marked by :class:`~pyVHDLModel.Symbol.ResolutionIndicationMixin`. They
+     can be copied, walked by a visitor (events ``VisitResolutionIndication``, ``VisitArrayElementResolution``,
+     ``VisitRecordResolution``, ``VisitRecordElementResolution``) and written by the VHDL writer.
+     :data:`Subtype.ResolutionFunction <pyVHDLModel.Type.Subtype.ResolutionFunction>` returns the function the
+     resolution function name of the subtype indication references; before, it returned a field nothing set.
+   * The analysis resolves the resolution function names of all subtype indications in a fourth step
+     (:meth:`~pyVHDLModel.Design.ResolveResolutionFunctions`, new): each references the visible function of its name,
+     which resolves the base type of its subtype indication, of an array element or of a record element
+     (:meth:`Function.IsResolutionFunctionOf() <pyVHDLModel.Subprogram.Function.IsResolutionFunctionOf>`, new; IEEE Std
+     1076-2008, 4.6), also an implicit operation (``maximum integer``) or an alias of a function; a record resolution's
+     element symbols reference the record elements. A name without such a function, an element resolution of a type,
+     which isn't an array or record type, and an unknown record element are an
+     :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+   * The subtypes of the predefined packages carry their resolution indications of IEEE Std 1076-2008: ``resolved``
+     for ``std_logic``, ``x01``, ``x01z``, ``ux01`` and ``ux01z`` of ``ieee.std_logic_1164``, ``(resolved)`` for its
+     ``std_logic_vector``, for ``unsigned`` and ``signed`` of ``ieee.numeric_std``, ``ufixed`` and ``sfixed`` of
+     ``ieee.fixed_generic_pkg`` and ``float`` of ``ieee.float_generic_pkg``. The analysis resolves them to the function
+     ``resolved`` of ``ieee.std_logic_1164``.
+
+   .. rubric:: Changes
+
+   * Breaking change: the predefined libraries, packages and package bodies take the VHDL version of their declarations
+     as parameter ``vhdlVersion`` (default ``VHDLVersion.VHDL2008``, or ``VHDLVersion.VHDL2019``), also
+     :meth:`~pyVHDLModel.Design.LoadStdLibrary` and :meth:`~pyVHDLModel.Design.LoadIEEELibrary`, whose virtual
+     documents get it too. Read-only property ``VHDLVersion``. It is the first parameter: ``Ieee(flavor)`` and
+     ``LoadIEEELibrary(flavor)`` need ``flavor=flavor`` now, and the parameter ``identifier`` of
+     :class:`~pyVHDLModel.Predefined.PredefinedPackage` (``packageIdentifier`` of
+     :class:`~pyVHDLModel.Predefined.PredefinedPackageBody`) is the second one.
+   * pyTooling 10.3 is required.
+   * :data:`VHDLVersion.IsAMS <pyVHDLModel.VHDLVersion.IsAMS>` compares the enumeration members by identity instead of
+     building a tuple per call.
+   * Adding a declared item finds clashing declarations by an index of the declared items by name instead of visiting
+     every declaration of the region: filling a package with n declarations took quadratic time.
+   * :mod:`pyVHDLModel.IEEE` is a package with one module per VHDL package, e.g.
+     :mod:`~pyVHDLModel.IEEE.StdLogic1164Pkg` for ``ieee.std_logic_1164``. The classes are importable from
+     :mod:`pyVHDLModel.IEEE` as before.
+   * :mod:`pyVHDLModel.STD` is a package with one module per VHDL package too: :mod:`~pyVHDLModel.STD.StandardPkg`
+     for ``std.standard``, :mod:`~pyVHDLModel.STD.TextIOPkg` for ``std.textio`` and :mod:`~pyVHDLModel.STD.EnvPkg` for
+     ``std.env``. The classes are importable from :mod:`pyVHDLModel.STD` as before.
+   * The modules of the predefined packages carry the suffix ``Pkg``, in :mod:`pyVHDLModel.STD` and
+     :mod:`pyVHDLModel.IEEE` alike (e.g. :mod:`~pyVHDLModel.IEEE.NumericStdPkg`): a class of ``STD`` shares the name
+     of its VHDL package (``Standard``), and ``IEEE`` follows for consistency. A VHDL package named ``*_pkg``
+     (``fixed_pkg``) gets no second suffix, a context module keeps its name (:mod:`~pyVHDLModel.IEEE.IeeeStdContext`).
+   * :meth:`~pyVHDLModel.Design.ComputeCompileOrder` has a doc-string with its algorithm; the properties
+     :data:`~pyVHDLModel.Design.DependencyGraph` and :data:`~pyVHDLModel.Design.CompileOrderGraph` describe their
+     vertices and edges, incl. the compile-order edges between the document vertices of the dependency graph.
+   * Doc-string examples mark their parts with carets in the columns of the code (``AggregateSymbol``, ``Alias``,
+     ``InterfacePackage``, ``SubprogramSignature``, ``PhysicalUnit``); several stood one or two columns off.
+   * A local package (a package declared in a declarative region, e.g. an architecture) connects its namespace to the
+     namespace of the enclosing region: its declarations see what is visible there, e.g. ``integer`` or a type declared
+     before the package. Before, its own type marks weren't found.
+   * :data:`~pyVHDLModel.Base.ExpressionUnion` includes :class:`~pyVHDLModel.Symbol.Symbol`: a name in an expression is
+     a symbol (``read_mode``, ``TIME'HIGH``). It's defined once, in :mod:`pyVHDLModel.Base`; five modules had a copy of
+     it. The helpers of the predefined packages annotate default values with it.
+   * :class:`~pyVHDLModel.Object.File` takes the file open information (IEEE Std 1076-2008, 6.4.2.5): keyword parameters
+     ``openKind`` and ``logicalName`` (properties :attr:`~pyVHDLModel.Object.File.OpenKind`,
+     :attr:`~pyVHDLModel.Object.File.LogicalName`), e.g. ``file input : text open read_mode is "STD_INPUT";``; the VHDL
+     writer writes them (new visitor event ``VisitOpen``). ``std.textio`` declares ``input`` and ``output`` with them.
+   * ``use pkg.item;``: a two-part name ``x.y`` in a use clause, whose prefix ``x`` is neither ``work`` nor a visible
+     library, but a visible package (a local package, or an interface package of a generic clause), makes the member
+     ``y`` of that package potentially visible (IEEE Std 1076-2008, 12.4). Before, it was read as ``library.unit`` and
+     raised :exc:`~pyVHDLModel.Exception.UseClauseLibraryNotVisibleError`.
+   * Breaking change: :meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations` yields the implied
+     declarations (enumeration literals, physical units), no longer (key, declaration) pairs. A namespace takes the key
+     from the new property ``NormalizedDesignator`` of
+     :class:`~pyVHDLModel.Type.PhysicalUnit` and :class:`~pyVHDLModel.Subprogram.Subprogram` (as
+     :class:`~pyVHDLModel.Expression.EnumerationLiteral` already had).
+   * Breaking change: :meth:`Package.IterateDeclarations() <pyVHDLModel.DesignUnit.Package.IterateDeclarations>` and
+     :meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberDeclarations` yield the declared items, no longer (key,
+     declaration) pairs, and no implied declarations: :meth:`~pyVHDLModel.Namespace.Namespace.AddImports` (new) imports
+     a declaration by its identifiers with the declarations it implies;
+     :meth:`~pyVHDLModel.DesignUnit.Package.IterateMemberImplicitDeclarations` (new) iterates those a member brings
+     along.
+   * The analysis indexes the implicit operations of the full types after the type marks are resolved
+     (:meth:`~pyVHDLModel.Design.IndexImplicitOperations`, new): a namespace holds them in
+     :data:`~pyVHDLModel.Namespace.Namespace.ImplicitOperations` (new), and a use clause naming a type, or a subtype as
+     package member, imports them. Before, indexing a type declaration created them, before the use clauses were linked.
+   * The analysis resolves the type marks of the implicit operations naming ``BOOLEAN``, ``INTEGER`` or ``STRING`` to
+     the types of ``std.standard`` (IEEE Std 1076-2008, 9.2), whatever is visible at the type declaration
+     (:meth:`~pyVHDLModel.Type.FullType.ResolveImplicitOperationTypeMarks`, new). Before, they had no reference.
+     :meth:`~pyVHDLModel.Design.IndexImplicitOperations` raises :exc:`~pyVHDLModel.Exception.LibraryNotFoundError`
+     without library ``std``.
+   * An implicit operation is hidden by an explicitly declared homograph in the type's declarative region (IEEE Std
+     1076-2008, 12.3), e.g. the implicit ``"="`` of ``unresolved_unsigned`` by the one ``ieee.numeric_std`` declares: a
+     lookup doesn't find it, a use clause doesn't import it (:attr:`~pyVHDLModel.Namespace.Namespace.HiddenOperations`,
+     new). New :meth:`~pyVHDLModel.Subprogram.SubprogramSignature.HasSameTypeProfile` compares the base types of two
+     signatures (4.5.1).
+
+   .. rubric:: Bug Fixes
+
+   * ``std.standard`` named three types wrongly: ``severityLevel`` is ``severity_level``, ``open_file_kind`` is
+     ``file_open_kind`` and ``open_file_status`` is ``file_open_status``.
+   * The range of ``real`` in ``std.standard`` was -5.0 to 5.0; it's the range of an IEEE 754 double now.
+   * The type ``line`` was declared in ``std.standard`` as an access to ``character``; it's declared in ``std.textio``
+     as an access to ``string``.
+   * The declarations of ``std.standard`` had no parent; their parent is the package.
+   * :data:`Subtype.Range <pyVHDLModel.Type.Subtype.Range>` was always ``None`` for a subtype read by pyGHDL: it
+     returned a field no constructor parameter set. It returns the range constraint of the subtype indication now.
+
+   .. rubric:: Documentation
+
+   * The documentation builds with pyTooling.Sphinx 1.1 (its prolog provides the docutils substitution files) and
+     sphinx_design 0.8.
+
+
 Version 0.44.0 (2026)
 *********************
 

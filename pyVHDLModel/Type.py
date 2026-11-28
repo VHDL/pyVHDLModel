@@ -46,17 +46,21 @@ from pyTooling.Graph        import Vertex
 from pyTooling.Warning      import WarningCollector
 
 from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedEntityMixin, DocumentedEntityMixin, \
-                                   Range, ReservedWord
+                                   Range, ReservedWord, Mode
 from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
-from pyVHDLModel.Name       import Name
-from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol
-from pyVHDLModel.Expression import EnumerationLiteral, PhysicalIntegerLiteral
+from pyVHDLModel.Name       import Name, SimpleName
+from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
+                                   ResolutionFunctionSymbol
+from pyVHDLModel.Expression import EnumerationLiteral, CharacterEnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarationRegionMixin, \
                                    SequentialDeclarationRegionMixin, WithoutStatementsMixin
 
 if TYPE_CHECKING:
-	from pyVHDLModel.DesignUnit import DesignUnit
-	from pyVHDLModel.Visitor  import Visitor
+	from pyVHDLModel            import VHDLVersion
+	from pyVHDLModel.DesignUnit import DesignUnit, Package
+	from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
+	from pyVHDLModel.Subprogram import Function, PredefinedOperator, PredefinedFunction, PredefinedOperation
+	from pyVHDLModel.Visitor    import Visitor
 
 
 @export
@@ -221,7 +225,230 @@ class FullType(BaseType):
 	   * :class:`Access type <pyVHDLModel.Type.AccessType>`
 	   * :class:`File type <pyVHDLModel.Type.FileType>`
 	"""
-	pass
+
+	_implicitOperations: Nullable[tuple[PredefinedOperation, ...]]  #: Implicit operations, ``None`` until created.
+
+	def __init__(
+		self,
+		identifier:    str,
+		documentation: Nullable[str] =         None,
+		parent:        Nullable[ModelEntity] = None
+	) -> None:
+		"""
+		Initializes a full type.
+
+		:param identifier:    The identifier of a model entity.
+		:param documentation: Optional, the documentation comment associated with this declaration.
+		                      Default: ``None``, no documentation.
+		:param parent:        Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		"""
+		super().__init__(identifier, documentation, parent)
+
+		self._implicitOperations = None
+
+	@readonly
+	def ImplicitOperations(self) -> tuple[PredefinedOperation, ...]:
+		"""
+		Read-only property to access the operations this type declares implicitly (:attr:`_implicitOperations`): its
+		predefined operators and predefined functions (IEEE Std 1076-2008, 5).
+
+		They are created on the first access and kept, until the analysis is reset (:meth:`ResetReferences`). The
+		analysis indexes them in the namespace of the type's region after the type marks are resolved
+		(:meth:`~pyVHDLModel.Design.IndexImplicitOperations`).
+
+		:returns: Tuple of predefined operators and predefined functions.
+		"""
+		if self._implicitOperations is None:
+			self._implicitOperations = tuple(self._CreateImplicitOperations())
+
+		return self._implicitOperations
+
+	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
+		"""
+		Reset the references of this type's type marks and its implicit operations, which depend on them: they are
+		created again on the next access (:data:`ImplicitOperations`). A type of a predefined library
+		(:attr:`~pyVHDLModel.Library.IsPredefined`) keeps its implicit operations.
+
+		:param designUnit: The design unit containing this declaration.
+		:param region:     The declarative region declaring this declaration.
+		"""
+		super().ResetReferences(designUnit, region)
+
+		if not designUnit._parent.IsPredefined:
+			self._implicitOperations = None
+
+	def ResolveImplicitOperationTypeMarks(self, standard: Package) -> None:
+		"""
+		Resolve the type marks of the implicit operations naming a type, a subtype or an anonymous type of package
+		``std.standard``.
+
+		An implicit operation names the predefined types ``BOOLEAN``, ``INTEGER`` or ``STRING`` of ``std.standard``
+		(IEEE Std 1076-2008, 9.2), whatever a declaration of the type's region or a use clause makes visible there; the
+		``TO_STRING`` of ``REAL`` with a ``DIGITS`` parameter names the subtype ``NATURAL`` (16.3). The division of two
+		values of a physical type returns the anonymous type *universal_integer* (9.2.7), which no name denotes: its type
+		mark carries the pseudo-name, which selects one of the anonymous types of ``std.standard``
+		(:attr:`Standard.AnonymousTypes <pyVHDLModel.STD.StandardPkg.Standard.AnonymousTypes>`). The type marks naming
+		this type are resolved, when the operations are created. The analysis resolves them, when it indexes the implicit
+		operations (:meth:`~pyVHDLModel.Design.IndexImplicitOperations`). Resolving them again changes nothing.
+
+		:param standard: The package ``std.standard``.
+		"""
+		for operation in self.ImplicitOperations:
+			for symbol in (*(item._subtype for item in operation._parameterItems), operation._returnType):
+				if symbol._reference is None:
+					normalizedIdentifier = symbol._name._normalizedIdentifier
+					if (
+						(reference := standard._types.get(normalizedIdentifier)) is None
+						and (reference := standard._subtypes.get(normalizedIdentifier)) is None
+					):
+						reference = standard._anonymousTypes[normalizedIdentifier]
+
+					symbol._reference = reference
+
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this type declares implicitly: the equality operators ``"="`` and ``"/="``
+		(IEEE Std 1076-2008, 9.2.3).
+
+		A file type and a protected type declare no equality; derived classes add their operations.
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		return [
+			self._BinaryOperator("=",  SimpleSubtypeSymbol(SimpleName("boolean"))),
+			self._BinaryOperator("/=", SimpleSubtypeSymbol(SimpleName("boolean")))
+		]
+
+	def _HasStringRepresentation(self, vhdlVersion: VHDLVersion) -> bool:
+		"""
+		Check if the values of this type have a string representation (IEEE Std 1076-2008, 5.7).
+
+		A type with a string representation declares the implicit operation ``TO_STRING``. An access type, a file type and
+		a protected type have none; derived classes define the rules of their type class.
+
+		:param vhdlVersion: The VHDL version of the rules.
+		:returns:           ``True``, if the values have a string representation.
+		"""
+		return False
+
+	def _VHDLVersion(self) -> VHDLVersion:
+		"""
+		Return the VHDL version of the design unit declaring this type, which selects the rules of its implicit operations.
+
+		A predefined package has its own VHDL version, another design unit the one of its document. A type outside a design
+		unit or in a design unit without a document follows VHDL-2008.
+
+		:returns: The VHDL version.
+		"""
+		from pyVHDLModel            import VHDLVersion
+		from pyVHDLModel.DesignUnit import DesignUnit
+		from pyVHDLModel.Predefined import PredefinedPackageMixin
+
+		designUnit = self._parent
+		while designUnit is not None and not isinstance(designUnit, DesignUnit):
+			designUnit = designUnit._parent
+
+		if isinstance(designUnit, PredefinedPackageMixin):
+			return designUnit._vhdlVersion
+		elif designUnit is not None and designUnit._document is not None:
+			return designUnit._document._vhdlVersion
+
+		return VHDLVersion.VHDL2008
+
+	def _TypeMark(self) -> SimpleSubtypeSymbol:
+		"""
+		Create a type mark referencing this type, for a parameter or the return value of an implicit operation.
+
+		:returns: The type mark.
+		"""
+		symbol =            SimpleSubtypeSymbol(SimpleName(self._identifier))
+		symbol._reference = self
+
+		return symbol
+
+	def _Parameter(self, identifier: str, subtype: SubtypeSymbol) -> ParameterConstantInterfaceItem:
+		"""
+		Create a parameter of an implicit operation: a constant of mode ``in``.
+
+		:param identifier: The parameter's identifier.
+		:param subtype:    The parameter's type mark.
+		:returns:          The parameter.
+		"""
+		from pyVHDLModel.Interface import ParameterConstantInterfaceItem
+
+		return ParameterConstantInterfaceItem((identifier,), Mode.In, subtype)
+
+	def _Operator(
+		self,
+		operatorSymbol: str,
+		returnType:     SubtypeSymbol,
+		parameterItems: Iterable[ParameterConstantInterfaceItem]
+	) -> PredefinedOperator:
+		"""
+		Create an implicit operator of this type.
+
+		:param operatorSymbol: The operator symbol without quotation marks.
+		:param returnType:     The type mark of the return value.
+		:param parameterItems: The parameters, in declaration order.
+		:returns:              The predefined operator.
+		"""
+		from pyVHDLModel.Subprogram import PredefinedOperator
+
+		return PredefinedOperator(operatorSymbol, returnType, parameterItems, parent=self)
+
+	def _Function(
+		self,
+		identifier:     str,
+		returnType:     SubtypeSymbol,
+		parameterItems: Iterable[ParameterConstantInterfaceItem]
+	) -> PredefinedFunction:
+		"""
+		Create an implicit function of this type.
+
+		:param identifier:     The function's identifier.
+		:param returnType:     The type mark of the return value.
+		:param parameterItems: The parameters, in declaration order.
+		:returns:              The predefined function.
+		"""
+		from pyVHDLModel.Subprogram import PredefinedFunction
+
+		return PredefinedFunction(identifier, returnType, parameterItems, parent=self)
+
+	def _BinaryOperator(self, operatorSymbol: str, returnType: SubtypeSymbol) -> PredefinedOperator:
+		"""
+		Create an implicit binary operator of this type: both operands, ``L`` and ``R``, are of this type.
+
+		:param operatorSymbol: The operator symbol without quotation marks.
+		:param returnType:     The type mark of the return value.
+		:returns:              The predefined operator.
+		"""
+		return self._Operator(
+			operatorSymbol,
+			returnType,
+			(self._Parameter("L", self._TypeMark()), self._Parameter("R", self._TypeMark()))
+		)
+
+	def _UnaryOperator(self, operatorSymbol: str, returnType: SubtypeSymbol) -> PredefinedOperator:
+		"""
+		Create an implicit unary operator of this type: the operand ``R`` is of this type.
+
+		:param operatorSymbol: The operator symbol without quotation marks.
+		:param returnType:     The type mark of the return value.
+		:returns:              The predefined operator.
+		"""
+		return self._Operator(operatorSymbol, returnType, (self._Parameter("R", self._TypeMark()),))
+
+	def _ToString(self) -> PredefinedFunction:
+		"""
+		Create the implicit function ``TO_STRING (VALUE : <type>) return STRING`` of this type (IEEE Std 1076-2008, 5.7).
+
+		:returns: The predefined function.
+		"""
+		return self._Function(
+			"to_string",
+			SimpleSubtypeSymbol(SimpleName("string")),
+			(self._Parameter("VALUE", self._TypeMark()),)
+		)
 
 
 @export
@@ -229,9 +456,11 @@ class Subtype(BaseType):
 	"""
 	Represents a subtype declaration.
 
-	A subtype is a named entity (:data:`Identifier`, :data:`NormalizedIdentifier`) referencing a type
-	(:data:`Type`). Optionally, the subtype can be narrowed by a constraint (:data:`Range`) and/or
-	resolved by a resolution function (:data:`ResolutionFunction`).
+	A subtype is a named entity (:data:`Identifier`, :data:`NormalizedIdentifier`) with a subtype indication
+	(:data:`Type`): a type mark, optionally narrowed by a constraint. A range constraint is available as
+	:data:`Range`. Optionally, the subtype indication has a resolution indication
+	(:data:`SubtypeSymbol.Resolution <pyVHDLModel.Symbol.SubtypeSymbol.Resolution>`); the function a resolution function
+	name references is available as :data:`ResolutionFunction`.
 
 	.. admonition:: Example
 
@@ -243,12 +472,13 @@ class Subtype(BaseType):
 	      --      ^^^^                  <- Identifier
 	      --              ^^^^^^^^^^    <- Type
 
-	   With a constraint:
+	   With a range constraint:
 
 	   .. code-block:: VHDL
 
-	      subtype nibble is bit_vector(3 downto 0);
-	      --                          ^^^^^^^^^^^^    <- Range
+	      subtype nibble is integer range 0 to 15;
+	      --                ^^^^^^^^^^^^^^^^^^^^^    <- Type (constrained scalar subtype symbol)
+	      --                              ^^^^^^^    <- Range
 
 	   With a resolution function:
 
@@ -261,10 +491,8 @@ class Subtype(BaseType):
 
 	   * :class:`Reference to a type or subtype <pyVHDLModel.Symbol.SubtypeSymbol>`
 	"""
-	_type:               Symbol    #: Reference to the type or subtype this subtype is derived from.
-	_baseType:           BaseType  #: The resolved base type of this subtype.
-	_range:              Range     #: The constraint narrowing the base type, or ``None`` if unconstrained.
-	_resolutionFunction: Function  #: The resolution function, or ``None`` if the subtype is unresolved.
+	_type:     Symbol    #: Reference to the type or subtype this subtype is derived from.
+	_baseType: BaseType  #: The resolved base type of this subtype.
 
 	def __init__(self, identifier: str, symbol: Symbol, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -278,10 +506,8 @@ class Subtype(BaseType):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		self._type = symbol
+		self._type =     symbol
 		self._baseType = None
-		self._range = None
-		self._resolutionFunction = None
 
 	@readonly
 	def Type(self) -> Symbol:
@@ -304,22 +530,35 @@ class Subtype(BaseType):
 		return self._baseType
 
 	@readonly
-	def Range(self) -> Range:
+	def Range(self) -> Nullable[Range]:
 		"""
-		Read-only property to access the range (:attr:`_range`).
+		Read-only property to return the range constraint of the subtype indication (:attr:`_type`).
 
-		:returns: The range.
+		:returns: The range, or ``None`` if the subtype indication has no range constraint.
 		"""
-		return self._range
+		if isinstance(self._type, ConstrainedScalarSubtypeSymbol):
+			return self._type._constraint
+
+		return None
 
 	@readonly
-	def ResolutionFunction(self) -> Function:
+	def ResolutionFunction(self) -> Nullable[Function]:
 		"""
-		Read-only property to access the resolution function (:attr:`_resolutionFunction`).
+		Read-only property to return the resolution function of the subtype indication (:attr:`_type`): the function its
+		resolution function name references (:class:`~pyVHDLModel.Symbol.ResolutionFunctionSymbol`).
 
-		:returns: The resolution function.
+		An element resolution (``(resolved) std_ulogic_vector``) resolves the subtype's elements, not the subtype: its
+		resolution functions are those of :data:`SubtypeSymbol.Resolution <pyVHDLModel.Symbol.SubtypeSymbol.Resolution>`.
+
+		:returns: The resolution function, or ``None`` if the subtype indication has no resolution function name or it isn't
+		          resolved.
 		"""
-		return self._resolutionFunction
+		if not isinstance(self._type, SubtypeSymbol):
+			return None
+		elif isinstance(resolution := self._type._resolution, ResolutionFunctionSymbol):
+			return resolution._reference
+
+		return None
 
 	def IterateTypeMarks(
 		self,
@@ -401,6 +640,38 @@ class ScalarType(FullType):
 	   * :class:`Enumerated type <pyVHDLModel.Type.EnumeratedType>`
 	"""
 
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this scalar type declares implicitly: the equality operators, the ordering operators
+		``"<"``, ``"<="``, ``">"`` and ``">="`` (IEEE Std 1076-2008, 9.2.3), ``MINIMUM`` and ``MAXIMUM`` (5.2.6), and
+		``TO_STRING`` (5.7).
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		for operatorSymbol in ("<", "<=", ">", ">="):
+			operations.append(self._BinaryOperator(operatorSymbol, SimpleSubtypeSymbol(SimpleName("boolean"))))
+
+		for identifier in ("minimum", "maximum"):
+			operations.append(self._Function(
+				identifier,
+				self._TypeMark(),
+				(self._Parameter("L", self._TypeMark()), self._Parameter("R", self._TypeMark()))
+			))
+
+		operations.append(self._ToString())
+
+		return operations
+
+	def _HasStringRepresentation(self, vhdlVersion: VHDLVersion) -> bool:
+		"""
+		Check if the values of this type have a string representation: always for a scalar type (IEEE Std 1076-2008, 5.7).
+
+		:param vhdlVersion: The VHDL version of the rules.
+		:returns:           ``True``
+		"""
+		return True
+
 
 @export
 @abstractclass
@@ -480,6 +751,69 @@ class DiscreteTypeMixin(metaclass=ExtendedType, mixin=True):
 
 
 @export
+class LogicalOperatorsMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_TypeMark", "_BinaryOperator", "_UnaryOperator")
+):
+	"""
+	A mixin-class for the enumerated types declaring the logical operators (IEEE Std 1076-2008, 9.2.2): ``boolean`` and
+	``bit`` of package ``std.standard``.
+
+	A one-dimensional array type of such an element type declares the logical, shift and logical reduction operators
+	(:attr:`~pyVHDLModel.Type.FullType.ImplicitOperations`).
+
+	.. seealso::
+
+	   * :class:`Boolean <pyVHDLModel.STD.StandardPkg.Boolean>`
+	   * :class:`Bit <pyVHDLModel.STD.StandardPkg.Bit>`
+	"""
+
+	def _CreateLogicalOperators(self) -> list[PredefinedOperator]:
+		"""
+		Create the logical operators of this type: ``"and"``, ``"or"``, ``"nand"``, ``"nor"``, ``"xor"`` and ``"xnor"``,
+		then ``"not"``.
+
+		:returns: List of predefined operators.
+		"""
+		operations = []
+		for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+		operations.append(self._UnaryOperator("not", self._TypeMark()))
+
+		return operations
+
+
+@export
+class MatchingOperatorsMixin(metaclass=ExtendedType, mixin=True, expects=("_TypeMark", "_BinaryOperator")):
+	"""
+	A mixin-class for the enumerated types declaring the matching relational operators (IEEE Std 1076-2008, 9.2.3):
+	``bit`` of package ``std.standard``.
+
+	A one-dimensional array type of such an element type declares the matching operators ``"?="`` and ``"?/="``
+	(:attr:`~pyVHDLModel.Type.FullType.ImplicitOperations`).
+
+	.. seealso::
+
+	   * :class:`Bit <pyVHDLModel.STD.StandardPkg.Bit>`
+	"""
+
+	def _CreateMatchingOperators(self) -> list[PredefinedOperator]:
+		"""
+		Create the matching relational operators of this type: ``"?="``, ``"?/="``, ``"?<"``, ``"?<="``, ``"?>"`` and
+		``"?>="``.
+
+		:returns: List of predefined operators.
+		"""
+		operations = []
+		for operatorSymbol in ("?=", "?/=", "?<", "?<=", "?>", "?>="):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+		return operations
+
+
+@export
 class EnumeratedType(ScalarType, DiscreteTypeMixin):
 	"""
 	Represents an enumerated type definition.
@@ -524,14 +858,16 @@ class EnumeratedType(ScalarType, DiscreteTypeMixin):
 		"""
 		return self._literals
 
-	def IterateImplicitDeclarations(self) -> Generator[tuple[str, EnumerationLiteral], None, None]:
+	def IterateImplicitDeclarations(self) -> Generator[EnumerationLiteral, None, None]:
 		"""
 		Iterate the enumeration literals this type declaration implies.
 
-		:returns: A generator to iterate (normalized designator, enumeration literal) pairs, in declaration order.
+		The implicit operations (:attr:`~FullType.ImplicitOperations`) are indexed by the analysis, after the type marks
+		are resolved.
+
+		:returns: A generator to iterate the enumeration literals, in declaration order.
 		"""
-		for literal in self._literals:
-			yield literal.NormalizedDesignator, literal
+		yield from self._literals
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -589,6 +925,29 @@ class IntegerType(RangedScalarType, NumericTypeMixin, DiscreteTypeMixin):
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this integer type declares implicitly: those of a scalar type, the adding, multiplying and
+		sign operators, ``"mod"``, ``"rem"``, ``"abs"`` and ``"**"`` with an ``integer`` exponent (IEEE Std 1076-2008,
+		9.2.5 to 9.2.8).
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		for operatorSymbol in ("+", "-", "*", "/", "mod", "rem"):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+		for operatorSymbol in ("+", "-", "abs"):
+			operations.append(self._UnaryOperator(operatorSymbol, self._TypeMark()))
+
+		operations.append(self._Operator(
+			"**",
+			self._TypeMark(),
+			(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName("integer"))))
+		))
+
+		return operations
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this integer type and its range with a visitor.
@@ -639,6 +998,28 @@ class RealType(RangedScalarType, NumericTypeMixin):
 		"""
 		super().__init__(identifier, rng, documentation, parent)
 
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this floating-point type declares implicitly: those of a scalar type, the adding, multiplying
+		and sign operators, ``"abs"`` and ``"**"`` with an ``integer`` exponent (IEEE Std 1076-2008, 9.2.5 to 9.2.8).
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		for operatorSymbol in ("+", "-", "*", "/"):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+		for operatorSymbol in ("+", "-", "abs"):
+			operations.append(self._UnaryOperator(operatorSymbol, self._TypeMark()))
+
+		operations.append(self._Operator(
+			"**",
+			self._TypeMark(),
+			(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName("integer"))))
+		))
+
+		return operations
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this floating-point type and its range with a visitor.
@@ -679,7 +1060,7 @@ class PhysicalUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	      --^^                                        <- Identifier (primary unit)
 	        mm = 1000 um;
 	      --^^                                        <- Identifier (secondary unit)
-	      --   ^^^^^^^                                <- Value
+	      --     ^^^^^^^                              <- Value
 	      end units;
 	"""
 	_value: Nullable[PhysicalIntegerLiteral]  #: The unit's value in a smaller unit, or ``None`` for the primary unit.
@@ -709,6 +1090,20 @@ class PhysicalUnit(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self._value = value
 		if value is not None:
 			value.Parent = self
+
+	@readonly
+	def NormalizedDesignator(self) -> str:
+		"""
+		Read-only property to access the normalized designator (:attr:`_normalizedIdentifier`), the key the unit is
+		indexed by in a namespace.
+
+		.. seealso::
+
+		   * :term:`Normalized`
+
+		:returns: The normalized identifier of the unit.
+		"""
+		return self._normalizedIdentifier
 
 	@readonly
 	def Value(self) -> Nullable[PhysicalIntegerLiteral]:
@@ -850,15 +1245,54 @@ class PhysicalType(RangedScalarType, NumericTypeMixin):
 		"""
 		return self._secondaryUnits
 
-	def IterateImplicitDeclarations(self) -> Generator[tuple[str, PhysicalUnit], None, None]:
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this physical type declares implicitly: those of a scalar type, the adding and sign
+		operators, ``"abs"``, ``"mod"`` and ``"rem"``, the multiplying operators with an ``integer`` or ``real`` operand,
+		and the division of two values of this type returning the anonymous type *universal_integer* (IEEE Std 1076-2008,
+		9.2.5 to 9.2.7).
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		for operatorSymbol in ("+", "-", "mod", "rem"):
+			operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+		for operatorSymbol in ("+", "-", "abs"):
+			operations.append(self._UnaryOperator(operatorSymbol, self._TypeMark()))
+
+		for scalar in ("integer", "real"):
+			operations.append(self._Operator(
+				"*",
+				self._TypeMark(),
+				(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName(scalar))))
+			))
+			operations.append(self._Operator(
+				"*",
+				self._TypeMark(),
+				(self._Parameter("L", SimpleSubtypeSymbol(SimpleName(scalar))), self._Parameter("R", self._TypeMark()))
+			))
+			operations.append(self._Operator(
+				"/",
+				self._TypeMark(),
+				(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName(scalar))))
+			))
+
+		operations.append(self._BinaryOperator("/", SimpleSubtypeSymbol(SimpleName("universal_integer"))))
+
+		return operations
+
+	def IterateImplicitDeclarations(self) -> Generator[PhysicalUnit, None, None]:
 		"""
 		Iterate the units this type declaration implies: the primary unit, then the secondary units.
 
-		:returns: A generator to iterate (normalized identifier, unit) pairs, in declaration order.
+		The implicit operations (:attr:`~FullType.ImplicitOperations`) are indexed by the analysis, after the type marks
+		are resolved.
+
+		:returns: A generator to iterate the units, in declaration order.
 		"""
-		yield self._primaryUnit._normalizedIdentifier, self._primaryUnit
-		for unit in self._secondaryUnits:
-			yield unit._normalizedIdentifier, unit
+		yield self._primaryUnit
+		yield from self._secondaryUnits
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -998,6 +1432,150 @@ class ArrayType(CompositeType):
 
 		if isinstance(self._elementType, SubtypeSymbol):
 			yield region, self, self._elementType
+
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this array type declares implicitly.
+
+		Every array type declares the equality operators. A one-dimensional array type adds, depending on its element type
+		(the base type of the element subtype, known after the element type mark is resolved):
+
+		* discrete element type: the ordering operators ``"<"``, ``"<="``, ``">"``, ``">="`` (IEEE Std 1076-2008,
+		  9.2.3), ``MINIMUM`` and ``MAXIMUM`` of two arrays (5.3.2.4);
+		* any element type: the concatenation operator ``"&"`` of array and array, array and element, element and array,
+		  element and element (9.2.5);
+		* scalar element type: ``MINIMUM`` and ``MAXIMUM`` of the elements of an array (5.3.2.4);
+		* element type ``bit`` or ``boolean`` (:class:`LogicalOperatorsMixin`): ``"not"``, the binary
+		  logical operators of two arrays, the shift operators ``"sll"``, ``"srl"``, ``"sla"``, ``"sra"``, ``"rol"``,
+		  ``"ror"`` with an ``integer`` shift amount (9.2.4), the binary logical operators of an element and an array and
+		  of an array and an element, and the logical reduction operators (9.2.2);
+		* element type ``bit`` (:class:`MatchingOperatorsMixin`): the matching operators ``"?="`` and
+		  ``"?/="`` (9.2.3).
+
+		An array type, whose values have a string representation (:meth:`_HasStringRepresentation`), declares
+		``TO_STRING`` last (5.3.2.4).
+
+		A parameter or result of the element type has a type mark naming the element subtype, which references it. With an
+		unresolved element type mark, only the equality operators and the concatenation of two arrays are created.
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		if len(self._dimensions) != 1:
+			if self._HasStringRepresentation(self._VHDLVersion()):
+				operations.append(self._ToString())
+
+			return operations
+
+		reference = self._elementType._reference
+		if not isinstance(reference, BaseType):
+			operations.append(self._BinaryOperator("&", self._TypeMark()))
+			return operations
+
+		def elementTypeMark() -> SimpleSubtypeSymbol:
+			"""
+			Nested function creating a type mark naming the element subtype, which it references.
+
+			:returns: The type mark.
+			"""
+			symbol =            SimpleSubtypeSymbol(SimpleName(reference._identifier))
+			symbol._reference = reference
+
+			return symbol
+
+		element = reference.BaseType
+		if isinstance(element, DiscreteTypeMixin):
+			for operatorSymbol in ("<", "<=", ">", ">="):
+				operations.append(self._BinaryOperator(operatorSymbol, SimpleSubtypeSymbol(SimpleName("boolean"))))
+
+			for identifier in ("minimum", "maximum"):
+				operations.append(self._Function(
+					identifier,
+					self._TypeMark(),
+					(self._Parameter("L", self._TypeMark()), self._Parameter("R", self._TypeMark()))
+				))
+
+		operations.append(self._BinaryOperator("&", self._TypeMark()))
+		operations.append(self._Operator(
+			"&",
+			self._TypeMark(),
+			(self._Parameter("L", self._TypeMark()), self._Parameter("R", elementTypeMark()))
+		))
+		operations.append(self._Operator(
+			"&",
+			self._TypeMark(),
+			(self._Parameter("L", elementTypeMark()), self._Parameter("R", self._TypeMark()))
+		))
+		operations.append(self._Operator(
+			"&",
+			self._TypeMark(),
+			(self._Parameter("L", elementTypeMark()), self._Parameter("R", elementTypeMark()))
+		))
+
+		if isinstance(element, ScalarType):
+			for identifier in ("minimum", "maximum"):
+				operations.append(self._Function(identifier, elementTypeMark(), (self._Parameter("L", self._TypeMark()),)))
+
+		if isinstance(element, LogicalOperatorsMixin):
+			operations.append(self._UnaryOperator("not", self._TypeMark()))
+			for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+				operations.append(self._BinaryOperator(operatorSymbol, self._TypeMark()))
+
+			for operatorSymbol in ("sll", "srl", "sla", "sra", "rol", "ror"):
+				operations.append(self._Operator(
+					operatorSymbol,
+					self._TypeMark(),
+					(self._Parameter("L", self._TypeMark()), self._Parameter("R", SimpleSubtypeSymbol(SimpleName("integer"))))
+				))
+
+			for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+				operations.append(self._Operator(
+					operatorSymbol,
+					self._TypeMark(),
+					(self._Parameter("L", elementTypeMark()), self._Parameter("R", self._TypeMark()))
+				))
+				operations.append(self._Operator(
+					operatorSymbol,
+					self._TypeMark(),
+					(self._Parameter("L", self._TypeMark()), self._Parameter("R", elementTypeMark()))
+				))
+
+			for operatorSymbol in ("and", "or", "nand", "nor", "xor", "xnor"):
+				operations.append(self._UnaryOperator(operatorSymbol, elementTypeMark()))
+
+		if isinstance(element, MatchingOperatorsMixin):
+			for operatorSymbol in ("?=", "?/="):
+				operations.append(self._BinaryOperator(operatorSymbol, elementTypeMark()))
+
+		if self._HasStringRepresentation(self._VHDLVersion()):
+			operations.append(self._ToString())
+
+		return operations
+
+	def _HasStringRepresentation(self, vhdlVersion: VHDLVersion) -> bool:
+		"""
+		Check if the values of this array type have a string representation (IEEE Std 1076-2008, 5.7).
+
+		Up to VHDL-2008, a one-dimensional array type has one, if its element type is a character type containing only
+		character literals (``bit_vector``, not ``string``). Since VHDL-2019, an array type has one, if its element type
+		has one (a representable array type, IEEE Std 1076-2019, 5.7). An unresolved element type mark has none.
+
+		:param vhdlVersion: The VHDL version of the rules.
+		:returns:           ``True``, if the values have a string representation.
+		"""
+		from pyVHDLModel import VHDLVersion
+
+		reference = self._elementType._reference
+		if not isinstance(reference, BaseType):
+			return False
+
+		element = reference.BaseType
+		if vhdlVersion >= VHDLVersion.VHDL2019:
+			return isinstance(element, FullType) and element._HasStringRepresentation(vhdlVersion)
+
+		return len(self._dimensions) == 1 and isinstance(element, EnumeratedType) and all(
+			isinstance(literal, CharacterEnumerationLiteral) for literal in element._literals
+		)
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1288,6 +1866,45 @@ class RecordType(CompositeType):
 			if isinstance(element._subtype, SubtypeSymbol):
 				yield region, self, element._subtype
 
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this record type declares implicitly: the equality operators, then ``TO_STRING``, if its
+		values have a string representation (:meth:`_HasStringRepresentation`, IEEE Std 1076-2019, 5.3.3.3).
+
+		:returns: List of predefined operators and predefined functions.
+		"""
+		operations = super()._CreateImplicitOperations()
+		if self._HasStringRepresentation(self._VHDLVersion()):
+			operations.append(self._ToString())
+
+		return operations
+
+	def _HasStringRepresentation(self, vhdlVersion: VHDLVersion) -> bool:
+		"""
+		Check if the values of this record type have a string representation (IEEE Std 1076-2019, 5.7).
+
+		Up to VHDL-2008, a record type has none. Since VHDL-2019, it has one, if the type of each element has one (a
+		representable record type). An unresolved element type mark has none.
+
+		:param vhdlVersion: The VHDL version of the rules.
+		:returns:           ``True``, if the values have a string representation.
+		"""
+		from pyVHDLModel import VHDLVersion
+
+		if vhdlVersion < VHDLVersion.VHDL2019:
+			return False
+
+		for element in self._elements:
+			reference = element._subtype._reference
+			if not isinstance(reference, BaseType):
+				return False
+
+			elementType = reference.BaseType
+			if not isinstance(elementType, FullType) or not elementType._HasStringRepresentation(vhdlVersion):
+				return False
+
+		return True
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this record type and its element declarations with a visitor.
@@ -1364,6 +1981,15 @@ class ProtectedType(FullType, ProtectedTypeDeclarationRegionMixin, WithoutStatem
 	def Parent(self, parent: ModelEntity) -> None:
 		FullType.Parent.fset(self, parent)
 		self._ConnectParentNamespace(parent)
+
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this protected type declares implicitly: none, as it has no equality
+		(IEEE Std 1076-2008, 9.2.3).
+
+		:returns: An empty list.
+		"""
+		return []
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1443,6 +2069,14 @@ class ProtectedTypeBody(FullType, SequentialDeclarationRegionMixin, WithoutState
 	def Parent(self, parent: ModelEntity) -> None:
 		FullType.Parent.fset(self, parent)
 		self._ConnectParentNamespace(parent)
+
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this protected type body declares implicitly: none, as the protected type declares them.
+
+		:returns: An empty list.
+		"""
+		return []
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1603,6 +2237,16 @@ class FileType(FullType):
 		"""
 		if isinstance(self._designatedSubtype, SubtypeSymbol):
 			yield region, self, self._designatedSubtype
+
+	def _CreateImplicitOperations(self) -> list[PredefinedOperation]:
+		"""
+		Create the operations this file type declares implicitly: none represented yet. A file type has no equality
+		(IEEE Std 1076-2008, 9.2.3); its file operations ``FILE_OPEN``, ``FILE_CLOSE``, ``READ``, ``WRITE``, ``FLUSH`` and
+		``ENDFILE`` (5.5.2) aren't represented.
+
+		:returns: An empty list.
+		"""
+		return []
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""

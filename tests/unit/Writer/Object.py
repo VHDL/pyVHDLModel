@@ -35,7 +35,7 @@ from pyTooling.Testing           import Testcase
 
 from pyVHDLModel.Base            import Direction, SimpleRange
 from pyVHDLModel.Expression      import IntegerLiteral, CharacterLiteral, AscendingRangeExpression, \
-                                        DescendingRangeExpression, SubtractionExpression
+                                        DescendingRangeExpression, SubtractionExpression, StringLiteral
 from pyVHDLModel.Formatting.VHDL import KeywordCase, VHDLStyle, VHDLWriter
 from pyVHDLModel.Name            import SimpleName
 from pyVHDLModel.Object          import Constant, DeferredConstant, Variable, SharedVariable, Signal, File
@@ -178,6 +178,17 @@ class Objects(Testcase):
 		file = File(["input"], _subtypeSymbol("text"))
 
 		self.assertEqual("file input : text;\n", VHDLWriter().Format(file))
+
+	def test_File_OpenInformation(self) -> None:
+		openKind = _object("read_mode")
+		file =     File(["input"], _subtypeSymbol("text"), openKind=openKind, logicalName=StringLiteral("STD_INPUT"))
+
+		self.assertEqual("file input : text open read_mode is \"STD_INPUT\";\n", VHDLWriter().Format(file))
+
+	def test_File_LogicalName(self) -> None:
+		file = File(["log"], _subtypeSymbol("text"), logicalName=StringLiteral("log.txt"))
+
+		self.assertEqual("file log : text is \"log.txt\";\n", VHDLWriter().Format(file))
 
 	def test_UpperCase(self) -> None:
 		writer = VHDLWriter(VHDLStyle(KeywordCase.Upper))

@@ -814,6 +814,10 @@ class Package(
 	"""
 	Represents a package declaration.
 
+	A package declared in a declarative region, e.g. in an architecture, is a local package: its namespace is connected to
+	the namespace of the enclosing region, so its declarations see the declarations visible there (IEEE Std 1076-2008,
+	12.1). A package of a library has no enclosing region.
+
 	.. admonition:: Example
 
 	   .. code-block:: VHDL
@@ -877,6 +881,11 @@ class Package(
 		self._deferredConstants = {}
 		self._components = {}
 
+	@ModelEntity.Parent.setter
+	def Parent(self, parent: ModelEntity) -> None:
+		ModelEntity.Parent.fset(self, parent)
+		self._ConnectParentNamespace(parent)
+
 	@readonly
 	def PackageBody(self) -> Nullable[PackageBody]:
 		"""
@@ -913,52 +922,60 @@ class Package(
 		"""
 		return self._components
 
-	def IterateDeclarations(self) -> Generator[tuple[str, ModelEntity], None, None]:
+	def IterateDeclarations(self) -> Generator[ModelEntity, None, None]:
 		"""
 		Iterate the declarations of this package a use clause can make potentially visible.
 
-		A declared item contributes its normalized identifiers; an enumerated type its enumeration literals too, a physical
-		type its units. An incomplete type is completed by its full type declaration, so it's skipped.
+		These are the declared items; an incomplete type is completed by its full type declaration, so it's skipped. Each
+		declaration is visible by its normalized identifiers (:func:`~pyVHDLModel.Base.normalizedIdentifiersOf`) and brings
+		the declarations it implies along (:meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations`), e.g. the
+		enumeration literals of a type (:meth:`~pyVHDLModel.Namespace.Namespace.AddImports`).
 
-		:returns: A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		:returns: A generator to iterate the declarations, in declaration order.
 		"""
 		for item in self._declaredItems:
 			if isinstance(item, AnonymousType):
 				continue
 			elif isinstance(item, (NamedEntityMixin, MultipleNamedEntityMixin)):
-				for normalizedIdentifier in normalizedIdentifiersOf(item):
-					yield normalizedIdentifier, item
+				yield item
 
-				yield from item.IterateImplicitDeclarations()
-
-	def IterateMemberDeclarations(self, memberIdentifier: str) -> Generator[tuple[str, ModelEntity], None, None]:
+	def IterateMemberDeclarations(self, memberIdentifier: str) -> Generator[ModelEntity, None, None]:
 		"""
 		Iterate the declarations of this package a use clause naming one package member makes potentially visible.
 
-		These are the declarations of the package with the member's identifier, e.g. all overloads of a subprogram. A type
-		brings its enumeration literals or physical units along (IEEE Std 1076-2008, 12.4), a subtype those of its base
-		type: the known base type, else the type its type marks lead to, followed by simple names in the package.
+		These are the declarations of the package with the member's identifier, e.g. all overloads of a subprogram. Each is
+		visible by the member's identifier and brings the declarations of :meth:`IterateMemberImplicitDeclarations` along.
 
 		:param memberIdentifier: The normalized (lower case) identifier of the package member.
-		:returns:                A generator to iterate (normalized designator, declaration) pairs, in declaration order.
+		:returns:                A generator to iterate the declarations, in declaration order.
 		"""
-		for normalizedIdentifier, declaration in self.IterateDeclarations():
-			if normalizedIdentifier == memberIdentifier:
-				yield normalizedIdentifier, declaration
+		for declaration in self.IterateDeclarations():
+			if memberIdentifier in normalizedIdentifiersOf(declaration):
+				yield declaration
 
-				# A subtype's base type: known for a predefined subtype, else follow the type marks by simple names.
-				baseType = declaration
-				while isinstance(baseType, Subtype):
-					if baseType._baseType is not None:
-						baseType = baseType._baseType
-					elif (typeMark := baseType._type._name)._prefix is None:
-						result =   baseType._parent._namespace.Lookup(typeMark._normalizedIdentifier, baseType)
-						baseType = result._declarations[0] if len(result._declarations) == 1 else None
-					else:
-						baseType = None
+	def IterateMemberImplicitDeclarations(self, member: ModelEntity) -> Generator[ModelEntity, None, None]:
+		"""
+		Iterate the declarations a use clause naming a package member makes potentially visible along with the member.
 
-				if baseType is not None:
-					yield from baseType.IterateImplicitDeclarations()
+		A type brings its enumeration literals or physical units along (IEEE Std 1076-2008, 12.4), a subtype those of its
+		base type: the known base type, else the type its type marks lead to, followed by simple names in the package.
+
+		:param member: A declaration of this package (:meth:`IterateMemberDeclarations`).
+		:returns:      A generator to iterate the implied declarations, in declaration order.
+		"""
+		# A subtype's base type: known for a predefined subtype, else follow the type marks by simple names.
+		baseType = member
+		while isinstance(baseType, Subtype):
+			if baseType._baseType is not None:
+				baseType = baseType._baseType
+			elif (typeMark := baseType._type._name)._prefix is None:
+				result =   baseType._parent._namespace.Lookup(typeMark._normalizedIdentifier, baseType)
+				baseType = result._declarations[0] if len(result._declarations) == 1 else None
+			else:
+				baseType = None
+
+		if baseType is not None:
+			yield from baseType.IterateImplicitDeclarations()
 
 	def DenoteBy(
 		self,
@@ -1063,13 +1080,13 @@ class Package(
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> tuple[ModelEntity, ...]:
+	def _InterfaceDeclarations(self) -> tuple[ModelEntity, ...]:
 		"""
-		Return all declarations of this package: its generics share the declarative region.
+		Return the interface items of this package: its generics share the declarative region.
 
-		:returns: Tuple of declarations: the generics, then the declared items.
+		:returns: Tuple of the generics.
 		"""
-		return (*self._genericItems, *super()._Declarations())
+		return tuple(self._genericItems)
 
 
 @export
@@ -1345,13 +1362,13 @@ class Entity(PrimaryUnit, DesignUnitWithContextMixin, WithGenericsMixin, WithPor
 
 		super().IndexDeclaredItems()
 
-	def _Declarations(self) -> tuple[ModelEntity, ...]:
+	def _InterfaceDeclarations(self) -> tuple[ModelEntity, ...]:
 		"""
-		Return all declarations of this entity: its generics and ports share the declarative region.
+		Return the interface items of this entity: its generics and ports share the declarative region.
 
-		:returns: Tuple of declarations: the generics, the ports, then the declared items.
+		:returns: Tuple of the generics, then the ports.
 		"""
-		return (*self._genericItems, *self._portItems, *super()._Declarations())
+		return (*self._genericItems, *self._portItems)
 
 	def _SharedRegions(self) -> tuple[ConcurrentDeclarationRegionMixin, ...]:
 		"""

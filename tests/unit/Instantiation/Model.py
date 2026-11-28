@@ -37,7 +37,7 @@ from pyTooling.Graph           import Graph
 from pyTooling.Testing         import Testcase
 
 from pyVHDLModel               import Design, Library, Document, IEEEFlavor, ObjectClass, LibraryExistsInDesignError, \
-                                      VHDLModelException
+                                      VHDLModelException, VHDLVersion
 from pyVHDLModel.Base          import Direction, SimpleRange
 from pyVHDLModel.Name          import SelectedName, SimpleName, AllName, AttributeName
 from pyVHDLModel.Object        import Constant, Signal
@@ -55,11 +55,11 @@ from pyVHDLModel.DesignUnit    import Package, PackageBody, Context, Entity, Arc
                                       LibraryClause
 from pyVHDLModel.Association   import GenericAssociationItem
 from pyVHDLModel.Exception     import IEEEFlavorError, UnknownIEEEFlavorError, IEEEFlavorChangeError, \
-                                      DuplicateDesignUnitError
+                                      DuplicateDesignUnitError, LibraryNotFoundError
 from pyVHDLModel.Instantiation import PackageInstantiation, FunctionInstantiation, ProcedureInstantiation
 from pyVHDLModel.PSLModel      import DefaultClock
 from pyVHDLModel.STD           import Std, Standard
-from pyVHDLModel.IEEE          import Std_Logic_1164
+from pyVHDLModel.IEEE          import Ieee, Std_Logic_1164
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -884,8 +884,8 @@ class VHDLLibrary(Testcase):
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
 
 	def test_IeeeLibrary(self) -> None:
-		design = Design()
-		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.IEEE)
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.IEEE)
 
 		self.assertEqual(1, len(design.Libraries))
 		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
@@ -911,8 +911,8 @@ class VHDLLibrary(Testcase):
 		self.assertTrue(stdLogic.AllowBlackbox)
 
 	def test_IeeeMentorGraphicsLibrary(self) -> None:
-		design = Design()
-		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.MentorGraphics)
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.MentorGraphics)
 
 		self.assertEqual(1, len(design.Libraries))
 		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
@@ -934,8 +934,8 @@ class VHDLLibrary(Testcase):
 		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
 
 	def test_IeeeSynopsysLibrary(self) -> None:
-		design = Design()
-		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.Synopsys)
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.Synopsys)
 
 		self.assertEqual(1, len(design.Libraries))
 		self.assertEqual("ieee", ieeeLibrary.NormalizedIdentifier)
@@ -960,16 +960,82 @@ class VHDLLibrary(Testcase):
 		design = Design()
 
 		with self.assertRaises(UnknownIEEEFlavorError) as context:
-			design.LoadIEEELibrary(IEEEFlavor.WithVITAL)
+			design.LoadIEEELibrary(flavor=IEEEFlavor.WithVITAL)
 
 		self.assertEqual(f"Unknown IEEE library flavor '{IEEEFlavor.WithVITAL}'.", str(context.exception))
 		self.assertIs(IEEEFlavor.WithVITAL, context.exception.Flavor)
 		self.assertIsInstance(context.exception, IEEEFlavorError)
 		self.assertIsInstance(context.exception, VHDLModelException)
 
+	def test_IeeeLibrary_WithVITAL(self) -> None:
+		"""``LoadIEEELibrary(flavor=IEEEFlavor.IEEE | IEEEFlavor.WithVITAL)`` loads the VITAL packages too."""
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.IEEE | IEEEFlavor.WithVITAL)
+
+		self.assertIn(IEEEFlavor.WithVITAL, ieeeLibrary.Flavor)
+		for identifier in ("vital_timing", "vital_primitives", "vital_memory"):
+			self.assertIn(identifier, ieeeLibrary.Packages)
+			self.assertIn(identifier, ieeeLibrary.PackageBodies)
+
+	def test_LoadVITALPackages(self) -> None:
+		"""``Design.LoadVITALPackages()`` adds the VITAL packages to ``ieee`` and its virtual document ``ieee.vhdl``."""
+		design =      Design()
+		ieeeLibrary = design.LoadIEEELibrary()
+		packages =    len(ieeeLibrary.Packages)
+
+		self.assertIs(ieeeLibrary, design.LoadVITALPackages())
+		self.assertIn(IEEEFlavor.WithVITAL, ieeeLibrary.Flavor)
+		self.assertEqual(packages + 3, len(ieeeLibrary.Packages))
+		document = ieeeLibrary.Packages["std_logic_1164"].Document
+		for identifier in ("vital_timing", "vital_primitives", "vital_memory"):
+			self.assertIs(ieeeLibrary, ieeeLibrary.Packages[identifier].Library)
+			self.assertIs(document, ieeeLibrary.Packages[identifier].Document)
+			self.assertIs(document, ieeeLibrary.PackageBodies[identifier].Document)
+
+		self.assertSetEqual(set(design.IterateDesignUnits()), set(ieeeLibrary.IterateDesignUnits()))
+
+	def test_Ieee_LoadVITALPackages(self) -> None:
+		"""``Ieee.LoadVITALPackages()`` returns the added packages, each followed by its package body."""
+		ieeeLibrary = Ieee(VHDLVersion.VHDL2008, IEEEFlavor.IEEE)
+		designUnits = ieeeLibrary.LoadVITALPackages()
+
+		self.assertTupleEqual(
+			(
+				ieeeLibrary.Packages["vital_timing"],
+				ieeeLibrary.PackageBodies["vital_timing"],
+				ieeeLibrary.Packages["vital_primitives"],
+				ieeeLibrary.PackageBodies["vital_primitives"],
+				ieeeLibrary.Packages["vital_memory"],
+				ieeeLibrary.PackageBodies["vital_memory"]
+			),
+			designUnits
+		)
+
+	def test_LoadVITALPackages_Twice(self) -> None:
+		"""Loading the VITAL packages a second time is an error."""
+		design = Design()
+		design.LoadIEEELibrary(flavor=IEEEFlavor.IEEE | IEEEFlavor.WithVITAL)
+
+		with self.assertRaises(IEEEFlavorChangeError) as context:
+			design.LoadVITALPackages()
+
+		self.assertEqual(
+			f"IEEE library flavor is '{IEEEFlavor.IEEE | IEEEFlavor.WithVITAL}' and has the VITAL packages already.",
+			str(context.exception)
+		)
+		self.assertIs(IEEEFlavor.WithVITAL, context.exception.Flavor)
+
+	def test_LoadVITALPackages_NoIeeeLibrary(self) -> None:
+		"""Without ``LoadIEEELibrary()``, there is no library to load the VITAL packages into."""
+		with self.assertRaises(LibraryNotFoundError) as context:
+			Design().LoadVITALPackages()
+
+		self.assertEqual("Library 'ieee' not found in design.", str(context.exception))
+		self.assertListEqual(["Call 'LoadIEEELibrary()' before loading the VITAL packages."], context.exception.__notes__)
+
 	def test_IeeeSynopsysLibrary_ChangeFlavor(self) -> None:
 		design =      Design()
-		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.Synopsys)
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.Synopsys)
 
 		with self.assertRaises(IEEEFlavorChangeError) as context:
 			ieeeLibrary.LoadMentorGraphicsPackages()
@@ -985,7 +1051,7 @@ class VHDLLibrary(Testcase):
 
 	def test_IeeeMentorGraphicsLibrary_ChangeFlavor(self) -> None:
 		design =      Design()
-		ieeeLibrary = design.LoadIEEELibrary(IEEEFlavor.MentorGraphics)
+		ieeeLibrary = design.LoadIEEELibrary(flavor=IEEEFlavor.MentorGraphics)
 
 		with self.assertRaises(IEEEFlavorChangeError) as context:
 			ieeeLibrary.LoadSynopsysPackages()

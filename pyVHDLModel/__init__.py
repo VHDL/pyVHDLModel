@@ -3280,11 +3280,15 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		.. rubric:: Algorithm
 
-		1. Iterate the design units in the order of :meth:`ResolveTypeMarks` and their declarative regions: resolve the
+		1. Resolve the type marks of the implicit operations of the anonymous types of ``std.standard``
+		   (:attr:`Standard.AnonymousTypes <pyVHDLModel.STD.StandardPkg.Standard.AnonymousTypes>`) and add the operations
+		   to its namespace. A use clause imports them as declarations of the package
+		   (:meth:`Standard.IterateDeclarations <pyVHDLModel.STD.StandardPkg.Standard.IterateDeclarations>`).
+		2. Iterate the design units in the order of :meth:`ResolveTypeMarks` and their declarative regions: resolve the
 		   type marks of the implicit operations of each full type declared in a region, which name a type of
 		   ``std.standard`` (:meth:`~pyVHDLModel.Type.FullType.ResolveImplicitOperationTypeMarks`), and add the operations
 		   to the region's namespace (:meth:`~pyVHDLModel.Namespace.Namespace.AddImplicitOperations`).
-		2. Iterate them again: import the implicit operations of the full types imported into each region's namespace by
+		3. Iterate them again: import the implicit operations of the full types imported into each region's namespace by
 		   a use clause (:meth:`~pyVHDLModel.Namespace.Namespace.ImportImplicitOperations`).
 
 		.. seealso::
@@ -3300,7 +3304,11 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			ex.add_note("Call 'LoadStdLibrary()' before analyzing a design.")
 			raise ex
 
-		standard =    std._packages["standard"]
+		standard = std._packages["standard"]
+		for anonymousType in standard._anonymousTypes.values():
+			anonymousType.ResolveImplicitOperationTypeMarks(standard)
+			standard._namespace.AddImplicitOperations(anonymousType)
+
 		designUnits = self._DesignUnitsInAnalysisOrder()
 		for designUnit in designUnits:
 			for region in designUnit.IterateDeclarationRegions():

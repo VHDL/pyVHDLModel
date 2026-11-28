@@ -39,7 +39,8 @@ from pyTooling.Decorators        import export
 
 from pyVHDLModel                 import VHDLVersion
 from pyVHDLModel.Predefined      import PredefinedLibrary
-from pyVHDLModel.STD.StandardPkg import EdgeFunctionsMixin, Boolean, Bit, Standard, Standard_Body
+from pyVHDLModel.STD.StandardPkg import EdgeFunctionsMixin, Boolean, Bit, Real, Time, BitVector, UniversalReal, \
+                                        Standard, Standard_Body
 from pyVHDLModel.STD.TextIOPkg   import TextIO, TextIO_Body
 from pyVHDLModel.STD.EnvPkg      import Env, Env_Body
 

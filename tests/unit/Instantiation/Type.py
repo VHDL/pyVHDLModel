@@ -29,11 +29,14 @@
 # ==================================================================================================================== #
 #
 """Tests for pyVHDLModel.Type."""
+from pathlib                import Path
 from typing                 import Optional as Nullable
 
 from pyTooling.Testing      import Testcase
 
+from pyVHDLModel            import Document, VHDLVersion
 from pyVHDLModel.Base       import Direction, RangeFromName, SimpleRange
+from pyVHDLModel.DesignUnit import Package
 from pyVHDLModel.Name       import SimpleName, AttributeName
 from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
                                    ResolutionFunctionSymbol, ArrayElementResolution
@@ -77,6 +80,20 @@ def _array(identifier: str, element: Nullable[BaseType], elementName: str = "e",
 	elementSymbol._reference = element
 
 	return ArrayType(identifier, [_subtypeSymbol("natural") for _ in range(dimensions)], elementSymbol)
+
+
+def _element(identifier: str, elementType: BaseType) -> RecordTypeElement:
+	"""A record element; its type mark references ``elementType``, as after resolution."""
+	symbol =            _subtypeSymbol(elementType.Identifier)
+	symbol._reference = elementType
+
+	return RecordTypeElement((identifier, ), symbol)
+
+
+def _declare(vhdlVersion: VHDLVersion, *declaredItems: BaseType) -> None:
+	"""Declare types in a package of a document of a VHDL version."""
+	document = Document(Path("p.vhdl"), vhdlVersion=vhdlVersion)
+	document._AddDesignUnit(Package("p", declaredItems=declaredItems))
 
 
 def _concatenationSignatures(name: str, element: str) -> list[tuple[str, tuple[str, ...], str]]:
@@ -628,7 +645,8 @@ class ImplicitOperations(Testcase):
 				("/",   ("my_time", "integer"), "my_time"),
 				("*",   ("my_time", "real"),    "my_time"),
 				("*",   ("real", "my_time"),    "my_time"),
-				("/",   ("my_time", "real"),    "my_time")
+				("/",   ("my_time", "real"),    "my_time"),
+				("/",   ("my_time", "my_time"), "universal_integer")
 			],
 			_signatures(physicalType)
 		)
@@ -850,3 +868,106 @@ class ImplicitOperations(Testcase):
 		integerType = IntegerType("nibble", _range())
 
 		self.assertIs(integerType.ImplicitOperations, integerType.ImplicitOperations)
+
+
+class StringRepresentations(Testcase):
+	"""
+	``TO_STRING`` of composite types by VHDL version: one-dimensional arrays of character literals (IEEE Std 1076-2008,
+	5.3.2.4), representable arrays and records (IEEE Std 1076-2019, 5.3.2.4, 5.3.3.3).
+	"""
+
+	def test_Document_VHDL2008(self) -> None:
+		"""A record type in a VHDL-2008 document declares no ``TO_STRING``."""
+		recordType = RecordType("rec", [_element("a", IntegerType("nibble", _range()))])
+		_declare(VHDLVersion.VHDL2008, recordType)
+
+		self.assertListEqual(
+			[("=", ("rec", "rec"), "boolean"), ("/=", ("rec", "rec"), "boolean")],
+			_signatures(recordType)
+		)
+
+	def test_ArrayType_Character_VHDL2019(self) -> None:
+		"""An array of ``character`` declares ``TO_STRING``, like ``string``."""
+		arrayType = _array("str", Standard().Types["character"], "character")
+		_declare(VHDLVersion.VHDL2019, arrayType)
+
+		self.assertEqual(("to_string", ("str",), "string"), _signatures(arrayType)[-1])
+
+	def test_ArrayType_Integer_VHDL2019(self) -> None:
+		"""An array of an integer type declares ``TO_STRING``, like ``integer_vector``."""
+		arrayType = _array("v", IntegerType("nibble", _range()), "nibble")
+		_declare(VHDLVersion.VHDL2019, arrayType)
+
+		self.assertListEqual(
+			[
+				("=",  ("v", "v"), "boolean"),
+				("/=", ("v", "v"), "boolean"),
+				*_orderingSignatures("v"),
+				*_concatenationSignatures("v", "nibble"),
+				("minimum",   ("v",), "nibble"),
+				("maximum",   ("v",), "nibble"),
+				("to_string", ("v",), "string")
+			],
+			_signatures(arrayType)
+		)
+
+	def test_ArrayType_MultiDimensional_VHDL2019(self) -> None:
+		"""A two-dimensional array of ``bit``: the equality operators and ``TO_STRING``."""
+		arrayType = _array("m", Bit(), "bit", dimensions=2)
+		_declare(VHDLVersion.VHDL2019, arrayType)
+
+		self.assertListEqual(
+			[("=", ("m", "m"), "boolean"), ("/=", ("m", "m"), "boolean"), ("to_string", ("m",), "string")],
+			_signatures(arrayType)
+		)
+
+	def test_ArrayType_Record_VHDL2019(self) -> None:
+		"""An array of a representable record type declares ``TO_STRING``."""
+		recordType = RecordType("rec", [_element("a", IntegerType("nibble", _range()))])
+		arrayType =  _array("v", recordType, "rec")
+		_declare(VHDLVersion.VHDL2019, recordType, arrayType)
+
+		self.assertEqual(("to_string", ("v",), "string"), _signatures(arrayType)[-1])
+
+	def test_ArrayType_Access_VHDL2019(self) -> None:
+		"""An array of an access type has no string representation."""
+		arrayType = _array("v", AccessType("ptr", _subtypeSymbol("natural")), "ptr")
+		_declare(VHDLVersion.VHDL2019, arrayType)
+
+		self.assertNotIn("to_string", [operation.Identifier for operation in arrayType.ImplicitOperations])
+
+	def test_ArrayType_Unresolved_VHDL2019(self) -> None:
+		"""An unresolved element type mark: no ``TO_STRING``."""
+		arrayType = _array("v", None)
+		_declare(VHDLVersion.VHDL2019, arrayType)
+
+		self.assertListEqual(
+			[("=", ("v", "v"), "boolean"), ("/=", ("v", "v"), "boolean"), ("&", ("v", "v"), "v")],
+			_signatures(arrayType)
+		)
+
+	def test_RecordType_VHDL2019(self) -> None:
+		"""A record of an integer type and an array of ``character``: the equality operators and ``TO_STRING``."""
+		recordType = RecordType("rec", [
+			_element("a", IntegerType("nibble", _range())),
+			_element("b", _array("str", Standard().Types["character"], "character"))
+		])
+		_declare(VHDLVersion.VHDL2019, recordType)
+
+		self.assertListEqual(
+			[("=", ("rec", "rec"), "boolean"), ("/=", ("rec", "rec"), "boolean"), ("to_string", ("rec",), "string")],
+			_signatures(recordType)
+		)
+
+	def test_RecordType_Access_VHDL2019(self) -> None:
+		"""A record with an element of an access type has no string representation."""
+		recordType = RecordType("rec", [
+			_element("a", IntegerType("nibble", _range())),
+			_element("p", AccessType("ptr", _subtypeSymbol("natural")))
+		])
+		_declare(VHDLVersion.VHDL2019, recordType)
+
+		self.assertListEqual(
+			[("=", ("rec", "rec"), "boolean"), ("/=", ("rec", "rec"), "boolean")],
+			_signatures(recordType)
+		)

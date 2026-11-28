@@ -31,20 +31,24 @@
 #
 """This module contains the predefined package ``ieee.VITAL_Timing`` of VHDL library ``IEEE``."""
 
+from typing                  import Iterable, Optional as Nullable
+
 from pyTooling.Decorators    import export
 
 from pyVHDLModel             import VHDLVersion
-from pyVHDLModel.Base        import Direction, SimpleRange
-from pyVHDLModel.Name        import SimpleName
-from pyVHDLModel.Symbol      import SimpleObjectOrFunctionCallSymbol, ConstrainedScalarSubtypeSymbol, \
-                                    ConstrainedArraySubtypeSymbol
+from pyVHDLModel.Base        import Direction, Mode, SimpleRange
+from pyVHDLModel.Name        import AttributeName, SimpleName
+from pyVHDLModel.Symbol      import Symbol, SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, \
+                                    ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol
 from pyVHDLModel.Expression  import Aggregate, CharacterEnumerationLiteral, CharacterLiteral, EnumerationLiteral, \
-                                    IntegerLiteral, OthersAggregateElement, PhysicalIntegerLiteral, \
+                                    IntegerLiteral, Literal, OthersAggregateElement, PhysicalIntegerLiteral, \
                                     SimpleAggregateElement, StringLiteral, ExpressionUnion
 from pyVHDLModel.Type        import AccessType, ArrayType, EnumeratedType, RecordType, RecordTypeElement, Subtype
 from pyVHDLModel.Object      import Constant
 from pyVHDLModel.Declaration import Attribute
-from pyVHDLModel.Subprogram  import Function
+from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterSimpleSignalInterfaceItem, \
+                                    ParameterVariableInterfaceItem
+from pyVHDLModel.Subprogram  import Function, Procedure
 from pyVHDLModel.Predefined  import PredefinedPackage, PredefinedPackageBody
 
 
@@ -62,6 +66,15 @@ class VITAL_Timing(PredefinedPackage):
 	* the output and result map types with their default constants, the time, boolean and logic array and access types
 	* the records of the timing, period, glitch, path and skew data with their initial values, the glitch kinds, the table
 	  symbols and the edge symbols
+	* the functions ``VitalExtendToFillDelay`` and ``VitalCalcDelay`` of each delay type
+	* the procedures ``VitalPathDelay``, ``VitalPathDelay01`` and ``VitalPathDelay01Z``, ``VitalWireDelay`` of each delay
+	  type and ``VitalSignalDelay``
+	* the timing check procedures ``VitalSetupHoldCheck`` (of a ``std_ulogic`` and a ``std_logic_vector`` test signal),
+	  ``VitalRecoveryRemovalCheck``, ``VitalPeriodPulseCheck``, ``VitalInPhaseSkewCheck`` and ``VitalOutPhaseSkewCheck``
+
+	.. seealso::
+
+	   Matching :class:`Package Body <pyVHDLModel.IEEE.VITALTimingPkg.VITAL_Timing_Body>` declaration.
 	"""
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
@@ -82,7 +95,7 @@ class VITAL_Timing(PredefinedPackage):
 			"""
 			Nested function creating a name in an expression.
 
-			It names an enumeration literal, e.g. ``tr01`` or ``FALSE``.
+			It names an enumeration literal or a constant, e.g. ``tr01`` or ``VitalZeroDelay``.
 
 			:param identifier: The identifier.
 			:returns:          The name.
@@ -142,6 +155,105 @@ class VITAL_Timing(PredefinedPackage):
 				ArrayType(identifier, (self._TypeMark(indexType), ), self._TypeMark(elementType)),
 				self._types
 			)
+
+		def parameter(
+			identifier:        str,
+			typeName:          str,
+			defaultExpression: Nullable[Literal | Symbol] = None
+		) -> ParameterConstantInterfaceItem:
+			"""
+			Nested function creating a constant parameter of mode ``in``.
+
+			:param identifier:        The parameter's identifier.
+			:param typeName:          The name of the parameter's type.
+			:param defaultExpression: Optional, the default value. Default: ``None``, no default value.
+			:returns:                 The parameter.
+			"""
+			return self._InParameter((identifier, ), self._TypeMark(typeName), defaultExpression)
+
+		def signal(identifier: str, mode: Mode, typeName: str) -> ParameterSimpleSignalInterfaceItem:
+			"""
+			Nested function creating a signal parameter.
+
+			:param identifier: The parameter's identifier.
+			:param mode:       The parameter's mode.
+			:param typeName:   The name of the parameter's type.
+			:returns:          The parameter.
+			"""
+			return ParameterSimpleSignalInterfaceItem((identifier, ), mode, self._TypeMark(typeName))
+
+		def variable(identifier: str, mode: Mode, typeName: str) -> ParameterVariableInterfaceItem:
+			"""
+			Nested function creating a variable parameter.
+
+			:param identifier: The parameter's identifier.
+			:param mode:       The parameter's mode.
+			:param typeName:   The name of the parameter's type.
+			:returns:          The parameter.
+			"""
+			return ParameterVariableInterfaceItem((identifier, ), mode, self._TypeMark(typeName))
+
+		def flags(value: str, *identifiers: str) -> tuple[ParameterConstantInterfaceItem, ...]:
+			"""
+			Nested function creating constant parameters of type ``BOOLEAN`` with the same default value.
+
+			:param value:       The default value, ``TRUE`` or ``FALSE``.
+			:param identifiers: The identifiers of the parameters, in declaration order.
+			:returns:           The parameters.
+			"""
+			return tuple(parameter(identifier, "BOOLEAN", name(value)) for identifier in identifiers)
+
+		def messages() -> tuple[ParameterConstantInterfaceItem, ...]:
+			"""
+			Nested function creating the parameters ``XOn`` and ``MsgOn`` (default ``TRUE``) and ``MsgSeverity`` (default
+			``WARNING``).
+
+			:returns: The parameters.
+			"""
+			return *flags("TRUE", "XOn", "MsgOn"), parameter("MsgSeverity", "SEVERITY_LEVEL", name("WARNING"))
+
+		def checkedSignal(
+			identifier:      str,
+			delayIdentifier: str,
+			typeName:        str
+		) -> tuple[ParameterSimpleSignalInterfaceItem, ParameterConstantInterfaceItem, ParameterConstantInterfaceItem]:
+			"""
+			Nested function creating the parameters of a checked signal: the signal of mode ``in``, its name (default ``""``)
+			and its delay (default ``0 ns``).
+
+			:param identifier:      The identifier of the signal, e.g. ``TestSignal``.
+			:param delayIdentifier: The identifier of the delay, e.g. ``TestDelay``.
+			:param typeName:        The name of the signal's type.
+			:returns:               The parameters.
+			"""
+			return (
+				signal(identifier, Mode.In, typeName),
+				parameter(f"{identifier}Name", "STRING", StringLiteral("")),
+				parameter(delayIdentifier, "TIME", nanoseconds(0))
+			)
+
+		def times(*identifiers: str) -> tuple[ParameterConstantInterfaceItem, ...]:
+			"""
+			Nested function creating constant parameters of type ``TIME`` with the default value ``0 ns``.
+
+			:param identifiers: The identifiers of the parameters, in declaration order.
+			:returns:           The parameters.
+			"""
+			return tuple(parameter(identifier, "TIME", nanoseconds(0)) for identifier in identifiers)
+
+		def procedure(
+			identifier:     str,
+			parameterItems: Iterable[
+				ParameterConstantInterfaceItem | ParameterSimpleSignalInterfaceItem | ParameterVariableInterfaceItem
+			]
+		) -> None:
+			"""
+			Nested function declaring a procedure of this package.
+
+			:param identifier:     The procedure's identifier.
+			:param parameterItems: The parameters, in declaration order.
+			"""
+			self._DeclareSubprogram(Procedure(identifier, parameterItems=parameterItems), self._procedures)
 
 		# Transition and delay types, zero delays
 		self._DeclareItem(EnumeratedType("VitalTransitionType", [EnumerationLiteral(literal) for literal in (
@@ -266,6 +378,113 @@ class VITAL_Timing(PredefinedPackage):
 			"VitalSkewDataType",
 			aggregate(name("none"), nanoseconds(0), nanoseconds(0), nanoseconds(0), nanoseconds(0))
 		)
+
+		# VitalExtendToFillDelay, VitalCalcDelay
+		for suffix in ("", "01", "01Z"):
+			self._DeclareSubprogram(Function(
+				"VitalExtendToFillDelay",
+				self._TypeMark("VitalDelayType01Z"),
+				parameterItems=(parameter("Delay", f"VitalDelayType{suffix}"), )
+			), self._functions)
+
+		for suffix in ("", "01", "01Z"):
+			self._DeclareSubprogram(Function("VitalCalcDelay", self._TypeMark("TIME"), parameterItems=(
+				parameter("NewVal", "std_ulogic", CharacterLiteral("X")),
+				parameter("OldVal", "std_ulogic", CharacterLiteral("X")),
+				parameter("Delay", f"VitalDelayType{suffix}")
+			)), self._functions)
+
+		# VitalPathDelay, VitalWireDelay, VitalSignalDelay
+		for suffix, hasOutputMap, falseFlags in (
+			("",    False, ("NegPreemptOn", "IgnoreDefaultDelay")),
+			("01",  False, ("NegPreemptOn", "IgnoreDefaultDelay", "RejectFastPath")),
+			("01Z", True,  ("NegPreemptOn", "IgnoreDefaultDelay", "RejectFastPath"))
+		):
+			procedure(f"VitalPathDelay{suffix}", (
+				signal("OutSignal", Mode.Out, "std_logic"),
+				variable("GlitchData", Mode.InOut, "VitalGlitchDataType"),
+				parameter("OutSignalName", "string"),
+				parameter("OutTemp", "std_logic"),
+				parameter("Paths", f"VitalPathArray{suffix}Type"),
+				parameter("DefaultDelay", f"VitalDelayType{suffix}", name(f"VitalZeroDelay{suffix}")),
+				parameter("Mode", "VitalGlitchKindType", name("OnEvent")),
+				*messages(),
+				*((parameter("OutputMap", "VitalOutputMapType", name("VitalDefaultOutputMap")), ) if hasOutputMap else ()),
+				*flags("FALSE", *falseFlags)
+			))
+
+		for suffix in ("", "01", "01Z"):
+			procedure("VitalWireDelay", (
+				signal("OutSig", Mode.Out, "std_ulogic"),
+				signal("InSig", Mode.In, "std_ulogic"),
+				parameter("twire", f"VitalDelayType{suffix}")
+			))
+
+		procedure("VitalSignalDelay", (
+			signal("OutSig", Mode.Out, "std_ulogic"),
+			signal("InSig", Mode.In, "std_ulogic"),
+			parameter("dly", "TIME")
+		))
+
+		# Timing checks
+		for testType in ("std_ulogic", "std_logic_vector"):
+			procedure("VitalSetupHoldCheck", (
+				variable("Violation", Mode.Out, "X01"),
+				variable("TimingData", Mode.InOut, "VitalTimingDataType"),
+				*checkedSignal("TestSignal", "TestDelay", testType),
+				*checkedSignal("RefSignal", "RefDelay", "std_ulogic"),
+				*times("SetupHigh", "SetupLow", "HoldHigh", "HoldLow"),
+				*flags("TRUE", "CheckEnabled"),
+				parameter("RefTransition", "VitalEdgeSymbolType"),
+				parameter("HeaderMsg", "STRING", StringLiteral(" ")),
+				*messages(),
+				*flags("TRUE", "EnableSetupOnTest", "EnableSetupOnRef", "EnableHoldOnRef", "EnableHoldOnTest")
+			))
+
+		procedure("VitalRecoveryRemovalCheck", (
+			variable("Violation", Mode.Out, "X01"),
+			variable("TimingData", Mode.InOut, "VitalTimingDataType"),
+			*checkedSignal("TestSignal", "TestDelay", "std_ulogic"),
+			*checkedSignal("RefSignal", "RefDelay", "std_ulogic"),
+			*times("Recovery", "Removal"),
+			*flags("TRUE", "ActiveLow", "CheckEnabled"),
+			parameter("RefTransition", "VitalEdgeSymbolType"),
+			parameter("HeaderMsg", "STRING", StringLiteral(" ")),
+			*messages(),
+			*flags("TRUE", "EnableRecOnTest", "EnableRecOnRef", "EnableRemOnRef", "EnableRemOnTest")
+		))
+
+		procedure("VitalPeriodPulseCheck", (
+			variable("Violation", Mode.Out, "X01"),
+			variable("PeriodData", Mode.InOut, "VitalPeriodDataType"),
+			*checkedSignal("TestSignal", "TestDelay", "std_ulogic"),
+			*times("Period", "PulseWidthHigh", "PulseWidthLow"),
+			*flags("TRUE", "CheckEnabled"),
+			parameter("HeaderMsg", "STRING", StringLiteral(" ")),
+			*messages()
+		))
+
+		for identifier, edges in (
+			("VitalInPhaseSkewCheck",  ("RiseRise", "FallFall")),
+			("VitalOutPhaseSkewCheck", ("RiseFall", "FallRise"))
+		):
+			procedure(identifier, (
+				variable("Violation", Mode.Out, "X01"),
+				variable("SkewData", Mode.InOut, "VitalSkewDataType"),
+				*checkedSignal("Signal1", "Signal1Delay", "std_ulogic"),
+				*checkedSignal("Signal2", "Signal2Delay", "std_ulogic"),
+				*(
+					parameter(
+						f"Skew{order}{edge}",
+						"TIME",
+						IndexedObjectOrFunctionCallSymbol(AttributeName("HIGH", SimpleName("TIME")))
+					) for edge in edges for order in ("S1S2", "S2S1")
+				),
+				*flags("TRUE", "CheckEnabled"),
+				*messages(),
+				parameter("HeaderMsg", "STRING", StringLiteral("")),
+				signal("Trigger", Mode.InOut, "std_ulogic")
+			))
 
 
 @export

@@ -130,6 +130,11 @@ Version 0.45.0 (2026)
      :data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>`) declares its types (transitions, delays, maps,
      records of timing, period, glitch, path and skew data, table and edge symbols), constants (zero delays, default
      maps, initial values), the attributes ``VITAL_Level0`` and ``VITAL_Level1`` and ``VitalTimingDataInit``.
+   * Package ``ieee.VITAL_Timing`` declares its 19 subprograms, in its order: ``VitalExtendToFillDelay`` and
+     ``VitalCalcDelay`` of each delay type, the procedures ``VitalPathDelay``, ``VitalPathDelay01``,
+     ``VitalPathDelay01Z``, ``VitalWireDelay`` and ``VitalSignalDelay``, and the timing checks ``VitalSetupHoldCheck``,
+     ``VitalRecoveryRemovalCheck``, ``VitalPeriodPulseCheck``, ``VitalInPhaseSkewCheck`` and ``VitalOutPhaseSkewCheck``
+     with their signal and variable parameters and default values (``TIME'HIGH``, ``""``, ``0 ns``, ``WARNING``).
    * New :meth:`Design.LoadVITALPackages() <pyVHDLModel.Design.LoadVITALPackages>`: adds the VITAL packages
      (IEEE Std 1076.4) to the design's library ``ieee`` and its virtual document, after
      :meth:`~pyVHDLModel.Design.LoadIEEELibrary`; the flavor

@@ -80,7 +80,7 @@ class PredefinedLibrary(Library):
 		                      Default: ``None``, no documentation.
 		:raises ValueError:   If parameter 'vhdlVersion' is None.
 		:raises TypeError:    If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError:   If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError:   If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(getTypeName(self), documentation)
 
@@ -90,10 +90,10 @@ class PredefinedLibrary(Library):
 			ex = TypeError("Parameter 'vhdlVersion' is not of type 'VHDLVersion'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(vhdlVersion)}'.")
 			raise ex
-		elif vhdlVersion is not VHDLVersion.VHDL2008:
+		elif vhdlVersion is not VHDLVersion.VHDL2008 and vhdlVersion is not VHDLVersion.VHDL2019:
 			ex = ValueError("Parameter 'vhdlVersion' is not a supported VHDL version.")
 			ex.add_note(f"Got value '{vhdlVersion}'.")
-			ex.add_note("Supported VHDL versions: VHDL2008")
+			ex.add_note("Supported VHDL versions: VHDL2008, VHDL2019")
 			raise ex
 
 		self._vhdlVersion = vhdlVersion
@@ -183,7 +183,7 @@ class PredefinedPackageMixin(
 		:param vhdlVersion: The VHDL version of the declarations.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		if vhdlVersion is None:
 			raise ValueError("Parameter 'vhdlVersion' is None.")
@@ -191,10 +191,10 @@ class PredefinedPackageMixin(
 			ex = TypeError("Parameter 'vhdlVersion' is not of type 'VHDLVersion'.")
 			ex.add_note(f"Got type '{getFullyQualifiedName(vhdlVersion)}'.")
 			raise ex
-		elif vhdlVersion is not VHDLVersion.VHDL2008:
+		elif vhdlVersion is not VHDLVersion.VHDL2008 and vhdlVersion is not VHDLVersion.VHDL2019:
 			ex = ValueError("Parameter 'vhdlVersion' is not a supported VHDL version.")
 			ex.add_note(f"Got value '{vhdlVersion}'.")
-			ex.add_note("Supported VHDL versions: VHDL2008")
+			ex.add_note("Supported VHDL versions: VHDL2008, VHDL2019")
 			raise ex
 
 		self._vhdlVersion = vhdlVersion
@@ -247,7 +247,7 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 		:param identifier:  Optional, the VHDL package name. Default: ``None``, the class name.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(getTypeName(self) if identifier is None else identifier)
 		PredefinedPackageMixin.__init__(self, vhdlVersion)
@@ -354,7 +354,7 @@ class PredefinedPackageBody(PackageBody, PredefinedPackageMixin):
 		                          Default: ``None``, derived from the class name.
 		:raises ValueError:       If parameter 'vhdlVersion' is None.
 		:raises TypeError:        If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError:       If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError:       If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		identifier = getTypeName(self)[:-5] if packageIdentifier is None else packageIdentifier
 		packageSymbol = PackageSymbol(SimpleName(identifier))
@@ -387,7 +387,7 @@ class PredefinedPackageInstantiation(PackageInstantiation, PredefinedPackageMixi
 		:param genericAssociationItems: The generic associations of the generic map aspect.
 		:raises ValueError:             If parameter 'vhdlVersion' is None.
 		:raises TypeError:              If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError:             If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError:             If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(getTypeName(self), genericPackage, genericAssociationItems=genericAssociationItems)
 		PredefinedPackageMixin.__init__(self, vhdlVersion)
@@ -413,7 +413,7 @@ class PredefinedContext(Context, PredefinedPackageMixin):
 		:param identifier:  Optional, the VHDL context name. Default: ``None``, the class name.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(getTypeName(self) if identifier is None else identifier)
 		PredefinedPackageMixin.__init__(self, vhdlVersion)

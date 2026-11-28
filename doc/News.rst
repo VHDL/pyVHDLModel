@@ -139,11 +139,15 @@ Version 0.45.0 (2026)
      :data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>` stays as shortcut. ``Ieee.LoadVITALPackages()``
      returns the added packages and package bodies; it raises :exc:`~pyVHDLModel.Exception.IEEEFlavorChangeError`, if
      the library has them already.
+   * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
+     Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
+     before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and
+     ``file_origin_kind``.
 
    .. rubric:: Changes
 
    * Breaking change: the predefined libraries, packages and package bodies take the VHDL version of their declarations
-     as parameter ``vhdlVersion`` (default ``VHDLVersion.VHDL2008``, the only supported version so far), also
+     as parameter ``vhdlVersion`` (default ``VHDLVersion.VHDL2008``, or ``VHDLVersion.VHDL2019``), also
      :meth:`~pyVHDLModel.Design.LoadStdLibrary` and :meth:`~pyVHDLModel.Design.LoadIEEELibrary`, whose virtual
      documents get it too. Read-only property ``VHDLVersion``. It is the first parameter: ``Ieee(flavor)`` and
      ``LoadIEEELibrary(flavor)`` need ``flavor=flavor`` now, and the parameter ``identifier`` of

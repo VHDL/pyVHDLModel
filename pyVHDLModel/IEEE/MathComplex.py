@@ -77,7 +77,7 @@ class Math_Complex(PredefinedPackage):
 		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(vhdlVersion)
 
@@ -292,7 +292,7 @@ class Math_Complex_Body(PredefinedPackageBody):
 		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(vhdlVersion)
 

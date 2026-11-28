@@ -27,10 +27,9 @@
 #                                                                                                                      #
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
-"""Tests for pyVHDLModel.IEEE.NumericBitUnsigned."""
-from pyTooling.Testing       import Testcase
 """Tests for pyVHDLModel.Predefined."""
 from pyTooling.Testing       import Testcase
+from pyTooling.Warning       import WarningCollector
 
 from pyVHDLModel             import Design, VHDLVersion, IEEEFlavor
 from pyVHDLModel.STD         import Std, Standard_Body
@@ -113,14 +112,36 @@ class VHDLVersions(Testcase):
 
 		self.assertEqual("Parameter 'vhdlVersion' is not of type 'VHDLVersion'.", str(context.exception))
 
+	def test_VHDL2019(self) -> None:
+		"""``Std(VHDLVersion.VHDL2019)`` and ``Ieee(VHDLVersion.VHDL2019)`` pass the version on to their packages."""
+		for library in (Std(VHDLVersion.VHDL2019), Ieee(VHDLVersion.VHDL2019)):
+			self.assertIs(VHDLVersion.VHDL2019, library.VHDLVersion)
+			for package in library.Packages.values():
+				self.assertIs(VHDLVersion.VHDL2019, package.VHDLVersion)
+
+			for packageBody in library.PackageBodies.values():
+				self.assertIs(VHDLVersion.VHDL2019, packageBody.VHDLVersion)
+
+	def test_Analyze_VHDL2019(self) -> None:
+		"""The VHDL-2019 libraries ``std`` and ``ieee`` analyze without a warning."""
+		design = Design("design")
+		design.LoadStdLibrary(VHDLVersion.VHDL2019)
+		design.LoadIEEELibrary(VHDLVersion.VHDL2019)
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		for document in design.Documents:
+			self.assertIs(VHDLVersion.VHDL2019, document.VHDLVersion)
+
 	def test_Unsupported(self) -> None:
-		"""VHDL-2019 isn't supported yet: the libraries, packages and the design loaders raise a :exc:`ValueError`."""
+		"""Versions other than VHDL-2008 and VHDL-2019 raise a :exc:`ValueError` in libraries, packages and loaders."""
 		with self.assertRaises(ValueError) as context:
-			Ieee(VHDLVersion.VHDL2019)
+			Ieee(VHDLVersion.VHDL93)
 
 		self.assertEqual("Parameter 'vhdlVersion' is not a supported VHDL version.", str(context.exception))
 		self.assertEqual(
-			[f"Got value '{VHDLVersion.VHDL2019}'.", "Supported VHDL versions: VHDL2008"],
+			[f"Got value '{VHDLVersion.VHDL93}'.", "Supported VHDL versions: VHDL2008, VHDL2019"],
 			context.exception.__notes__
 		)
 
@@ -129,7 +150,7 @@ class VHDLVersions(Testcase):
 
 		design = Design("design")
 		with self.assertRaises(ValueError):
-			design.LoadStdLibrary(VHDLVersion.VHDL2019)
+			design.LoadStdLibrary(VHDLVersion.VHDL2002)
 
 		self.assertEqual(0, len(design.Libraries))
 		self.assertEqual(0, len(design.Documents))

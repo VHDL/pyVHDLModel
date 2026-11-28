@@ -31,6 +31,7 @@
 """Tests for pyVHDLModel.STD."""
 from pyTooling.Testing       import Testcase
 
+from pyVHDLModel             import VHDLVersion
 from pyVHDLModel.Base        import Direction, Mode
 from pyVHDLModel.Expression  import IntegerLiteral
 from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
@@ -143,6 +144,34 @@ class Standards(Testcase):
 			("severity_level",   ["note", "warning", "error", "failure"]),
 			("file_open_kind",   ["read_mode", "write_mode", "append_mode"]),
 			("file_open_status", ["open_ok", "status_error", "name_error", "mode_error"])
+		):
+			enumeration = standard.Types[identifier]
+			self.assertIsInstance(enumeration, EnumeratedType)
+			self.assertListEqual(literals, [literal.NormalizedDesignator for literal in enumeration.Literals])
+
+	def test_Declarations_VHDL2019(self) -> None:
+		"""VHDL-2019 adds ``range_direction`` before ``boolean``, ``file_open_state`` and ``file_origin_kind``."""
+		standard = Standard(VHDLVersion.VHDL2019)
+
+		self.assertListEqual(
+			[
+				"range_direction", "boolean", "bit", "character", "severity_level", "integer", "real", "time", "delay_length",
+				"now", "natural", "positive", "string", "boolean_vector", "bit_vector", "integer_vector", "real_vector",
+				"time_vector", "file_open_kind", "file_open_status", "file_open_state", "file_origin_kind", "foreign"
+			],
+			[declaration.Identifier for declaration in standard.DeclaredItems]
+		)
+		for declaration in standard.DeclaredItems:
+			self.assertIs(standard, declaration.Parent)
+
+	def test_Enumerations_VHDL2019(self) -> None:
+		"""The new enumerations of VHDL-2019 and the literal ``read_write_mode`` of ``file_open_kind``."""
+		standard = Standard(VHDLVersion.VHDL2019)
+		for identifier, literals in (
+			("range_direction",  ["ascending", "descending"]),
+			("file_open_kind",   ["read_mode", "read_write_mode", "write_mode", "append_mode"]),
+			("file_open_state",  ["state_open", "state_closed"]),
+			("file_origin_kind", ["file_origin_begin", "file_origin_current", "file_origin_end"])
 		):
 			enumeration = standard.Types[identifier]
 			self.assertIsInstance(enumeration, EnumeratedType)

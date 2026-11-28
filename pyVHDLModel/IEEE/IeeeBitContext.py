@@ -58,7 +58,7 @@ class Ieee_Bit_Context(PredefinedContext):
 		:param vhdlVersion: Optional, the VHDL version of the context items. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		super().__init__(vhdlVersion)
 

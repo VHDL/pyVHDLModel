@@ -696,7 +696,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:returns:           The library object of library ``std``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
 		:raises TypeError:  If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError: If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		"""
 		from pyVHDLModel.STD import Std
 
@@ -727,7 +727,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:returns:                       The library object of library ``ieee``.
 		:raises ValueError:             If parameter 'vhdlVersion' is None.
 		:raises TypeError:              If parameter 'vhdlVersion' is not of type :class:`~pyVHDLModel.VHDLVersion`.
-		:raises ValueError:             If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008).
+		:raises ValueError:             If parameter 'vhdlVersion' is not a supported VHDL version (VHDL-2008, VHDL-2019).
 		:raises UnknownIEEEFlavorError: If the given IEEE library flavor is unknown.
 		"""
 		from pyVHDLModel.IEEE import Ieee

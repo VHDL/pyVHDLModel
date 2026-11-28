@@ -218,6 +218,14 @@ Version 0.45.0 (2026)
      ``VisitRecordResolution``, ``VisitRecordElementResolution``) and written by the VHDL writer.
      :data:`Subtype.ResolutionFunction <pyVHDLModel.Type.Subtype.ResolutionFunction>` returns the function the
      resolution function name of the subtype indication references; before, it returned a field nothing set.
+   * The analysis resolves the resolution function names of all subtype indications in a fourth step
+     (:meth:`~pyVHDLModel.Design.ResolveResolutionFunctions`, new): each references the visible function of its name,
+     which resolves the base type of its subtype indication, of an array element or of a record element
+     (:meth:`Function.IsResolutionFunctionOf() <pyVHDLModel.Subprogram.Function.IsResolutionFunctionOf>`, new; IEEE Std
+     1076-2008, 4.6), also an implicit operation (``maximum integer``) or an alias of a function; a record resolution's
+     element symbols reference the record elements. A name without such a function, an element resolution of a type,
+     which isn't an array or record type, and an unknown record element are an
+     :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 
    .. rubric:: Changes
 

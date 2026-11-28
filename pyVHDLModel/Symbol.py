@@ -42,11 +42,14 @@ from typing                   import TYPE_CHECKING, Any, Optional as Nullable, I
 from pyTooling.Common         import getFullyQualifiedName, getTypeName
 from pyTooling.Decorators     import export, notimplemented, readonly
 from pyTooling.MetaClasses    import ExtendedType, abstractclass
+from pyTooling.Warning        import WarningCollector
 
 from pyVHDLModel.Base         import ModelEntity, Range
 from pyVHDLModel.Name         import Name, AllName
 if TYPE_CHECKING:
+	from pyVHDLModel.Regions    import DeclarativeRegionMixin
 	from pyVHDLModel.Subprogram import Function
+	from pyVHDLModel.Type       import BaseType, RecordType
 	from pyVHDLModel.Visitor    import Visitor
 
 
@@ -1274,7 +1277,7 @@ class RangeAttributeSymbol(Symbol):
 class ResolutionIndicationMixin(
 	metaclass=ExtendedType,
 	mixin=True,
-	expects=("_parent", "Copy")
+	expects=("_parent", "Copy", "ResolveFunctions", "ResetFunctions")
 ):
 	"""
 	A mixin-class for a resolution indication of a subtype indication (IEEE Std 1076-2008, 6.3).
@@ -1283,6 +1286,10 @@ class ResolutionIndicationMixin(
 	element resolution in parentheses: an array element resolution (:class:`~pyVHDLModel.Symbol.ArrayElementResolution`)
 	or a record resolution (:class:`~pyVHDLModel.Symbol.RecordResolution`). A subtype symbol carries it as
 	:data:`SubtypeSymbol.Resolution <pyVHDLModel.Symbol.SubtypeSymbol.Resolution>`.
+
+	Each kind of resolution indication implements the analysis' hooks ``ResolveFunctions(region, place, typeMark,
+	resolvedType)`` and ``ResetFunctions()``, e.g. :meth:`ResolutionFunctionSymbol.ResolveFunctions
+	<pyVHDLModel.Symbol.ResolutionFunctionSymbol.ResolveFunctions>`.
 
 	.. admonition:: Example
 
@@ -1346,6 +1353,61 @@ class ResolutionFunctionSymbol(Symbol, ResolutionIndicationMixin):
 		copy =            self.__class__(self._name.Copy())
 		copy._reference = self._reference
 		return copy
+
+	def ResolveFunctions(
+		self,
+		region:       DeclarativeRegionMixin,
+		place:        ModelEntity,
+		typeMark:     SubtypeSymbol,
+		resolvedType: BaseType
+	) -> None:
+		"""
+		Resolve the name to the function resolving a type.
+
+		The name is looked up at its place (:meth:`~pyVHDLModel.Regions.DeclarativeRegionMixin.LookupName`). The first
+		visible function resolving the type (:meth:`~pyVHDLModel.Subprogram.Function.IsResolutionFunctionOf`) becomes the
+		reference; an alias denotes the subprogram its name references.
+
+		:param region:                         The declarative region containing the subtype indication.
+		:param place:                          The declaration containing the subtype indication.
+		:param typeMark:                       The subtype indication containing this resolution indication.
+		:param resolvedType:                   The type to resolve: the base type of the subtype indication or of one of
+		                                       its elements.
+		:raises UnhandledCriticalWarningError: If the name isn't visible, is ambiguous, or has a prefix, which isn't a
+		                                       visible package or an enclosing region, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If no visible function of the name resolves the type, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		from pyVHDLModel.Declaration import Alias
+		from pyVHDLModel.Exception   import UnresolvedNameWarning
+		from pyVHDLModel.Subprogram  import Function
+
+		self._reference = None
+		declarations =    region.LookupName(place, self, self._name, UnresolvedNameWarning)
+		for declaration in declarations:
+			if isinstance(declaration, Alias):
+				declaration = declaration._name._reference
+
+			if isinstance(declaration, Function) and declaration.IsResolutionFunctionOf(resolvedType):
+				self._reference = declaration
+				return
+
+		if len(declarations) > 0:
+			WarningCollector.Raise(UnresolvedNameWarning(
+				f"No function '{self._name!s}' resolves type '{resolvedType._identifier}'.",
+				symbol=self,
+				place=place,
+				namespaces=(region._namespace, )
+			))
+
+	def ResetFunctions(self) -> None:
+		"""
+		Reset the reference :meth:`ResolveFunctions` derived.
+		"""
+		self._reference = None
 
 	def __str__(self) -> str:
 		"""
@@ -1419,6 +1481,53 @@ class ArrayElementResolution(ModelEntity, ResolutionIndicationMixin):
 		:returns: The new array element resolution.
 		"""
 		return self.__class__(self._resolution.Copy())
+
+	def ResolveFunctions(
+		self,
+		region:       DeclarativeRegionMixin,
+		place:        ModelEntity,
+		typeMark:     SubtypeSymbol,
+		resolvedType: BaseType
+	) -> None:
+		"""
+		Resolve the resolution functions of the array's elements: the resolution indication of the elements resolves the
+		base type of the array type's element subtype.
+
+		An element subtype, whose type mark isn't resolved, was reported when resolving the type marks
+		(:meth:`~pyVHDLModel.Design.ResolveTypeMarks`); the resolution functions stay unresolved then.
+
+		:param region:                         The declarative region containing the subtype indication.
+		:param place:                          The declaration containing the subtype indication.
+		:param typeMark:                       The subtype indication containing this resolution indication.
+		:param resolvedType:                   The type to resolve: an array type.
+		:raises UnhandledCriticalWarningError: If the type isn't an array type, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If a resolution function of the elements can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		from pyVHDLModel.Exception import UnresolvedNameWarning
+		from pyVHDLModel.Type      import ArrayType
+
+		if not isinstance(resolvedType, ArrayType):
+			WarningCollector.Raise(UnresolvedNameWarning(
+				f"Array element resolution {self!s} of type '{resolvedType._identifier}', which isn't an array type.",
+				symbol=typeMark,
+				place=place,
+				namespaces=(region._namespace, )
+			))
+			return
+		elif (elementType := resolvedType._elementType._reference) is None or (baseType := elementType.BaseType) is None:
+			return
+
+		self._resolution.ResolveFunctions(region, place, typeMark, baseType)
+
+	def ResetFunctions(self) -> None:
+		"""
+		Reset the references :meth:`ResolveFunctions` derived: those of the resolution indication of the elements.
+		"""
+		self._resolution.ResetFunctions()
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1515,6 +1624,49 @@ class RecordResolution(ModelEntity, ResolutionIndicationMixin):
 		:returns: The new record resolution.
 		"""
 		return self.__class__([element.Copy() for element in self._elements])
+
+	def ResolveFunctions(
+		self,
+		region:       DeclarativeRegionMixin,
+		place:        ModelEntity,
+		typeMark:     SubtypeSymbol,
+		resolvedType: BaseType
+	) -> None:
+		"""
+		Resolve the resolution functions of the record elements (:meth:`RecordElementResolution.ResolveFunctions`).
+
+		:param region:                         The declarative region containing the subtype indication.
+		:param place:                          The declaration containing the subtype indication.
+		:param typeMark:                       The subtype indication containing this resolution indication.
+		:param resolvedType:                   The type to resolve: a record type.
+		:raises UnhandledCriticalWarningError: If the type isn't a record type, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If a record element or a resolution function of a record element can't be
+		                                       resolved, and no :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		from pyVHDLModel.Exception import UnresolvedNameWarning
+		from pyVHDLModel.Type      import RecordType
+
+		if not isinstance(resolvedType, RecordType):
+			WarningCollector.Raise(UnresolvedNameWarning(
+				f"Record resolution {self!s} of type '{resolvedType._identifier}', which isn't a record type.",
+				symbol=typeMark,
+				place=place,
+				namespaces=(region._namespace, )
+			))
+			return
+
+		for element in self._elements:
+			element.ResolveFunctions(region, place, typeMark, resolvedType)
+
+	def ResetFunctions(self) -> None:
+		"""
+		Reset the references :meth:`ResolveFunctions` derived: those of the record element resolutions.
+		"""
+		for element in self._elements:
+			element.ResetFunctions()
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
@@ -1633,6 +1785,60 @@ class RecordElementResolution(ModelEntity):
 		"""
 		return self.__class__(self._element.Copy(), self._resolution.Copy())
 
+	def ResolveFunctions(
+		self,
+		region:     DeclarativeRegionMixin,
+		place:      ModelEntity,
+		typeMark:   SubtypeSymbol,
+		recordType: RecordType
+	) -> None:
+		"""
+		Resolve the record element in a record type, then the resolution functions of its resolution indication: it
+		resolves the base type of the record element's subtype.
+
+		The record element symbol references the record element declaration
+		(:data:`RecordType.ElementsByIdentifier <pyVHDLModel.Type.RecordType.ElementsByIdentifier>`). A record element,
+		whose type mark isn't resolved, was reported when resolving the type marks
+		(:meth:`~pyVHDLModel.Design.ResolveTypeMarks`); the resolution functions stay unresolved then.
+
+		:param region:                         The declarative region containing the subtype indication.
+		:param place:                          The declaration containing the subtype indication.
+		:param typeMark:                       The subtype indication containing this resolution indication.
+		:param recordType:                     The record type declaring the record element.
+		:raises UnhandledCriticalWarningError: If the record type has no element of the name, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If a resolution function of the record element can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		from pyVHDLModel.Exception import UnresolvedNameWarning
+
+		name =                     self._element._name
+		self._element._reference = None
+		if (recordElement := recordType._elementsByIdentifier.get(name._normalizedIdentifier)) is None:
+			WarningCollector.Raise(UnresolvedNameWarning(
+				f"Record element '{name!s}' not found in record type '{recordType._identifier}'.",
+				symbol=self._element,
+				place=place,
+				namespaces=(region._namespace, )
+			))
+			return
+
+		self._element._reference = recordElement
+		if (elementType := recordElement._subtype._reference) is None or (baseType := elementType.BaseType) is None:
+			return
+
+		self._resolution.ResolveFunctions(region, place, typeMark, baseType)
+
+	def ResetFunctions(self) -> None:
+		"""
+		Reset the references :meth:`ResolveFunctions` derived: the record element's and those of its resolution
+		indication.
+		"""
+		self._element._reference = None
+		self._resolution.ResetFunctions()
+
 	def Visit(self, visitor: Visitor) -> None:
 		"""
 		Walk this record element resolution, its record element and its resolution indication with a visitor.
@@ -1718,6 +1924,34 @@ class SubtypeSymbol(Symbol):
 		:returns: The resolution indication, or ``None`` if not set.
 		"""
 		return self._resolution
+
+	def ResolveResolutionFunctions(self, region: DeclarativeRegionMixin, place: ModelEntity) -> None:
+		"""
+		Resolve the resolution function names of the resolution indication (:attr:`_resolution`), after the type mark is
+		resolved.
+
+		The resolution indication resolves the base type of the referenced type or subtype, e.g.
+		:meth:`ResolutionFunctionSymbol.ResolveFunctions`. A subtype indication without resolution indication changes
+		nothing. A type mark, which isn't resolved, was reported when resolving the type marks
+		(:meth:`~pyVHDLModel.Design.ResolveTypeMarks`); the resolution function names stay unresolved then.
+
+		:param region:                         The declarative region containing the subtype indication.
+		:param place:                          The declaration containing the subtype indication.
+		:raises UnhandledCriticalWarningError: If a resolution function name or a record element can't be resolved, and no
+		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
+		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		if self._resolution is None or (reference := self._reference) is None or (baseType := reference.BaseType) is None:
+			return
+
+		self._resolution.ResolveFunctions(region, place, self, baseType)
+
+	def ResetResolutionFunctions(self) -> None:
+		"""
+		Reset the references :meth:`ResolveResolutionFunctions` derived: those of the resolution indication, if any.
+		"""
+		if self._resolution is not None:
+			self._resolution.ResetFunctions()
 
 	@readonly
 	def TypeMark(self) -> str:

@@ -44,7 +44,7 @@ from pyTooling.MetaClasses     import ExtendedType, abstractclass
 
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, identifiersOf, ReservedWord
 from pyVHDLModel.Symbol        import SubtypeSymbol
-from pyVHDLModel.Type          import FullType, ProtectedType
+from pyVHDLModel.Type          import BaseType, FullType, ArrayType, ProtectedType
 from pyVHDLModel.Regions       import DeclarativeRegionMixin, SequentialDeclarationRegionMixin, WithGenericsMixin, \
                                       WithParametersMixin
 from pyVHDLModel.Sequential    import SequentialStatement, SequentialStatementsMixin
@@ -778,6 +778,44 @@ class Function(Subprogram):
 			)
 
 		return self._signature
+
+	def IsResolutionFunctionOf(self, resolvedType: BaseType) -> bool:
+		"""
+		Check if this function can resolve a type (IEEE Std 1076-2008, 4.6).
+
+		A resolution function is pure, has a single parameter of a one-dimensional unconstrained array type, whose element
+		type is the resolved type, and returns the resolved type. The types are the base types of the resolved type marks
+		(:meth:`~pyVHDLModel.Design.ResolveTypeMarks`); with an unresolved type mark, the result is ``False``.
+
+		:param resolvedType: The type to resolve, a base type.
+		:returns:            ``True``, if this function can resolve the type.
+		:raises ValueError:  If parameter ``resolvedType`` is None.
+		:raises TypeError:   If parameter ``resolvedType`` is not of type :class:`~pyVHDLModel.Type.BaseType`.
+		"""
+		if resolvedType is None:
+			raise ValueError("Parameter 'resolvedType' is None.")
+		elif not isinstance(resolvedType, BaseType):
+			ex = TypeError("Parameter 'resolvedType' is not of type 'BaseType'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(resolvedType)}'.")
+			raise ex
+
+		signature = self.Signature
+		if not self._isPure or len(signature._parameterTypes) != 1:
+			return False
+		elif (returnType := self._returnType._reference) is None or returnType.BaseType is not resolvedType:
+			return False
+		elif (parameterType := signature._parameterTypes[0]._reference) is None:
+			return False
+
+		arrayType = parameterType.BaseType
+		if not isinstance(arrayType, ArrayType) or len(arrayType._dimensions) != 1:
+			return False
+		elif not isinstance(arrayType._dimensions[0], SubtypeSymbol):
+			return False
+		elif (elementType := arrayType._elementType._reference) is None:
+			return False
+
+		return elementType.BaseType is resolvedType
 
 
 @export

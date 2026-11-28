@@ -35,10 +35,13 @@ from pyTooling.Testing       import Testcase
 from pyVHDLModel.Association import ParameterAssociationItem
 from pyVHDLModel.Expression  import FunctionCall, IntegerLiteral
 from pyVHDLModel.Name        import SimpleName, SelectedName, IndexedName, ParenthesisName
-from pyVHDLModel.Symbol      import ConstrainedCompositeSubtypeSymbol, IndexedObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol      import ConstrainedCompositeSubtypeSymbol, IndexedObjectOrFunctionCallSymbol, \
+                                    SimpleSubtypeSymbol, ConstrainedArraySubtypeSymbol, RecordElementSymbol, \
+                                    ResolutionFunctionSymbol, ArrayElementResolution, RecordResolution, \
+                                    RecordElementResolution
 from pyVHDLModel.Visitor     import Visitor
 
-from tests.unit.Visitor      import NoOverrides, Recorder
+from tests.unit.Visitor      import NoOverrides, Recorder, FullRecorder
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -177,3 +180,94 @@ class Unknowns(Testcase):
 			symbol.Visit(recorder)
 
 		self.assertEqual([], recorder.Events)
+
+
+class ResolutionIndications(Testcase):
+	"""The resolution indication of a subtype indication is walked before its type mark."""
+
+	def test_ResolutionFunction(self) -> None:
+		function = ResolutionFunctionSymbol(SimpleName("resolved"))
+		symbol =   SimpleSubtypeSymbol(SimpleName("std_ulogic"), resolution=function)
+		recorder = FullRecorder()
+
+		symbol.Visit(recorder)
+
+		self.assertEqual([
+			("VisitSymbol",                symbol),
+			("VisitResolutionIndication",  symbol),
+			("VisitSymbol",                function),
+			("VisitSimpleName",            function.Name),
+			("DepartSimpleName",           function.Name),
+			("DepartSymbol",               function),
+			("DepartResolutionIndication", symbol),
+			("VisitSimpleName",            symbol.Name),
+			("DepartSimpleName",           symbol.Name),
+			("DepartSymbol",               symbol),
+		], recorder.Events)
+
+	def test_ArrayElementResolution(self) -> None:
+		function =   ResolutionFunctionSymbol(SimpleName("resolved"))
+		resolution = ArrayElementResolution(function)
+		symbol =     ConstrainedArraySubtypeSymbol(SimpleName("std_ulogic_vector"), [], resolution=resolution)
+		recorder =   FullRecorder()
+
+		symbol.Visit(recorder)
+
+		self.assertEqual([
+			("VisitConstrainedArraySubtypeSymbol",  symbol),
+			("VisitResolutionIndication",           symbol),
+			("VisitArrayElementResolution",         resolution),
+			("VisitSymbol",                         function),
+			("VisitSimpleName",                     function.Name),
+			("DepartSimpleName",                    function.Name),
+			("DepartSymbol",                        function),
+			("DepartArrayElementResolution",        resolution),
+			("DepartResolutionIndication",          symbol),
+			("VisitSimpleName",                     symbol.Name),
+			("DepartSimpleName",                    symbol.Name),
+			("VisitIndexConstraint",                symbol),
+			("DepartIndexConstraint",               symbol),
+			("DepartConstrainedArraySubtypeSymbol", symbol),
+		], recorder.Events)
+
+	def test_RecordResolution(self) -> None:
+		a =          RecordElementSymbol(SimpleName("a"))
+		f =          ResolutionFunctionSymbol(SimpleName("f"))
+		elementA =   RecordElementResolution(a, f)
+		b =          RecordElementSymbol(SimpleName("b"))
+		g =          ResolutionFunctionSymbol(SimpleName("g"))
+		elementB =   RecordElementResolution(b, g)
+		resolution = RecordResolution([elementA, elementB])
+		recorder =   FullRecorder()
+
+		resolution.Visit(recorder)
+
+		self.assertEqual([
+			("VisitRecordResolution",         resolution),
+			("VisitRecordElementResolution",  elementA),
+			("VisitSymbol",                   a),
+			("VisitSimpleName",               a.Name),
+			("DepartSimpleName",              a.Name),
+			("DepartSymbol",                  a),
+			("VisitResolutionIndication",     elementA),
+			("VisitSymbol",                   f),
+			("VisitSimpleName",               f.Name),
+			("DepartSimpleName",              f.Name),
+			("DepartSymbol",                  f),
+			("DepartResolutionIndication",    elementA),
+			("DepartRecordElementResolution", elementA),
+			("VisitElementSeparator",         resolution),
+			("VisitRecordElementResolution",  elementB),
+			("VisitSymbol",                   b),
+			("VisitSimpleName",               b.Name),
+			("DepartSimpleName",              b.Name),
+			("DepartSymbol",                  b),
+			("VisitResolutionIndication",     elementB),
+			("VisitSymbol",                   g),
+			("VisitSimpleName",               g.Name),
+			("DepartSimpleName",              g.Name),
+			("DepartSymbol",                  g),
+			("DepartResolutionIndication",    elementB),
+			("DepartRecordElementResolution", elementB),
+			("DepartRecordResolution",        resolution),
+		], recorder.Events)

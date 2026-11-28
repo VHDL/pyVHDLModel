@@ -34,19 +34,20 @@ This module contains parts of an abstract document language model for VHDL.
 
 Symbols are entity specific wrappers for names that reference VHDL language entities.
 """
-from __future__            import annotations
+from __future__               import annotations
 
-from enum                  import Flag
-from typing                import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping, Self
+from enum                     import Flag
+from typing                   import TYPE_CHECKING, Any, Optional as Nullable, Iterable, Mapping, Self
 
-from pyTooling.Common      import getFullyQualifiedName, getTypeName
-from pyTooling.Decorators  import export, notimplemented, readonly
-from pyTooling.MetaClasses import ExtendedType, abstractclass
+from pyTooling.Common         import getFullyQualifiedName, getTypeName
+from pyTooling.Decorators     import export, notimplemented, readonly
+from pyTooling.MetaClasses    import ExtendedType, abstractclass
 
-from pyVHDLModel.Base      import ModelEntity, Range
-from pyVHDLModel.Name      import Name, AllName
+from pyVHDLModel.Base         import ModelEntity, Range
+from pyVHDLModel.Name         import Name, AllName
 if TYPE_CHECKING:
-	from pyVHDLModel.Visitor import Visitor
+	from pyVHDLModel.Subprogram import Function
+	from pyVHDLModel.Visitor    import Visitor
 
 
 @export
@@ -1270,26 +1271,453 @@ class RangeAttributeSymbol(Symbol):
 
 
 @export
+class ResolutionIndicationMixin(
+	metaclass=ExtendedType,
+	mixin=True,
+	expects=("_parent", "Copy")
+):
+	"""
+	A mixin-class for a resolution indication of a subtype indication (IEEE Std 1076-2008, 6.3).
+
+	A resolution indication is a resolution function name (:class:`~pyVHDLModel.Symbol.ResolutionFunctionSymbol`) or an
+	element resolution in parentheses: an array element resolution (:class:`~pyVHDLModel.Symbol.ArrayElementResolution`)
+	or a record resolution (:class:`~pyVHDLModel.Symbol.RecordResolution`). A subtype symbol carries it as
+	:data:`SubtypeSymbol.Resolution <pyVHDLModel.Symbol.SubtypeSymbol.Resolution>`.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      subtype std_logic is resolved std_ulogic;
+	      --                   ^^^^^^^^                    <- resolution function name
+	      subtype unsigned  is (resolved) unresolved_unsigned;
+	      --                   ^^^^^^^^^^                  <- array element resolution
+	      subtype pair      is (a resolved, b (resolved)) pair_t;
+	      --                   ^^^^^^^^^^^^^^^^^^^^^^^^^^   <- record resolution
+	"""
+
+
+@export
+class ResolutionFunctionSymbol(Symbol, ResolutionIndicationMixin):
+	"""
+	Represents a resolution indication by the name of a resolution function.
+
+	The referenced function is available as :data:`Function` once resolved: a function with a single parameter, a
+	one-dimensional unconstrained array of the resolved type, returning the resolved type (IEEE Std 1076-2008, 4.6).
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      subtype std_logic is resolved std_ulogic;
+	      --                   ^^^^^^^^                <- Name
+	"""
+
+	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
+		"""
+		Initializes a resolution indication by the name of a resolution function.
+
+		:param name:   The name of the resolution function.
+		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		"""
+		super().__init__(name, PossibleReference.Function, parent=parent)
+
+	@property
+	def Function(self) -> Nullable[Function]:
+		"""
+		Property to access the resolution function (:attr:`_reference`).
+
+		:returns: The resolution function, or ``None`` if not set.
+		"""
+		return self._reference
+
+	@Function.setter
+	def Function(self, value: Function) -> None:
+		self._reference = value
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this resolution function symbol.
+
+		The copy has no parent. The name is copied; the reference, if resolved, is the same.
+
+		:returns: The new resolution function symbol.
+		"""
+		copy =            self.__class__(self._name.Copy())
+		copy._reference = self._reference
+		return copy
+
+	def __str__(self) -> str:
+		"""
+		Formats the resolution function symbol.
+
+		**Format:** the name, plus ``?`` while unresolved: ``resolved``, ``resolved?``
+
+		:returns: Formatted resolution function symbol.
+		"""
+		if self._reference is not None:
+			return str(self._name)
+
+		return f"{self._name!s}?"
+
+
+@export
+class ArrayElementResolution(ModelEntity, ResolutionIndicationMixin):
+	"""
+	Represents an array element resolution: the resolution indication of an array's elements, in parentheses.
+
+	The resolution indication of the elements is available as :data:`Resolution` (IEEE Std 1076-2008, 6.3:
+	``array_element_resolution ::= resolution_indication``). Nested, it resolves the elements of a multi-level array.
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      subtype std_logic_vector is (resolved) std_ulogic_vector;
+	      --                          ^^^^^^^^^^                       <- array element resolution
+	      --                           ^^^^^^^^                        <- Resolution
+	"""
+
+	_resolution: ResolutionIndicationMixin  #: The resolution indication of the array's elements.
+
+	def __init__(self, resolution: ResolutionIndicationMixin, *, parent: Nullable[ModelEntity] = None) -> None:
+		"""
+		Initializes an array element resolution.
+
+		:param resolution:  The resolution indication of the array's elements.
+		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:raises ValueError: If parameter 'resolution' is None.
+		:raises TypeError:  If parameter 'resolution' is not of type :class:`ResolutionIndicationMixin`.
+		"""
+		super().__init__(parent)
+
+		if resolution is None:
+			raise ValueError("Parameter 'resolution' is None.")
+		elif not isinstance(resolution, ResolutionIndicationMixin):
+			ex = TypeError("Parameter 'resolution' is not of type 'ResolutionIndicationMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(resolution)}'.")
+			raise ex
+
+		self._resolution =  resolution
+		resolution.Parent = self
+
+	@readonly
+	def Resolution(self) -> ResolutionIndicationMixin:
+		"""
+		Read-only property to access the resolution indication of the array's elements (:attr:`_resolution`).
+
+		:returns: The resolution indication of the elements.
+		"""
+		return self._resolution
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this array element resolution.
+
+		The copy has no parent. The resolution indication of the elements is copied.
+
+		:returns: The new array element resolution.
+		"""
+		return self.__class__(self._resolution.Copy())
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this array element resolution and the resolution indication of the elements with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitArrayElementResolution(self)
+		self._resolution.Visit(visitor)
+		visitor.DepartArrayElementResolution(self)
+
+	def __str__(self) -> str:
+		"""
+		Formats the array element resolution.
+
+		**Format:** ``(resolved?)``
+
+		:returns: Formatted array element resolution.
+		"""
+		return f"({self._resolution!s})"
+
+
+@export
+class RecordResolution(ModelEntity, ResolutionIndicationMixin):
+	"""
+	Represents a record resolution: the resolution indications of record elements, in parentheses.
+
+	The record element resolutions are available as :data:`Elements` (IEEE Std 1076-2008, 6.3: ``record_resolution ::=
+	record_element_resolution {, record_element_resolution}``).
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      subtype pair is (a resolved, b (resolved)) pair_t;
+	      --              ^^^^^^^^^^^^^^^^^^^^^^^^^^           <- record resolution
+	      --               ^^^^^^^^^^  ^^^^^^^^^^^^            <- Elements
+
+	.. seealso::
+
+	   * :class:`Record element resolution <pyVHDLModel.Symbol.RecordElementResolution>`
+	"""
+
+	_elements: list[RecordElementResolution]  #: List of the record element resolutions, in source order.
+
+	def __init__(self, elements: Iterable[RecordElementResolution], *, parent: Nullable[ModelEntity] = None) -> None:
+		"""
+		Initializes a record resolution.
+
+		:param elements:    The record element resolutions, in source order.
+		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:raises ValueError: If parameter 'elements' is None.
+		:raises TypeError:  If parameter 'elements' is not iterable.
+		:raises TypeError:  If an element of parameter 'elements' is not of type :class:`RecordElementResolution`.
+		:raises ValueError: If parameter 'elements' is empty.
+		"""
+		super().__init__(parent)
+
+		if elements is None:
+			raise ValueError("Parameter 'elements' is None.")
+		elif not isinstance(elements, Iterable):
+			ex = TypeError("Parameter 'elements' is not iterable.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(elements)}'.")
+			raise ex
+
+		self._elements = elementList = []
+		for element in elements:
+			if not isinstance(element, RecordElementResolution):
+				ex = TypeError("Element of parameter 'elements' is not of type 'RecordElementResolution'.")
+				ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+				raise ex
+
+			elementList.append(element)
+			element.Parent = self
+
+		if len(elementList) == 0:
+			raise ValueError("Parameter 'elements' is empty.")
+
+	@readonly
+	def Elements(self) -> list[RecordElementResolution]:
+		"""
+		Read-only property to access the record element resolutions (:attr:`_elements`).
+
+		:returns: List of the record element resolutions, in source order.
+		"""
+		return self._elements
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this record resolution.
+
+		The copy has no parent. Its record element resolutions are copies of this record resolution's ones.
+
+		:returns: The new record resolution.
+		"""
+		return self.__class__([element.Copy() for element in self._elements])
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this record resolution and its record element resolutions with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRecordResolution(self)
+		for index, element in enumerate(self._elements):
+			if index > 0:
+				visitor.VisitElementSeparator(self)
+
+			element.Visit(visitor)
+
+		visitor.DepartRecordResolution(self)
+
+	def __str__(self) -> str:
+		"""
+		Formats the record resolution.
+
+		**Format:** ``(a resolved?, b (resolved?))``
+
+		:returns: Formatted record resolution.
+		"""
+		return f"({', '.join(str(element) for element in self._elements)})"
+
+
+@export
+class RecordElementResolution(ModelEntity):
+	"""
+	Represents the resolution indication of a record element in a record resolution.
+
+	The record element is available as :data:`Element`, its resolution indication as :data:`Resolution` (IEEE Std
+	1076-2008, 6.3: ``record_element_resolution ::= record_element_simple_name resolution_indication``).
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      subtype pair is (a resolved, b (resolved)) pair_t;
+	      --                           ^                       <- Element
+	      --                             ^^^^^^^^^^            <- Resolution
+
+	.. seealso::
+
+	   * :class:`Record resolution <pyVHDLModel.Symbol.RecordResolution>`
+	"""
+
+	_element:    RecordElementSymbol        #: The record element.
+	_resolution: ResolutionIndicationMixin  #: The resolution indication of the record element.
+
+	def __init__(
+		self,
+		element:    RecordElementSymbol,
+		resolution: ResolutionIndicationMixin,
+		*,
+		parent:     Nullable[ModelEntity] = None
+	) -> None:
+		"""
+		Initializes the resolution indication of a record element.
+
+		:param element:     The record element.
+		:param resolution:  The resolution indication of the record element.
+		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:raises ValueError: If parameter 'element' is None.
+		:raises TypeError:  If parameter 'element' is not of type :class:`RecordElementSymbol`.
+		:raises ValueError: If parameter 'resolution' is None.
+		:raises TypeError:  If parameter 'resolution' is not of type :class:`ResolutionIndicationMixin`.
+		"""
+		super().__init__(parent)
+
+		if element is None:
+			raise ValueError("Parameter 'element' is None.")
+		elif not isinstance(element, RecordElementSymbol):
+			ex = TypeError("Parameter 'element' is not of type 'RecordElementSymbol'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(element)}'.")
+			raise ex
+
+		if resolution is None:
+			raise ValueError("Parameter 'resolution' is None.")
+		elif not isinstance(resolution, ResolutionIndicationMixin):
+			ex = TypeError("Parameter 'resolution' is not of type 'ResolutionIndicationMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(resolution)}'.")
+			raise ex
+
+		self._element =     element
+		self._resolution =  resolution
+		element.Parent =    self
+		resolution.Parent = self
+
+	@readonly
+	def Element(self) -> RecordElementSymbol:
+		"""
+		Read-only property to access the record element (:attr:`_element`).
+
+		:returns: The record element.
+		"""
+		return self._element
+
+	@readonly
+	def Resolution(self) -> ResolutionIndicationMixin:
+		"""
+		Read-only property to access the resolution indication of the record element (:attr:`_resolution`).
+
+		:returns: The resolution indication of the record element.
+		"""
+		return self._resolution
+
+	def Copy(self) -> Self:
+		"""
+		Create a copy of this record element resolution.
+
+		The copy has no parent. The record element and its resolution indication are copied.
+
+		:returns: The new record element resolution.
+		"""
+		return self.__class__(self._element.Copy(), self._resolution.Copy())
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this record element resolution, its record element and its resolution indication with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitRecordElementResolution(self)
+		self._element.Visit(visitor)
+		visitor.VisitResolutionIndication(self)
+		self._resolution.Visit(visitor)
+		visitor.DepartResolutionIndication(self)
+		visitor.DepartRecordElementResolution(self)
+
+	def __str__(self) -> str:
+		"""
+		Formats the record element resolution.
+
+		**Format:** ``b (resolved?)``
+
+		:returns: Formatted record element resolution.
+		"""
+		return f"{self._element._name!s} {self._resolution!s}"
+
+
+@export
 class SubtypeSymbol(Symbol):
 	"""
 	Represents the base-class of all references to a type or subtype.
 
 	The referenced language entity is available as :data:`Reference` once resolved.
 
+	A subtype indication may start with a resolution indication (:data:`Resolution`, IEEE Std 1076-2008, 6.3:
+	``subtype_indication ::= [resolution_indication] type_mark [constraint]``).
+
+	.. admonition:: Example
+
+	   .. code-block:: VHDL
+
+	      signal s : resolved std_ulogic;
+	      --         ^^^^^^^^               <- Resolution
+	      --                  ^^^^^^^^^^    <- Name
+
 	.. seealso::
 
 	   * :class:`Simple subtype symbol <pyVHDLModel.Symbol.SimpleSubtypeSymbol>`
 	   * :class:`Constrained scalar subtype symbol <pyVHDLModel.Symbol.ConstrainedScalarSubtypeSymbol>`
 	   * :class:`Constrained composite subtype symbol <pyVHDLModel.Symbol.ConstrainedCompositeSubtypeSymbol>`
+	   * :class:`Resolution indication <pyVHDLModel.Symbol.ResolutionIndicationMixin>`
 	"""
-	def __init__(self, name: Name, *, parent: Nullable[ModelEntity] = None) -> None:
+	_resolution: Nullable[ResolutionIndicationMixin]  #: The resolution indication, or ``None`` if there is none.
+
+	def __init__(
+		self,
+		name:       Name,
+		*,
+		parent:     Nullable[ModelEntity] =               None,
+		resolution: Nullable[ResolutionIndicationMixin] = None
+	) -> None:
 		"""
 		Initializes a subtype symbol.
 
-		:param name:   The name to reference the language entity.
-		:param parent: Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param name:       The name to reference the language entity.
+		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param resolution: Optional, the resolution indication. Default: ``None``, no resolution indication.
+		:raises TypeError: If parameter 'resolution' is not of type :class:`ResolutionIndicationMixin`.
 		"""
 		super().__init__(name, PossibleReference.Type | PossibleReference.Subtype, parent=parent)
+
+		if resolution is not None and not isinstance(resolution, ResolutionIndicationMixin):
+			ex = TypeError("Parameter 'resolution' is not of type 'ResolutionIndicationMixin'.")
+			ex.add_note(f"Got type '{getFullyQualifiedName(resolution)}'.")
+			raise ex
+
+		self._resolution = resolution
+		if resolution is not None:
+			resolution.Parent = self
+
+	@readonly
+	def Resolution(self) -> Nullable[ResolutionIndicationMixin]:
+		"""
+		Read-only property to access the resolution indication (:attr:`_resolution`).
+
+		:returns: The resolution indication, or ``None`` if not set.
+		"""
+		return self._resolution
 
 	@readonly
 	def TypeMark(self) -> str:
@@ -1327,13 +1755,60 @@ class SubtypeSymbol(Symbol):
 		"""
 		Create a copy of this subtype symbol.
 
-		The copy has no parent. The name is copied; the reference, if resolved, is the same.
+		The copy has no parent. The name and the resolution indication are copied; the reference, if resolved, is the same.
 
 		:returns: The new subtype symbol.
 		"""
-		copy = self.__class__(self._name.Copy())
+		copy =            self.__class__(self._name.Copy(), resolution=self._CopyResolution())
 		copy._reference = self._reference
 		return copy
+
+	def _CopyResolution(self) -> Nullable[ResolutionIndicationMixin]:
+		"""
+		Create a copy of the resolution indication for a copy of this subtype symbol.
+
+		:returns: The copy of the resolution indication, or ``None`` if there is none.
+		"""
+		if self._resolution is None:
+			return None
+
+		return self._resolution.Copy()
+
+	def Visit(self, visitor: Visitor) -> None:
+		"""
+		Walk this subtype symbol, its resolution indication (if any) and its name with a visitor.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		visitor.VisitSymbol(self)
+		self._VisitResolution(visitor)
+		self._name.Visit(visitor)
+		visitor.DepartSymbol(self)
+
+	def _VisitResolution(self, visitor: Visitor) -> None:
+		"""
+		Walk the resolution indication of this subtype symbol with a visitor, if it has one.
+
+		:param visitor: The visitor receiving the events.
+		"""
+		if self._resolution is not None:
+			visitor.VisitResolutionIndication(self)
+			self._resolution.Visit(visitor)
+			visitor.DepartResolutionIndication(self)
+
+	def __str__(self) -> str:
+		"""
+		Formats the subtype symbol.
+
+		**Format:** the symbol (see :meth:`Symbol.__str__ <pyVHDLModel.Symbol.Symbol.__str__>`), after its resolution
+		indication: ``resolved? std_ulogic?``
+
+		:returns: Formatted subtype symbol.
+		"""
+		if self._resolution is None:
+			return super().__str__()
+
+		return f"{self._resolution!s} {super().__str__()}"
 
 
 @export
@@ -1425,36 +1900,48 @@ class ConstrainedScalarSubtypeSymbol(SubtypeSymbol, ScalarConstraint):
 	      --                             ^^^^^^^^^^^^   <- Constraint
 	"""
 
-	def __init__(self, name: Name, constraint: Range, *, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		name:       Name,
+		constraint: Range,
+		*,
+		parent:     Nullable[ModelEntity] =               None,
+		resolution: Nullable[ResolutionIndicationMixin] = None
+	) -> None:
 		"""
 		Initializes a reference to a scalar subtype narrowed by a range.
 
 		:param name:       The name to reference the language entity.
 		:param constraint: The range constraining the scalar subtype.
 		:param parent:     Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param resolution: Optional, the resolution indication. Default: ``None``, no resolution indication.
+		:raises TypeError: If parameter 'resolution' is not of type :class:`ResolutionIndicationMixin`.
 		"""
-		super().__init__(name, parent=parent)
+		super().__init__(name, parent=parent, resolution=resolution)
 		ScalarConstraint.__init__(self, constraint)
 
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this constrained scalar subtype symbol.
 
-		The copy has no parent. The name and the range are copied; the reference, if resolved, is the same.
+		The copy has no parent. The name, the range and the resolution indication are copied; the reference, if resolved,
+		is the same.
 
 		:returns: The new constrained scalar subtype symbol.
 		"""
-		copy = self.__class__(self._name.Copy(), self._constraint.Copy())
+		copy =            self.__class__(self._name.Copy(), self._constraint.Copy(), resolution=self._CopyResolution())
 		copy._reference = self._reference
 		return copy
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this constrained scalar subtype symbol, its name and its range constraint with a visitor.
+		Walk this constrained scalar subtype symbol, its resolution indication (if any), its name and its range constraint
+		with a visitor.
 
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitConstrainedScalarSubtypeSymbol(self)
+		self._VisitResolution(visitor)
 		self._name.Visit(visitor)
 		visitor.VisitRangeConstraint(self)
 		self._constraint.Visit(visitor)
@@ -1741,36 +2228,49 @@ class ConstrainedArraySubtypeSymbol(ConstrainedCompositeSubtypeSymbol, ArrayCons
 	      --                    ^^^^^^^^^^     <- Constraints
 	"""
 
-	def __init__(self, name: Name, constraints: Iterable, *, parent: Nullable[ModelEntity] = None) -> None:
+	def __init__(
+		self,
+		name:        Name,
+		constraints: Iterable,
+		*,
+		parent:      Nullable[ModelEntity] =               None,
+		resolution:  Nullable[ResolutionIndicationMixin] = None
+	) -> None:
 		"""
 		Initializes a reference to an array subtype narrowed by index ranges.
 
 		:param name:        The name to reference the language entity.
 		:param constraints: List of all index ranges, one per dimension.
 		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param resolution:  Optional, the resolution indication. Default: ``None``, no resolution indication.
+		:raises TypeError:  If parameter 'resolution' is not of type :class:`ResolutionIndicationMixin`.
 		"""
-		super().__init__(name, parent=parent)
+		super().__init__(name, parent=parent, resolution=resolution)
 		ArrayConstraint.__init__(self, constraints)
 
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this constrained array subtype symbol.
 
-		The copy has no parent. The name and the index ranges are copied; the reference, if resolved, is the same.
+		The copy has no parent. The name, the index ranges and the resolution indication are copied; the reference, if
+		resolved, is the same.
 
 		:returns: The new constrained array subtype symbol.
 		"""
-		copy = self.__class__(self._name.Copy(), [constraint.Copy() for constraint in self._constraints])
+		constraints =     [constraint.Copy() for constraint in self._constraints]
+		copy =            self.__class__(self._name.Copy(), constraints, resolution=self._CopyResolution())
 		copy._reference = self._reference
 		return copy
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this constrained array subtype symbol, its name and its index constraint with a visitor.
+		Walk this constrained array subtype symbol, its resolution indication (if any), its name and its index constraint
+		with a visitor.
 
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitConstrainedArraySubtypeSymbol(self)
+		self._VisitResolution(visitor)
 		self._name.Visit(visitor)
 		self._VisitArrayConstraint(visitor)
 		visitor.DepartConstrainedArraySubtypeSymbol(self)
@@ -1799,7 +2299,8 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 		name:        Name,
 		constraints: Mapping[RecordElementSymbol, ArrayElementConstraint | RecordElementConstraint],
 		*,
-		parent:      Nullable[ModelEntity] = None
+		parent:      Nullable[ModelEntity] =               None,
+		resolution:  Nullable[ResolutionIndicationMixin] = None
 	) -> None:
 		"""
 		Initializes a reference to a record subtype with constrained elements.
@@ -1807,33 +2308,37 @@ class ConstrainedRecordSubtypeSymbol(ConstrainedCompositeSubtypeSymbol, RecordCo
 		:param name:        The name to reference the language entity.
 		:param constraints: Dictionary of the element constraint per constrained record element.
 		:param parent:      Optional, the parent model entity of this entity. Default: ``None``, no parent.
+		:param resolution:  Optional, the resolution indication. Default: ``None``, no resolution indication.
+		:raises TypeError:  If parameter 'resolution' is not of type :class:`ResolutionIndicationMixin`.
 		"""
-		super().__init__(name, parent=parent)
+		super().__init__(name, parent=parent, resolution=resolution)
 		RecordConstraint.__init__(self, constraints)
 
 	def Copy(self) -> Self:
 		"""
 		Create a copy of this constrained record subtype symbol.
 
-		The copy has no parent. The name, the record elements and their element constraints are copied; the reference, if
-		resolved, is the same.
+		The copy has no parent. The name, the record elements, their element constraints and the resolution indication are
+		copied; the reference, if resolved, is the same.
 
 		:returns: The new constrained record subtype symbol.
 		"""
 		constraints =     {element.Copy(): constraint.Copy() for element, constraint in self._constraints.items()}
-		copy =            self.__class__(self._name.Copy(), constraints)
+		copy =            self.__class__(self._name.Copy(), constraints, resolution=self._CopyResolution())
 		copy._reference = self._reference
 		return copy
 
 	def Visit(self, visitor: Visitor) -> None:
 		"""
-		Walk this constrained record subtype symbol, its name and its record constraint with a visitor.
+		Walk this constrained record subtype symbol, its resolution indication (if any), its name and its record
+		constraint with a visitor.
 
 		Each record element is followed by its element constraint.
 
 		:param visitor: The visitor receiving the events.
 		"""
 		visitor.VisitConstrainedRecordSubtypeSymbol(self)
+		self._VisitResolution(visitor)
 		self._name.Visit(visitor)
 		self._VisitRecordConstraint(visitor)
 		visitor.DepartConstrainedRecordSubtypeSymbol(self)

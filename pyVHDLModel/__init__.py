@@ -620,6 +620,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		"""
 		Read-only property to access the compile-order graph (:attr:`_compileOrderGraph`).
 
+		Its vertices are the design's documents; an edge points from a document to a document it depends on, i.e. which
+		must be compiled before (:meth:`ComputeCompileOrder`).
+
 		:returns: Reference to the compile-order graph.
 		"""
 		return self._compileOrderGraph
@@ -628,6 +631,13 @@ class Design(ModelEntity, AllowBlackboxMixin):
 	def DependencyGraph(self) -> Graph:
 		"""
 		Read-only property to access the dependency graph (:attr:`_dependencyGraph`).
+
+		Its vertices are the design's documents, libraries and design units (key ``kind``,
+		:class:`DependencyGraphVertexKind`), its edges the dependencies between them (key ``kind``,
+		:class:`DependencyGraphEdgeKind`), e.g. a use clause or an instantiation. It also holds the edges of the compile
+		order between the document vertices (kind :data:`DependencyGraphEdgeKind.CompileOrder`), which
+		:meth:`ComputeCompileOrder` adds, so an export shows the compile order beside the dependencies. A consumer
+		interested in one kind filters the edges by their ``kind``.
 
 		:returns: Reference to the dependency graph.
 		"""
@@ -3097,6 +3107,18 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				newEdge["kind"] = kind
 
 	def ComputeCompileOrder(self) -> None:
+		"""
+		Compute the compile order of the design's documents from the dependency graph.
+
+		.. rubric:: Algorithm
+
+		1. Iterate the edges of the dependency graph, which make a design unit depend on another one: an implementation,
+		   an instantiation, a use clause or a context reference, whose destination isn't predefined.
+		2. Add an edge from the document of the source design unit to the document of the destination design unit in the
+		   compile-order graph (:data:`CompileOrderGraph`), unless both are the same document or the edge exists.
+		3. Add the same edge, of kind :data:`DependencyGraphEdgeKind.CompileOrder`, between the two document vertices of
+		   the dependency graph (:data:`DependencyGraph`).
+		"""
 		def predicate(edge: Edge) -> bool:
 			return (
 				DependencyGraphEdgeKind.Implementation in edge["kind"] or

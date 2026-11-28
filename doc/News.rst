@@ -208,6 +208,16 @@ Version 0.45.0 (2026)
      the order of the IEEE package ``std/env.vhdl``.
    * With VHDL-2019, ``u_unsigned`` and ``u_signed`` of package ``ieee.numeric_std`` are aliases of
      ``unresolved_unsigned`` and ``unresolved_signed`` (subtypes in VHDL-2008).
+   * Resolution indications (IEEE Std 1076-2008, 6.3): every subtype symbol takes a keyword parameter ``resolution``
+     (property :data:`SubtypeSymbol.Resolution <pyVHDLModel.Symbol.SubtypeSymbol.Resolution>`), a resolution function
+     name (:class:`~pyVHDLModel.Symbol.ResolutionFunctionSymbol`, ``resolved std_ulogic``), an array element resolution
+     (:class:`~pyVHDLModel.Symbol.ArrayElementResolution`, ``(resolved) std_ulogic_vector``) or a record resolution
+     (:class:`~pyVHDLModel.Symbol.RecordResolution` of :class:`~pyVHDLModel.Symbol.RecordElementResolution`,
+     ``(a resolved, b (resolved)) pair_t``), marked by :class:`~pyVHDLModel.Symbol.ResolutionIndicationMixin`. They
+     can be copied, walked by a visitor (events ``VisitResolutionIndication``, ``VisitArrayElementResolution``,
+     ``VisitRecordResolution``, ``VisitRecordElementResolution``) and written by the VHDL writer.
+     :data:`Subtype.ResolutionFunction <pyVHDLModel.Type.Subtype.ResolutionFunction>` returns the function the
+     resolution function name of the subtype indication references; before, it returned a field nothing set.
 
    .. rubric:: Changes
 

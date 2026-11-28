@@ -49,7 +49,8 @@ from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, MultipleNamedE
                                    Range, ReservedWord, Mode
 from pyVHDLModel.Exception  import NotAChildError, IncompleteTypeWarning
 from pyVHDLModel.Name       import Name, SimpleName
-from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
+from pyVHDLModel.Symbol     import Symbol, SubtypeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
+                                   ResolutionFunctionSymbol
 from pyVHDLModel.Expression import EnumerationLiteral, CharacterEnumerationLiteral, PhysicalIntegerLiteral
 from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarationRegionMixin, \
                                    SequentialDeclarationRegionMixin, WithoutStatementsMixin
@@ -57,7 +58,7 @@ from pyVHDLModel.Regions    import DeclarativeRegionMixin, ProtectedTypeDeclarat
 if TYPE_CHECKING:
 	from pyVHDLModel.DesignUnit import DesignUnit, Package
 	from pyVHDLModel.Interface  import ParameterConstantInterfaceItem
-	from pyVHDLModel.Subprogram import PredefinedOperator, PredefinedFunction, PredefinedOperation
+	from pyVHDLModel.Subprogram import Function, PredefinedOperator, PredefinedFunction, PredefinedOperation
 	from pyVHDLModel.Visitor    import Visitor
 
 
@@ -396,7 +397,9 @@ class Subtype(BaseType):
 
 	A subtype is a named entity (:data:`Identifier`, :data:`NormalizedIdentifier`) with a subtype indication
 	(:data:`Type`): a type mark, optionally narrowed by a constraint. A range constraint is available as
-	:data:`Range`. Optionally, the subtype is resolved by a resolution function (:data:`ResolutionFunction`).
+	:data:`Range`. Optionally, the subtype indication has a resolution indication
+	(:data:`SubtypeSymbol.Resolution <pyVHDLModel.Symbol.SubtypeSymbol.Resolution>`); the function a resolution function
+	name references is available as :data:`ResolutionFunction`.
 
 	.. admonition:: Example
 
@@ -427,9 +430,8 @@ class Subtype(BaseType):
 
 	   * :class:`Reference to a type or subtype <pyVHDLModel.Symbol.SubtypeSymbol>`
 	"""
-	_type:               Symbol    #: Reference to the type or subtype this subtype is derived from.
-	_baseType:           BaseType  #: The resolved base type of this subtype.
-	_resolutionFunction: Function  #: The resolution function, or ``None`` if the subtype is unresolved.
+	_type:     Symbol    #: Reference to the type or subtype this subtype is derived from.
+	_baseType: BaseType  #: The resolved base type of this subtype.
 
 	def __init__(self, identifier: str, symbol: Symbol, documentation: Nullable[str] = None, parent: Nullable[ModelEntity] = None) -> None:
 		"""
@@ -443,9 +445,8 @@ class Subtype(BaseType):
 		"""
 		super().__init__(identifier, documentation, parent)
 
-		self._type =               symbol
-		self._baseType =           None
-		self._resolutionFunction = None
+		self._type =     symbol
+		self._baseType = None
 
 	@readonly
 	def Type(self) -> Symbol:
@@ -480,13 +481,23 @@ class Subtype(BaseType):
 		return None
 
 	@readonly
-	def ResolutionFunction(self) -> Function:
+	def ResolutionFunction(self) -> Nullable[Function]:
 		"""
-		Read-only property to access the resolution function (:attr:`_resolutionFunction`).
+		Read-only property to return the resolution function of the subtype indication (:attr:`_type`): the function its
+		resolution function name references (:class:`~pyVHDLModel.Symbol.ResolutionFunctionSymbol`).
 
-		:returns: The resolution function.
+		An element resolution (``(resolved) std_ulogic_vector``) resolves the subtype's elements, not the subtype: its
+		resolution functions are those of :data:`SubtypeSymbol.Resolution <pyVHDLModel.Symbol.SubtypeSymbol.Resolution>`.
+
+		:returns: The resolution function, or ``None`` if the subtype indication has no resolution function name or it isn't
+		          resolved.
 		"""
-		return self._resolutionFunction
+		if not isinstance(self._type, SubtypeSymbol):
+			return None
+		elif isinstance(resolution := self._type._resolution, ResolutionFunctionSymbol):
+			return resolution._reference
+
+		return None
 
 	def IterateTypeMarks(
 		self,

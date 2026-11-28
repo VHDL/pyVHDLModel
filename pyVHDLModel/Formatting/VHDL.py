@@ -103,9 +103,10 @@ from pyVHDLModel.Sequential    import IndexedChoice, SequentialProcedureCall, Se
                                       LoopStatement, EndlessLoopStatement, ForLoopStatement, WhileLoopStatement, \
                                       LoopControlStatement, NextStatement, ExitStatement
 from pyVHDLModel.Subprogram    import Subprogram, Procedure, Function, SubprogramSignature
-from pyVHDLModel.Symbol        import ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
+from pyVHDLModel.Symbol        import SubtypeSymbol, ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol, \
                                       ConstrainedRecordSubtypeSymbol, ArrayElementConstraint, \
-                                      RecordElementConstraint, AggregateSymbol
+                                      RecordElementConstraint, AggregateSymbol, ArrayElementResolution, \
+                                      RecordResolution, RecordElementResolution
 from pyVHDLModel.Type          import AnonymousType, FullType, Subtype, EnumeratedType, IntegerType, RealType, \
                                       PhysicalType, ArrayType, RecordTypeElement, RecordType, AccessType, FileType, \
                                       ProtectedType, ProtectedTypeBody
@@ -1019,7 +1020,7 @@ class VHDLWriter(Visitor):
 		self,
 		element: IndexedName | Aggregate | ConstrainedArraySubtypeSymbol | ConstrainedRecordSubtypeSymbol |
 		         ArrayElementConstraint | RecordElementConstraint | EnumeratedType | ArrayType | AggregateSymbol |
-		         SubprogramSignature
+		         SubprogramSignature | RecordResolution
 	) -> None:
 		"""
 		Write the comma between two elements of a parenthesized or bracketed list, which is no association list.
@@ -2121,6 +2122,64 @@ class VHDLWriter(Visitor):
 		"""
 		self._Write(")")
 
+	def VisitResolutionIndication(self, element: SubtypeSymbol | RecordElementResolution) -> None:
+		"""
+		Write the space between a record element and its resolution indication.
+
+		**Format:** ``(a resolved, b (resolved))``
+
+		:param element: The subtype symbol or the record element resolution.
+		"""
+		if isinstance(element, RecordElementResolution):
+			self._Write(" ")
+
+	def DepartResolutionIndication(self, element: SubtypeSymbol | RecordElementResolution) -> None:
+		"""
+		Write the space between the resolution indication of a subtype indication and its type mark.
+
+		**Format:** ``resolved std_ulogic``
+
+		:param element: The subtype symbol or the record element resolution.
+		"""
+		if isinstance(element, SubtypeSymbol):
+			self._Write(" ")
+
+	def VisitArrayElementResolution(self, resolution: ArrayElementResolution) -> None:
+		"""
+		Write the left parenthesis of an array element resolution.
+
+		**Format:** ``(resolved) std_ulogic_vector``
+
+		:param resolution: The array element resolution.
+		"""
+		self._Write("(")
+
+	def DepartArrayElementResolution(self, resolution: ArrayElementResolution) -> None:
+		"""
+		Write the right parenthesis of an array element resolution.
+
+		:param resolution: The array element resolution.
+		"""
+		self._Write(")")
+
+	def VisitRecordResolution(self, resolution: RecordResolution) -> None:
+		"""
+		Write the left parenthesis of a record resolution.
+
+		**Format:** ``(a resolved, b (resolved)) pair_t``
+
+		:param resolution: The record resolution.
+		"""
+		self._Write("(")
+
+	def DepartRecordResolution(self, resolution: RecordResolution) -> None:
+		"""
+		Write the right parenthesis of a record resolution.
+
+		:param resolution: The record resolution.
+		"""
+		self._Write(")")
+
 	def VisitGenericClause(self, element: WithGenericsMixin) -> None:
 		"""
 		Write the reserved word ``generic`` and the left parenthesis of a generic clause.
@@ -2542,8 +2601,6 @@ class VHDLWriter(Visitor):
 		Write the reserved word ``subtype``, the identifier and the reserved word ``is`` of a subtype declaration.
 
 		**Format:** ``subtype byte is bit_vector(7 downto 0);``
-
-		The model's resolution function of a subtype is not written.
 
 		:param subtype: The subtype declaration.
 		"""

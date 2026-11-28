@@ -35,11 +35,12 @@ from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Direction, RangeFromName, SimpleRange
 from pyVHDLModel.Name       import SimpleName, AttributeName
-from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol
+from pyVHDLModel.Symbol     import RangeAttributeSymbol, SimpleSubtypeSymbol, ConstrainedScalarSubtypeSymbol, \
+                                   ResolutionFunctionSymbol, ArrayElementResolution
 from pyVHDLModel.Expression import IntegerLiteral, EnumerationLiteral, CharacterEnumerationLiteral, \
                                    PhysicalIntegerLiteral
 from pyVHDLModel.Object     import Variable
-from pyVHDLModel.Subprogram import Procedure, Operator, PredefinedOperator, PredefinedFunction
+from pyVHDLModel.Subprogram import Procedure, Function, Operator, PredefinedOperator, PredefinedFunction
 from pyVHDLModel.Type       import BaseType, Subtype, RangedScalarType, EnumeratedType, IntegerType, RealType, \
                                    PhysicalType, PhysicalUnit, ArrayType, RecordTypeElement, RecordType, \
                                    ProtectedType, ProtectedTypeBody, AccessType, FileType
@@ -219,6 +220,30 @@ class Subtypes(Testcase):
 
 		self.assertIs(symbol, subtype.Type)
 		self.assertIs(rng, subtype.Range)
+
+	def test_ResolutionFunction(self) -> None:
+		"""``subtype std_logic is resolved std_ulogic;``: the function the resolution function name references."""
+		resolution = ResolutionFunctionSymbol(SimpleName("resolved"))
+		subtype =    Subtype("std_logic", SimpleSubtypeSymbol(SimpleName("std_ulogic"), resolution=resolution))
+
+		self.assertIsNone(subtype.ResolutionFunction)
+
+		function =            Function("resolved", SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		resolution.Function = function
+
+		self.assertIs(function, subtype.ResolutionFunction)
+
+	def test_ResolutionFunction_ArrayElementResolution(self) -> None:
+		"""``subtype std_logic_vector is (resolved) std_ulogic_vector;``: the resolution function resolves the elements."""
+		function =          ResolutionFunctionSymbol(SimpleName("resolved"))
+		function.Function = Function("resolved", SimpleSubtypeSymbol(SimpleName("std_ulogic")))
+		resolution =        ArrayElementResolution(function)
+		subtype =           Subtype(
+			"std_logic_vector",
+			SimpleSubtypeSymbol(SimpleName("std_ulogic_vector"), resolution=resolution)
+		)
+
+		self.assertIsNone(subtype.ResolutionFunction)
 
 
 class EnumeratedTypes(Testcase):

@@ -52,7 +52,8 @@ from pyVHDLModel.Symbol          import PossibleReference, Symbol, LibraryRefere
                                         ConstrainedArraySubtypeSymbol, ConstrainedRecordSubtypeSymbol, \
                                         ArrayElementConstraint, RecordElementConstraint, \
                                         SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, \
-                                        AggregateSymbol, LoopSymbol
+                                        AggregateSymbol, LoopSymbol, ResolutionFunctionSymbol, \
+                                        ArrayElementResolution, RecordResolution, RecordElementResolution
 
 from tests.unit                  import _Element, _signal
 from tests.unit.Copy             import _concreteModelClasses, _copyAboveConstructor
@@ -332,3 +333,104 @@ class RecordElementConstraints(Testcase):
 		for originalElement, copiedElement in zip(original.Targets, copy.Targets):
 			self.assertIsNot(originalElement, copiedElement)
 			self.assertIs(copy, copiedElement.Parent)
+
+
+class ResolutionIndications(Testcase):
+	def test_Copy_ResolutionFunctionSymbol(self) -> None:
+		function =          _Element()
+		original =          ResolutionFunctionSymbol(SimpleName("resolved"), parent=_Element())
+		original.Function = function
+
+		copy = original.Copy()
+
+		self.assertIs(ResolutionFunctionSymbol, type(copy))
+		self.assertIsNone(copy.Parent)
+		self.assertIsNot(original.Name, copy.Name)
+		self.assertIs(copy, copy.Name.Parent)
+		self.assertIs(function, copy.Function)
+		self.assertEqual("resolved", VHDLWriter().Format(copy))
+
+	def test_Copy_ArrayElementResolution(self) -> None:
+		function = ResolutionFunctionSymbol(SimpleName("resolved"))
+		original = ArrayElementResolution(function, parent=_Element())
+
+		copy = original.Copy()
+
+		self.assertIs(ArrayElementResolution, type(copy))
+		self.assertIsNone(copy.Parent)
+		self.assertIsNot(function, copy.Resolution)
+		self.assertIs(copy, copy.Resolution.Parent)
+		self.assertEqual("(resolved)", VHDLWriter().Format(copy))
+
+	def test_Copy_RecordResolution(self) -> None:
+		element =  RecordElementResolution(
+			RecordElementSymbol(SimpleName("b")),
+			ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		)
+		original = RecordResolution([element], parent=_Element())
+
+		copy = original.Copy()
+
+		self.assertIs(RecordResolution, type(copy))
+		self.assertIsNone(copy.Parent)
+		self.assertIsNot(original.Elements, copy.Elements)
+		self.assertEqual(1, len(copy.Elements))
+		copyElement = copy.Elements[0]
+		self.assertIs(RecordElementResolution, type(copyElement))
+		self.assertIsNot(element, copyElement)
+		self.assertIs(copy, copyElement.Parent)
+		self.assertIsNot(element.Element, copyElement.Element)
+		self.assertIs(copyElement, copyElement.Element.Parent)
+		self.assertIsNot(element.Resolution, copyElement.Resolution)
+		self.assertIs(copyElement, copyElement.Resolution.Parent)
+		self.assertEqual("(b (resolved))", VHDLWriter().Format(copy))
+
+	def test_Copy_SimpleSubtypeSymbol(self) -> None:
+		resolution = ResolutionFunctionSymbol(SimpleName("resolved"))
+		original =   SimpleSubtypeSymbol(SimpleName("std_ulogic"), resolution=resolution)
+
+		copy = original.Copy()
+
+		self.assertIs(SimpleSubtypeSymbol, type(copy))
+		self.assertIsNot(resolution, copy.Resolution)
+		self.assertIs(copy, copy.Resolution.Parent)
+		self.assertEqual("resolved std_ulogic", VHDLWriter().Format(copy))
+
+	def test_Copy_ConstrainedScalarSubtypeSymbol(self) -> None:
+		resolution = ResolutionFunctionSymbol(SimpleName("resolved"))
+		constraint = SimpleRange(IntegerLiteral(0), IntegerLiteral(1), Direction.To)
+		original =   ConstrainedScalarSubtypeSymbol(SimpleName("bit"), constraint, resolution=resolution)
+
+		copy = original.Copy()
+
+		self.assertIsNot(resolution, copy.Resolution)
+		self.assertIs(copy, copy.Resolution.Parent)
+		self.assertEqual("resolved bit range 0 to 1", VHDLWriter().Format(copy))
+
+	def test_Copy_ConstrainedArraySubtypeSymbol(self) -> None:
+		resolution = ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		constraint = DescendingRangeExpression(IntegerLiteral(7), IntegerLiteral(0))
+		original =   ConstrainedArraySubtypeSymbol(SimpleName("std_ulogic_vector"), [constraint], resolution=resolution)
+
+		copy = original.Copy()
+
+		self.assertIsNot(resolution, copy.Resolution)
+		self.assertIs(copy, copy.Resolution.Parent)
+		self.assertEqual("(resolved) std_ulogic_vector(7 downto 0)", VHDLWriter().Format(copy))
+
+	def test_Copy_ConstrainedRecordSubtypeSymbol(self) -> None:
+		resolution = RecordResolution([
+			RecordElementResolution(RecordElementSymbol(SimpleName("a")), ResolutionFunctionSymbol(SimpleName("resolved")))
+		])
+		constraint = ArrayElementConstraint([DescendingRangeExpression(IntegerLiteral(3), IntegerLiteral(0))])
+		original =   ConstrainedRecordSubtypeSymbol(
+			SimpleName("pair_t"),
+			{RecordElementSymbol(SimpleName("b")): constraint},
+			resolution=resolution
+		)
+
+		copy = original.Copy()
+
+		self.assertIsNot(resolution, copy.Resolution)
+		self.assertIs(copy, copy.Resolution.Parent)
+		self.assertEqual("(a resolved) pair_t(b(3 downto 0))", VHDLWriter().Format(copy))

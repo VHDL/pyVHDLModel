@@ -498,7 +498,7 @@ class Writers(Testcase):
 		writtenByChildren = {
 			"Symbol", "SimpleAggregateElement", "RangedAggregateElement", "NamedAggregateElement",
 			"ConstrainedScalarSubtypeSymbol", "ConstrainedArraySubtypeSymbol", "ConstrainedRecordSubtypeSymbol", "Document",
-			"ArrayElementConstraint", "RecordElementConstraint",
+			"ArrayElementConstraint", "RecordElementConstraint", "RecordElementResolution",
 			"WaveformElement", "ConditionalWaveform", "SelectedWaveform", "RangedChoice", "RangedGenerateChoice",
 			"ConditionalExpression", "SelectedExpression", "IndexedName", "ParenthesisName", "TypeConversion"
 		}

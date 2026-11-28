@@ -97,7 +97,7 @@ class SubprogramSignature(ModelEntity):
 	def __init__(
 		self,
 		parameterTypes: Iterable[SubtypeSymbol],
-		returnType:     Nullable[SubtypeSymbol] = None,
+		returnType:     Nullable[SubtypeSymbol] =      None,
 		*,
 		parent:         Nullable[Subprogram | Alias] = None
 	) -> None:

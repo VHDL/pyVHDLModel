@@ -368,7 +368,7 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 		self,
 		identifier:    str,
 		name:          Symbol,
-		subtype:       Nullable[SubtypeSymbol] = None,
+		subtype:       Nullable[SubtypeSymbol] =       None,
 		documentation: Nullable[str] =                 None,
 		parent:        Nullable[ModelEntity] =         None,
 		*,

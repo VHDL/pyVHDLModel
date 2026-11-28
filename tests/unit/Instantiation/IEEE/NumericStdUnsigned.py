@@ -27,7 +27,7 @@
 #                                                                                                                      #
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
-"""Tests for pyVHDLModel.IEEE.NumericStdUnsigned."""
+"""Tests for pyVHDLModel.IEEE.NumericStdUnsignedPkg."""
 from pyTooling.Testing       import Testcase
 from pyTooling.Warning       import WarningCollector
 

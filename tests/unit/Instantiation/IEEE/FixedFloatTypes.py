@@ -27,15 +27,15 @@
 #                                                                                                                      #
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
-"""Tests for pyVHDLModel.IEEE.NumericBitUnsigned."""
-from pyTooling.Testing       import Testcase
-"""Tests for pyVHDLModel.IEEE.FixedFloatTypes."""
-from pyTooling.Testing       import Testcase
-from pyTooling.Warning       import WarningCollector
+"""Tests for pyVHDLModel.IEEE.NumericBitUnsignedPkg."""
+from pyTooling.Testing import Testcase
+"""Tests for pyVHDLModel.IEEE.FixedFloatTypesPkg."""
+from pyTooling.Testing import Testcase
+from pyTooling.Warning import WarningCollector
 
-from pyVHDLModel             import Design
-from pyVHDLModel.Type        import EnumeratedType
-from pyVHDLModel.IEEE        import Fixed_Float_Types
+from pyVHDLModel       import Design
+from pyVHDLModel.Type  import EnumeratedType
+from pyVHDLModel.IEEE  import Fixed_Float_Types
 
 
 if __name__ == "__main__":  # pragma: no cover

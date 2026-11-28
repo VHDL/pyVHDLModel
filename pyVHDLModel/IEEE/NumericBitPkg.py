@@ -72,7 +72,7 @@ class Numeric_Bit(PredefinedPackage):
 
 	.. seealso::
 
-	   Matching :class:`Package Body <pyVHDLModel.IEEE.NumericBit.Numeric_Bit_Body>` declaration.
+	   Matching :class:`Package Body <pyVHDLModel.IEEE.NumericBitPkg.Numeric_Bit_Body>` declaration.
 	"""
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:

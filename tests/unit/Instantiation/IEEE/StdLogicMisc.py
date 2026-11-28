@@ -28,7 +28,7 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Tests for pyVHDLModel.IEEE.StdLogicMisc."""
+"""Tests for pyVHDLModel.IEEE.StdLogicMiscPkg."""
 from pyTooling.Testing      import Testcase
 from pyTooling.Warning      import WarningCollector
 

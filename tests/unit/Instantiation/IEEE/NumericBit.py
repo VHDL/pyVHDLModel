@@ -27,7 +27,7 @@
 #                                                                                                                      #
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
-"""Tests for pyVHDLModel.IEEE.NumericBit."""
+"""Tests for pyVHDLModel.IEEE.NumericBitPkg."""
 from pyTooling.Testing       import Testcase
 from pyTooling.Warning       import WarningCollector
 

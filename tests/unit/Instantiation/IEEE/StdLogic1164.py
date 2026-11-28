@@ -28,24 +28,24 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Tests for pyVHDLModel.IEEE.StdLogic1164."""
-from pyTooling.Testing              import Testcase
-from pyTooling.Warning              import WarningCollector
+"""Tests for pyVHDLModel.IEEE.StdLogic1164Pkg."""
+from pyTooling.Testing                import Testcase
+from pyTooling.Warning                import WarningCollector
 
-from pyVHDLModel                    import Design
-from pyVHDLModel.Base               import Direction, Mode
-from pyVHDLModel.Declaration        import Alias
-from pyVHDLModel.DesignUnit         import Entity, LibraryClause
-from pyVHDLModel.Expression         import CharacterLiteral
-from pyVHDLModel.Interface          import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
-                                           ParameterSimpleSignalInterfaceItem
-from pyVHDLModel.Name               import SimpleName
-from pyVHDLModel.Subprogram         import Procedure, Function, Operator
-from pyVHDLModel.Symbol             import ConstrainedScalarSubtypeSymbol, LibraryReferenceSymbol
-from pyVHDLModel.Type               import ArrayType, Subtype
-from pyVHDLModel.IEEE.StdLogic1164  import Std_Logic_1164, StdULogic
+from pyVHDLModel                      import Design
+from pyVHDLModel.Base                 import Direction, Mode
+from pyVHDLModel.Declaration          import Alias
+from pyVHDLModel.DesignUnit           import Entity, LibraryClause
+from pyVHDLModel.Expression           import CharacterLiteral
+from pyVHDLModel.Interface            import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
+                                             ParameterSimpleSignalInterfaceItem
+from pyVHDLModel.Name                 import SimpleName
+from pyVHDLModel.Subprogram           import Procedure, Function, Operator
+from pyVHDLModel.Symbol               import ConstrainedScalarSubtypeSymbol, LibraryReferenceSymbol
+from pyVHDLModel.Type                 import ArrayType, Subtype
+from pyVHDLModel.IEEE.StdLogic1164Pkg import Std_Logic_1164, StdULogic
 
-from tests.unit.Visibility          import _design, _use
+from tests.unit.Visibility            import _design, _use
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -75,7 +75,7 @@ class Numeric_Std(PredefinedPackage):
 
 	.. seealso::
 
-	   Matching :class:`Package Body <pyVHDLModel.IEEE.NumericStd.Numeric_Std_Body>` declaration.
+	   Matching :class:`Package Body <pyVHDLModel.IEEE.NumericStdPkg.Numeric_Std_Body>` declaration.
 	"""
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:

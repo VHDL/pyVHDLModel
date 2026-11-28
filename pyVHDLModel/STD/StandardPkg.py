@@ -30,6 +30,7 @@
 # ==================================================================================================================== #
 #
 """This module contains the predefined package ``std.standard`` of VHDL library ``STD``."""
+
 from typing                  import Generator, Optional as Nullable
 
 from pyTooling.Decorators    import export, readonly

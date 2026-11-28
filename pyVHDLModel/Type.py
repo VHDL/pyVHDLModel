@@ -450,6 +450,7 @@ class FullType(BaseType):
 			(self._Parameter("VALUE", self._TypeMark()),)
 		)
 
+
 @export
 class Subtype(BaseType):
 	"""

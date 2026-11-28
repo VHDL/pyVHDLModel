@@ -26,7 +26,7 @@ Version 0.45.0 (2026)
    * Package ``std.textio`` declares what IEEE Std 1076-2008, 16.4 lists, in its order: the types ``text`` and
      ``side``, the subtype ``width``, the function ``justify``, the files ``input`` and ``output``, and the procedures
      ``readline``, ``read``, ``sread``, ``oread``, ``hread``, ``writeline``, ``tee``, ``write``, ``owrite`` and
-     ``hwrite`` with all their overloads. The aliases (``bread``, ``swrite``, ...) aren't declared yet.
+     ``hwrite`` with all their overloads.
    * Package ``std.env`` declares what IEEE Std 1076-2008, 16.5 lists: the procedures ``stop`` and ``finish``, each
      with and without a ``STATUS`` parameter, and the function ``resolution_limit``.
    * A one-dimensional array type declares, depending on its element type, the concatenation operator ``&``, the
@@ -144,6 +144,10 @@ Version 0.45.0 (2026)
      ``alias to_slv is to_stdlogicvector [bit_vector return std_logic_vector];``. The analysis resolves its name to the
      overload of the same parameter and result type profile, also an implicit operation, in a third step
      (:meth:`~pyVHDLModel.Design.ResolveAliasSignatures`, new); the VHDL writer writes the signature.
+   * Package ``std.textio`` declares its 15 aliases of procedures (``string_read``, ``bread``, ``binary_read``,
+     ``octal_read``, ``hex_read``, ``swrite``, ``string_write``, ``bwrite``, ``binary_write``, ``octal_write``,
+     ``hex_write``) with their signatures, at their places in the order of IEEE Std 1076-2008, 16.4, e.g.
+     ``alias BREAD is READ [LINE, BIT_VECTOR];``. The analysis resolves each alias to its procedure.
    * The predefined libraries and packages accept :data:`VHDLVersion.VHDL2019 <pyVHDLModel.VHDLVersion.VHDL2019>`.
      Package ``std.standard`` then declares the additions of IEEE Std 1076-2019, 16.3: the type ``range_direction``
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and

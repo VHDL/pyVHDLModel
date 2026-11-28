@@ -41,11 +41,12 @@ from pyVHDLModel               import VHDLVersion, Library, Package, PackageBody
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, Mode
 from pyVHDLModel.Name          import SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol        import LibraryReferenceSymbol, PackageSymbol, PackageReferenceSymbol, \
-                                      SimpleSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
+                                      PossibleReference, Symbol, SimpleSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
 from pyVHDLModel.Expression    import Literal, IntegerLiteral
 from pyVHDLModel.DesignUnit    import LibraryClause, UseClause
 from pyVHDLModel.Interface     import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
-from pyVHDLModel.Subprogram    import Subprogram
+from pyVHDLModel.Declaration   import Alias
+from pyVHDLModel.Subprogram    import Subprogram, SubprogramSignature
 from pyVHDLModel.Association   import GenericAssociationItem
 from pyVHDLModel.Instantiation import PackageInstantiation
 
@@ -275,6 +276,30 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 			overloads.append(subprogram)
 
 		self.AddDeclaredItem(subprogram)
+
+	def _DeclareAlias(
+		self,
+		identifier:     str,
+		name:           str,
+		parameterTypes: Iterable[SimpleSubtypeSymbol],
+		returnType:     Nullable[SimpleSubtypeSymbol] = None
+	) -> None:
+		"""
+		Add an alias of a subprogram to this package, which selects the overload of the aliased name by a signature.
+
+		The analysis resolves the alias' name to the overload of the signature's parameter and result type profile
+		(:meth:`~pyVHDLModel.Declaration.Alias.ResolveSignature`).
+
+		:param identifier:     The alias' identifier.
+		:param name:           The simple name of the aliased subprogram.
+		:param parameterTypes: The type marks of the signature's parameters.
+		:param returnType:     Optional, the type mark of the signature's return type. Default: ``None``, a procedure.
+		"""
+		self.AddDeclaredItem(Alias(
+			identifier,
+			Symbol(SimpleName(name), PossibleReference.PackageMember | PossibleReference.EnumLiteral),
+			signature=SubprogramSignature(parameterTypes, returnType)
+		))
 
 	@staticmethod
 	def _TypeMark(identifier: str) -> SimpleSubtypeSymbol:

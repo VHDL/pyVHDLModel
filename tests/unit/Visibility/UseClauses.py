@@ -243,6 +243,39 @@ class UsePackage(Testcase):
 
 		self.assertTupleEqual((localType, ), architecture._namespace.Lookup("t", signal).Declarations)
 
+	def test_LocalPackage_Item(self) -> None:
+		"""``use lp.T;``: the prefix of the two-part name denotes a local package, not a library (12.4)."""
+		localType =    _enumeration("T", "a", "b")
+		localPackage = Package("lp", declaredItems=[localType, _enumeration("U", "c")])
+		signal =       _signal("s", "T")
+		useClause =    _use("lp.T")
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[localPackage, useClause, signal])
+		_design(Entity("e"), architecture)
+
+		self.assertTupleEqual((localType, ), architecture._namespace.Lookup("t", signal).Declarations)
+		self.assertFalse(architecture._namespace.Lookup("u", signal).IsVisible)
+		self.assertIs(localPackage, useClause.Symbols[0].Reference)
+
+	def test_SimpleNamePrefix_Item(self) -> None:
+		"""``use work.p; use p.K;``: the prefix ``p`` denotes the visible package; ``K`` is imported, ``L`` isn't."""
+		constant = _constant("K", "integer")
+		package =  Package("p", declaredItems=[constant, _constant("L", "integer")])
+		entity =   Entity("e", [_use("work.p"), _use("p.K")])
+		_design(package, entity)
+
+		self.assertTupleEqual((constant, ), entity._namespace.Lookup("k").Declarations)
+		self.assertFalse(entity._namespace.Lookup("l").IsVisible)
+
+	def test_LocalPackage_Item_NotDeclared(self) -> None:
+		"""``use lp.X;`` of a member the local package doesn't declare is reported."""
+		localPackage = Package("lp", declaredItems=[_enumeration("T", "a")])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[localPackage, _use("lp.X")])
+		with WarningCollector() as collector:
+			_design(Entity("e"), architecture, analyze=False).Analyze()
+
+		messages = [str(warning) for warning in collector.Warnings if isinstance(warning, UnresolvedNameWarning)]
+		self.assertListEqual(["Package 'lp' has no declaration 'X'."], messages)
+
 
 class UseLibrary(Testcase):
 	"""``use work.all;`` and ``use work.unit;`` make primary units of the library potentially visible."""

@@ -2321,7 +2321,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 		1. Get the package name from the symbol: the symbol's name for a ``PackageReferenceSymbol`` (``use lib.pkg;``), else
 		   its prefix (``use lib.pkg.all;``, ``use lib.pkg.item;``). Get the library name, the prefix of the package name.
-		   If the symbol is neither of the three package symbol types, raise an exception.
+		   If the symbol is neither of the three package symbol types, raise an exception. A ``PackageReferenceSymbol``
+		   ``x.y``, whose prefix ``x`` is neither ``work`` nor a visible library, but a visible package or interface package
+		   (:meth:`~pyVHDLModel.Namespace.Namespace.Lookup`), names the member ``y`` of package ``x`` (``use pkg.item;``,
+		   IEEE Std 1076-2008, 12.4).
 		2. If the use clause names a library (``use work.all;``, ``use lib.unit;``, the prefix is ``work`` or the visible
 		   name of a library (:meth:`~pyVHDLModel.DesignUnit.DesignUnit.IsLibraryVisible`), and ``unit`` isn't a package
 		   of it):
@@ -2410,6 +2413,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			library =          None
 			unitIdentifier =   None
 			interfacePackage = None
+			isPackageMember =  isinstance(packageMemberSymbol, PackageMemberReferenceSymbol)
 			if libraryName is None:
 				if packageIdentifier == "work":
 					library = designUnit._parent
@@ -2427,8 +2431,17 @@ class Design(ModelEntity, AllowBlackboxMixin):
 
 				if library is not None and packageIdentifier in library._packages:
 					library = None
-				else:
+				elif library is not None:
 					unitIdentifier = packageIdentifier
+				elif any(
+					isinstance(declaration, (Package, InterfacePackage))
+					for declaration in namespace.Lookup(libraryIdentifier, useClause)._declarations
+				):
+					# 'use pkg.item;': the prefix denotes a visible package, e.g. a local or an interface package (12.4).
+					isPackageMember =   True
+					packageName =       libraryName
+					packageIdentifier = libraryIdentifier
+					libraryName =       None
 
 			if library is not None:
 				primaryUnitTables = (library._packages, library._entities, library._configurations, library._contexts)
@@ -2539,7 +2552,7 @@ class Design(ModelEntity, AllowBlackboxMixin):
 			if isAll:
 				namespace.AddImports(package.IterateDeclarations(), useClause)
 
-			elif isinstance(packageMemberSymbol, PackageReferenceSymbol):
+			elif not isPackageMember:
 				namespace.AddImport(packageIdentifier, packageMemberSymbol._reference, useClause)
 
 			else:

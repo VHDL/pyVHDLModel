@@ -160,6 +160,15 @@ class UseClauses(Testcase):
 
 		self.assertTupleEqual((self._constant, ), package._namespace.Lookup("k").Declarations)
 
+	def test_UseItem(self) -> None:
+		"""``use ip.K;``: the prefix of the two-part name denotes the interface package, not a library (12.4)."""
+		useClause = _use("ip.K")
+		package =   Package("p", genericItems=[_interfacePackage("ip", "work", "gp")], declaredItems=[useClause])
+		_design(self._genericPackage, package)
+
+		self.assertTupleEqual((self._constant, ), package._namespace.Lookup("k").Declarations)
+		self.assertFalse(package._namespace.Lookup("gt").IsVisible)
+
 	def test_Symbol(self) -> None:
 		"""The use clause's symbol references the interface package, which denotes the instance."""
 		interfacePackage = _interfacePackage("ip", "work", "gp")

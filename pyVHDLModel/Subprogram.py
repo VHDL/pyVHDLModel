@@ -83,8 +83,8 @@ class SubprogramSignature(ModelEntity):
 	   .. code-block:: VHDL
 
 	      function to_index(value : unsigned; low, high : positive) return natural;
-	      --                        ^^^^^^^^              ^^^^^^^^        ^^^^^^^   <- ParameterTypes and ReturnType
-	      --                                         (twice)
+	      --                        ^^^^^^^^              ^^^^^^^^         ^^^^^^^  <- ParameterTypes and ReturnType
+	      --                                              (twice)
 	"""
 	_parameterTypes:               tuple[SubtypeSymbol, ...]  #: Type marks of the parameters, one per identifier.
 	_returnType:                   Nullable[SubtypeSymbol]    #: Type mark of a function's return value, if a function.

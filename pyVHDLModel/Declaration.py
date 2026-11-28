@@ -333,16 +333,16 @@ class Alias(ModelEntity, NamedEntityMixin, DocumentedEntityMixin):
 	   .. code-block:: VHDL
 
 	      alias a : bit_vector(3 downto 0) is s(3 downto 0);
-	      --        ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^
-	      --        optional Subtype           Name
+	      --        ^^^^^^^^^^^^^^^^^^^^^^    ^^^^^^^^^^^^^
+	      --        optional Subtype          Name
 
 	      alias b is s;
-	      --          ^
-	      --          Name
+	      --         ^
+	      --         Name
 
 	      alias to_slv is to_stdlogicvector [bit_vector return std_logic_vector];
-	      --               ^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	      --               Name              optional Signature
+	      --              ^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	      --              Name              optional Signature
 
 	An alias of a subprogram selects one of its overloads by a signature (IEEE Std 1076-2008, 6.6.3); the analysis
 	resolves the name to the overload with the same parameter and result type profile.

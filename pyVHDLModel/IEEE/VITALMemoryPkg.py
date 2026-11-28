@@ -31,23 +31,23 @@
 #
 """This module contains the predefined package ``ieee.VITAL_Memory`` of VHDL library ``IEEE``."""
 
-from typing                  import Iterable, Optional as Nullable
+from typing                 import Iterable, Optional as Nullable
 
-from pyTooling.Decorators    import export
+from pyTooling.Decorators   import export
 
-from pyVHDLModel             import VHDLVersion
-from pyVHDLModel.Base        import Mode
-from pyVHDLModel.Name        import SimpleName
-from pyVHDLModel.Symbol      import Symbol, SimpleObjectOrFunctionCallSymbol, RecordElementSymbol
-from pyVHDLModel.Expression  import Aggregate, CharacterEnumerationLiteral, EnumerationLiteral, IntegerLiteral, \
-                                    Literal, NamedAggregateElement, NegationExpression, PhysicalIntegerLiteral, \
-                                    StringLiteral
-from pyVHDLModel.Type        import AccessType, ArrayType, EnumeratedType, RecordType, RecordTypeElement, Subtype
-from pyVHDLModel.Object      import Constant
-from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterSimpleSignalInterfaceItem, \
-                                    ParameterVariableInterfaceItem
-from pyVHDLModel.Subprogram  import Function, Procedure
-from pyVHDLModel.Predefined  import PredefinedPackage, PredefinedPackageBody
+from pyVHDLModel            import VHDLVersion
+from pyVHDLModel.Base       import Mode, ExpressionUnion
+from pyVHDLModel.Name       import SimpleName
+from pyVHDLModel.Symbol     import SimpleObjectOrFunctionCallSymbol, RecordElementSymbol
+from pyVHDLModel.Expression import Aggregate, CharacterEnumerationLiteral, EnumerationLiteral, IntegerLiteral, \
+                                   Literal, NamedAggregateElement, NegationExpression, PhysicalIntegerLiteral, \
+                                   StringLiteral
+from pyVHDLModel.Type       import AccessType, ArrayType, EnumeratedType, RecordType, RecordTypeElement, Subtype
+from pyVHDLModel.Object     import Constant
+from pyVHDLModel.Interface  import ParameterConstantInterfaceItem, ParameterSimpleSignalInterfaceItem, \
+                                   ParameterVariableInterfaceItem
+from pyVHDLModel.Subprogram import Function, Procedure
+from pyVHDLModel.Predefined import PredefinedPackage, PredefinedPackageBody
 
 
 @export
@@ -163,7 +163,7 @@ class VITAL_Memory(PredefinedPackage):
 		def parameter(
 			identifier:        str,
 			typeName:          str,
-			defaultExpression: Nullable[Literal | Symbol] = None
+			defaultExpression: Nullable[ExpressionUnion] = None
 		) -> ParameterConstantInterfaceItem:
 			"""
 			Nested function creating a constant parameter of mode ``in``.

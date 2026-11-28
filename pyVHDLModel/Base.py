@@ -61,9 +61,14 @@ ExpressionUnion = Union[
 	'QualifiedExpression',
 	'FunctionCall',
 	'TypeConversion',
-	# ConstantOrSymbol,     TODO: ObjectSymbol
 	'Literal',
+	'Symbol',
 ]
+"""
+An expression in the model: an operation, a qualified expression, a function call, a type conversion, a literal, or a
+name in an expression, which is a symbol (e.g. :class:`~pyVHDLModel.Symbol.SimpleObjectOrFunctionCallSymbol` for
+``read_mode``, :class:`~pyVHDLModel.Symbol.IndexedObjectOrFunctionCallSymbol` for ``TIME'HIGH``).
+"""
 
 
 @export

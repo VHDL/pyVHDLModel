@@ -36,10 +36,10 @@ from typing                 import Iterable, Optional as Nullable
 from pyTooling.Decorators   import export
 
 from pyVHDLModel            import VHDLVersion
-from pyVHDLModel.Base       import Direction, Mode, SimpleRange
+from pyVHDLModel.Base       import Direction, Mode, SimpleRange, ExpressionUnion
 from pyVHDLModel.Name       import SimpleName
-from pyVHDLModel.Symbol     import Symbol, SimpleObjectOrFunctionCallSymbol, ConstrainedScalarSubtypeSymbol
-from pyVHDLModel.Expression import CharacterLiteral, Literal
+from pyVHDLModel.Symbol     import SimpleObjectOrFunctionCallSymbol, ConstrainedScalarSubtypeSymbol
+from pyVHDLModel.Expression import CharacterLiteral
 from pyVHDLModel.Type       import ArrayType, Subtype
 from pyVHDLModel.Object     import DeferredConstant
 from pyVHDLModel.Interface  import ParameterConstantInterfaceItem, ParameterSimpleSignalInterfaceItem, \
@@ -101,7 +101,7 @@ class VITAL_Primitives(PredefinedPackage):
 		def parameter(
 			identifiers:       Iterable[str],
 			typeName:          str,
-			defaultExpression: Nullable[Literal | Symbol] = None
+			defaultExpression: Nullable[ExpressionUnion] = None
 		) -> ParameterConstantInterfaceItem:
 			"""
 			Nested function creating a constant parameter of mode ``in``.

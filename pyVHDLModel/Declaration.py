@@ -34,37 +34,30 @@ This module contains parts of an abstract document language model for VHDL.
 
 
 """
-from __future__             import annotations
+from __future__               import annotations
 
-from enum                   import unique, Enum
-from typing                 import TYPE_CHECKING, ClassVar, Generator, Iterable, Union, Optional as Nullable
+from enum                     import unique, Enum
+from typing                   import TYPE_CHECKING, ClassVar, Generator, Iterable, Optional as Nullable
 
-from pyTooling.Common       import getFullyQualifiedName
-from pyTooling.Decorators   import export, readonly
-from pyTooling.Warning      import WarningCollector
+from pyTooling.Common         import getFullyQualifiedName
+from pyTooling.Decorators     import export, readonly
+from pyTooling.Warning        import WarningCollector
 
-from pyVHDLModel.Base       import ModelEntity, NamedEntityMixin, DocumentedEntityMixin, ReservedWord as _ReservedWord
-from pyVHDLModel.Expression import BaseExpression, QualifiedExpression, FunctionCall, TypeConversion, Literal
-from pyVHDLModel.Exception  import UnresolvedNameWarning, UnresolvedTypeMarkWarning
-from pyVHDLModel.Name       import Name, SimpleName
-from pyVHDLModel.Symbol     import PossibleReference, Symbol, SubtypeSymbol
+from pyVHDLModel.Base         import ExpressionUnion, ModelEntity, NamedEntityMixin, DocumentedEntityMixin, \
+                                     ReservedWord as _ReservedWord
+from pyVHDLModel.Expression   import Literal
+from pyVHDLModel.Exception    import UnresolvedNameWarning, UnresolvedTypeMarkWarning
+from pyVHDLModel.Name         import Name, SimpleName
+from pyVHDLModel.Symbol       import PossibleReference, Symbol, SubtypeSymbol
 
 if TYPE_CHECKING:
 	from pyVHDLModel.DesignUnit import DesignUnit
 	from pyVHDLModel.Subprogram import SubprogramSignature
-	from pyVHDLModel.Regions  import DeclarativeRegionMixin
-	from pyVHDLModel.Visitor  import Visitor
+	from pyVHDLModel.Regions    import DeclarativeRegionMixin
+	from pyVHDLModel.Visitor    import Visitor
 
 
 
-ExpressionUnion = Union[
-	BaseExpression,
-	QualifiedExpression,
-	FunctionCall,
-	TypeConversion,
-	# ConstantOrSymbol,     TODO: ObjectSymbol
-	Literal,
-]
 
 
 @export

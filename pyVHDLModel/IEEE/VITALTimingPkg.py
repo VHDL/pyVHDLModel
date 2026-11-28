@@ -36,12 +36,12 @@ from typing                  import Iterable, Optional as Nullable
 from pyTooling.Decorators    import export
 
 from pyVHDLModel             import VHDLVersion
-from pyVHDLModel.Base        import Direction, Mode, SimpleRange
+from pyVHDLModel.Base        import Direction, Mode, SimpleRange, ExpressionUnion
 from pyVHDLModel.Name        import AttributeName, SimpleName
-from pyVHDLModel.Symbol      import Symbol, SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, \
+from pyVHDLModel.Symbol      import SimpleObjectOrFunctionCallSymbol, IndexedObjectOrFunctionCallSymbol, \
                                     ConstrainedScalarSubtypeSymbol, ConstrainedArraySubtypeSymbol
 from pyVHDLModel.Expression  import Aggregate, CharacterEnumerationLiteral, CharacterLiteral, EnumerationLiteral, \
-                                    IntegerLiteral, Literal, OthersAggregateElement, PhysicalIntegerLiteral, \
+                                    IntegerLiteral, OthersAggregateElement, PhysicalIntegerLiteral, \
                                     SimpleAggregateElement, StringLiteral, ExpressionUnion
 from pyVHDLModel.Type        import AccessType, ArrayType, EnumeratedType, RecordType, RecordTypeElement, Subtype
 from pyVHDLModel.Object      import Constant
@@ -159,7 +159,7 @@ class VITAL_Timing(PredefinedPackage):
 		def parameter(
 			identifier:        str,
 			typeName:          str,
-			defaultExpression: Nullable[Literal | Symbol] = None
+			defaultExpression: Nullable[ExpressionUnion] = None
 		) -> ParameterConstantInterfaceItem:
 			"""
 			Nested function creating a constant parameter of mode ``in``.

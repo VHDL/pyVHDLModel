@@ -237,7 +237,7 @@ class Fixed_Generic_Pkg(PredefinedPackage):
 			))
 
 		for identifier, baseType in (("ufixed", unresolvedUfixed), ("sfixed", unresolvedSfixed)):
-			subtype =           Subtype(identifier, self._TypeMark(baseType._identifier))
+			subtype =           Subtype(identifier, self._ElementResolvedTypeMark(baseType._identifier))
 			subtype._baseType = baseType
 			self._DeclareItem(subtype, self._subtypes)
 

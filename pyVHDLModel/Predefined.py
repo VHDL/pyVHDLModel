@@ -41,7 +41,9 @@ from pyVHDLModel               import VHDLVersion, Library, Package, PackageBody
 from pyVHDLModel.Base          import ModelEntity, NamedEntityMixin, Mode, ExpressionUnion
 from pyVHDLModel.Name          import SimpleName, SelectedName, AllName
 from pyVHDLModel.Symbol        import LibraryReferenceSymbol, PackageSymbol, PackageReferenceSymbol, \
-                                      PossibleReference, Symbol, SimpleSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
+                                      PossibleReference, Symbol, SimpleSubtypeSymbol, \
+                                      SimpleObjectOrFunctionCallSymbol, ResolutionFunctionSymbol, \
+                                      ArrayElementResolution
 from pyVHDLModel.Expression    import IntegerLiteral
 from pyVHDLModel.DesignUnit    import LibraryClause, UseClause
 from pyVHDLModel.Interface     import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
@@ -310,6 +312,18 @@ class PredefinedPackage(Package, PredefinedPackageMixin):
 		:returns:          The type mark.
 		"""
 		return SimpleSubtypeSymbol(SimpleName(identifier))
+
+	@staticmethod
+	def _ElementResolvedTypeMark(identifier: str) -> SimpleSubtypeSymbol:
+		"""
+		Create a subtype indication naming an array type by its simple name, whose elements are resolved by ``resolved``
+		of ``ieee.std_logic_1164``: ``(resolved) identifier``.
+
+		:param identifier: The identifier of the array type.
+		:returns:          The subtype indication.
+		"""
+		resolution = ArrayElementResolution(ResolutionFunctionSymbol(SimpleName("resolved")))
+		return SimpleSubtypeSymbol(SimpleName(identifier), resolution=resolution)
 
 	@staticmethod
 	def _InParameter(

@@ -184,17 +184,14 @@ class Numeric_Std(PredefinedPackage):
 					Symbol(SimpleName(typeName), PossibleReference.PackageMember | PossibleReference.EnumLiteral)
 				))
 
-			subtypes = (("unsigned", unresolvedUnsigned), ("signed", unresolvedSigned))
 		else:
-			subtypes = (
-				("u_unsigned", unresolvedUnsigned),
-				("u_signed",   unresolvedSigned),
-				("unsigned",   unresolvedUnsigned),
-				("signed",     unresolvedSigned)
-			)
+			for identifier, baseType in (("u_unsigned", unresolvedUnsigned), ("u_signed", unresolvedSigned)):
+				subtype =           Subtype(identifier, self._TypeMark(baseType._identifier))
+				subtype._baseType = baseType
+				self._DeclareItem(subtype, self._subtypes)
 
-		for identifier, baseType in subtypes:
-			subtype =           Subtype(identifier, self._TypeMark(baseType._identifier))
+		for identifier, baseType in (("unsigned", unresolvedUnsigned), ("signed", unresolvedSigned)):
+			subtype =           Subtype(identifier, self._ElementResolvedTypeMark(baseType._identifier))
 			subtype._baseType = baseType
 			self._DeclareItem(subtype, self._subtypes)
 

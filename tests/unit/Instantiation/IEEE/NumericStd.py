@@ -38,7 +38,7 @@ from pyVHDLModel.Expression  import CharacterLiteral, IntegerLiteral, StringLite
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem
 from pyVHDLModel.Object      import Constant
 from pyVHDLModel.Subprogram  import Function, Operator, Procedure
-from pyVHDLModel.Symbol      import SimpleObjectOrFunctionCallSymbol
+from pyVHDLModel.Symbol      import SimpleObjectOrFunctionCallSymbol, ResolutionFunctionSymbol, ArrayElementResolution
 from pyVHDLModel.Type        import ArrayType, Subtype
 from pyVHDLModel.IEEE        import Numeric_Std
 
@@ -134,6 +134,27 @@ class NumericStds(Testcase):
 			self.assertIsInstance(subtype, Subtype)
 			self.assertIs(numericStd.Types["unresolved_signed"], subtype.BaseType)
 
+	def test_Subtypes_Resolution(self) -> None:
+		"""``subtype UNSIGNED is (resolved) UNRESOLVED_UNSIGNED;``; ``U_UNSIGNED`` has no resolution indication."""
+		numericStd = Numeric_Std()
+		for identifier in ("unsigned", "signed"):
+			with self.subTest(subtype=identifier):
+				resolution = numericStd.Subtypes[identifier].Type.Resolution
+				self.assertIsInstance(resolution, ArrayElementResolution)
+				self.assertIsInstance(resolution.Resolution, ResolutionFunctionSymbol)
+				self.assertEqual("resolved", resolution.Resolution.Name.Identifier)
+
+		for identifier in ("u_unsigned", "u_signed"):
+			with self.subTest(subtype=identifier):
+				self.assertIsNone(numericStd.Subtypes[identifier].Type.Resolution)
+
+	def test_Subtypes_Resolution_VHDL2019(self) -> None:
+		"""With VHDL-2019, ``UNSIGNED`` and ``SIGNED`` are resolved too."""
+		numericStd = Numeric_Std(VHDLVersion.VHDL2019)
+		for identifier in ("unsigned", "signed"):
+			with self.subTest(subtype=identifier):
+				self.assertIsInstance(numericStd.Subtypes[identifier].Type.Resolution, ArrayElementResolution)
+
 	def test_Aliases_VHDL2019(self) -> None:
 		"""VHDL-2019: ``alias U_UNSIGNED is UNRESOLVED_UNSIGNED;``, also ``U_SIGNED``; the others stay subtypes."""
 		numericStd =   Numeric_Std(VHDLVersion.VHDL2019)
@@ -223,6 +244,22 @@ class NumericStds(Testcase):
 		numericStd = design.Libraries["ieee"].Packages["numeric_std"]
 		self.assertIsNotNone(numericStd.Functions["+"][1].ParameterItems[1].Subtype.Reference)
 		self.assertIsNotNone(numericStd.Procedures["read"][0].ParameterItems[0].Subtype.Reference)
+
+	def test_AnalyzeResolutionFunctions(self) -> None:
+		"""``(resolved)`` of ``UNSIGNED`` and ``SIGNED`` references the function ``resolved`` of ``std_logic_1164``."""
+		design = Design("design")
+		design.LoadStdLibrary()
+		design.LoadIEEELibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		ieee =       design.Libraries["ieee"]
+		resolved =   ieee.Packages["std_logic_1164"].Functions["resolved"][0]
+		numericStd = ieee.Packages["numeric_std"]
+		for identifier in ("unsigned", "signed"):
+			with self.subTest(subtype=identifier):
+				self.assertIs(resolved, numericStd.Subtypes[identifier].Type.Resolution.Resolution.Function)
 
 	def test_Aliases(self) -> None:
 		"""``alias BREAD is READ [LINE, UNRESOLVED_UNSIGNED, BOOLEAN];``: 32 aliases with a signature."""

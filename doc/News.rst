@@ -135,6 +135,11 @@ Version 0.45.0 (2026)
      ``VitalPathDelay01Z``, ``VitalWireDelay`` and ``VitalSignalDelay``, and the timing checks ``VitalSetupHoldCheck``,
      ``VitalRecoveryRemovalCheck``, ``VitalPeriodPulseCheck``, ``VitalInPhaseSkewCheck`` and ``VitalOutPhaseSkewCheck``
      with their signal and variable parameters and default values (``TIME'HIGH``, ``""``, ``0 ns``, ``WARNING``).
+   * VITAL package ``ieee.VITAL_Primitives`` (:class:`~pyVHDLModel.IEEE.VITALPrimitivesPkg.VITAL_Primitives`) declares
+     what the package lists, in its order: the subtypes ``VitalTruthSymbolType`` and ``VitalStateSymbolType``, the
+     two-dimensional table types, the deferred constants ``VitalDefDelay01`` and ``VitalDefDelay01Z``, and the 41
+     functions and 46 procedures of the gates, buffers, inverters, multiplexers, decoders, truth and state tables
+     (``VitalAND2``, ``VitalBUFIF0``, ``VitalMUX4``, ``VitalDECODER8``, ``VitalStateTable``, ...) and ``VitalResolve``.
    * New :meth:`Design.LoadVITALPackages() <pyVHDLModel.Design.LoadVITALPackages>`: adds the VITAL packages
      (IEEE Std 1076.4) to the design's library ``ieee`` and its virtual document, after
      :meth:`~pyVHDLModel.Design.LoadIEEELibrary`; the flavor

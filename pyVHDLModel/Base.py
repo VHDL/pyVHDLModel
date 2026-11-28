@@ -406,7 +406,8 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 
 	def ResetReferences(self, designUnit: DesignUnit, region: DeclarativeRegionMixin) -> None:
 		"""
-		Reset the references :meth:`ResolveReferences` derived: the references of this declaration's type marks.
+		Reset the references :meth:`ResolveReferences` derived: the references of this declaration's type marks, and those
+		of their resolution indications (:meth:`~pyVHDLModel.Design.ResolveResolutionFunctions`).
 
 		A use clause, an alias and a subtype extend this method.
 
@@ -415,6 +416,7 @@ class ModelEntity(metaclass=ExtendedType, slots=True):
 		"""
 		for _, _, typeMark in self.IterateTypeMarks(region):
 			typeMark._reference = None
+			typeMark.ResetResolutionFunctions()
 
 	def DenoteBy(
 		self,

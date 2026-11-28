@@ -1469,6 +1469,9 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises UnhandledCriticalWarningError: If an incomplete type has no full type declaration, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.IncompleteTypeWarning`.
+		:raises UnhandledCriticalWarningError: If a resolution function name or a record element of a record resolution
+		                                       can't be resolved, and no :class:`~pyTooling.Warning.WarningCollector`
+		                                       collects the :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
 		self.ResetAnalysis()
 		self.AnalyzeDependencies()
@@ -1490,9 +1493,10 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		3. Clear the references of all design units: referenced libraries, packages and contexts, the symbols of library
 		   clauses, use clauses and context references, and the items imported into namespaces. Use clauses in declarative
 		   regions nested in a design unit are cleared too, as are the references of type marks and alias names
-		   (:meth:`ResolveTypeMarks`) and the base types of subtypes; a subtype of a predefined library
-		   (:attr:`Library.IsPredefined`) keeps its base type. The implicit operations are removed from the namespaces
-		   (:meth:`IndexImplicitOperations`); a type, which isn't predefined, creates them again on the next access.
+		   (:meth:`ResolveTypeMarks`), of resolution function names (:meth:`ResolveResolutionFunctions`) and the base types
+		   of subtypes; a subtype of a predefined library (:attr:`Library.IsPredefined`) keeps its base type. The implicit
+		   operations are removed from the namespaces (:meth:`IndexImplicitOperations`); a type, which isn't predefined,
+		   creates them again on the next access.
 		4. Unlink architectures from entities and package bodies from packages: an entity's architectures, a package's
 		   body, the symbols referencing the entity or package, and the link to the parent namespace.
 		5. Unlink package instantiations from their generic package: the symbol and the components copied from it.
@@ -3136,6 +3140,8 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		   |rarr| :meth:`IndexImplicitOperations`
 		3. Resolve the names of the aliases with a signature to the selected overloads. |br|
 		   |rarr| :meth:`ResolveAliasSignatures`
+		4. Resolve the resolution function names of the subtype indications. |br|
+		   |rarr| :meth:`ResolveResolutionFunctions`
 
 		.. todo::
 
@@ -3155,10 +3161,14 @@ class Design(ModelEntity, AllowBlackboxMixin):
 		:raises UnhandledCriticalWarningError: If no overload matches the signature of an alias, and no
 		                                       :class:`~pyTooling.Warning.WarningCollector` collects the
 		                                       :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		:raises UnhandledCriticalWarningError: If a resolution function name or a record element of a record resolution
+		                                       can't be resolved, and no :class:`~pyTooling.Warning.WarningCollector`
+		                                       collects the :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
 		"""
 		self.ResolveTypeMarks()
 		self.IndexImplicitOperations()
 		self.ResolveAliasSignatures()
+		self.ResolveResolutionFunctions()
 
 	def ResolveTypeMarks(self) -> None:
 		"""
@@ -3306,6 +3316,46 @@ class Design(ModelEntity, AllowBlackboxMixin):
 				for item in region._Declarations():
 					if isinstance(item, Alias):
 						item.ResolveSignature(region)
+
+	def ResolveResolutionFunctions(self) -> None:
+		"""
+		Resolve the resolution function names of all subtype indications to the functions resolving their types (IEEE Std
+		1076-2008, 4.6).
+
+		It's the fourth step of :meth:`AnalyzeObjects`, after the type marks are resolved (:meth:`ResolveTypeMarks`), the
+		implicit operations are indexed (:meth:`IndexImplicitOperations`) and the aliases with a signature are resolved
+		(:meth:`ResolveAliasSignatures`): the base types of the subtype indications and of the functions' parameters and
+		results are known then, an implicit operation can be a resolution function (e.g. ``maximum`` of
+		``integer_vector``), and so can an alias of a function.
+
+		.. rubric:: Algorithm
+
+		1. Iterate the design units in the order of :meth:`ResolveTypeMarks`, their declarative regions and the regions'
+		   declarations; resolve the resolution indication of each type mark of a declaration
+		   (:meth:`~pyVHDLModel.Base.ModelEntity.IterateTypeMarks`,
+		   :meth:`SubtypeSymbol.ResolveResolutionFunctions <pyVHDLModel.Symbol.SubtypeSymbol.ResolveResolutionFunctions>`):
+
+		   * A resolution function name resolves the base type of its subtype indication: it references the first function
+		     of its name visible at the declaration, which resolves the type
+		     (:meth:`Function.IsResolutionFunctionOf <pyVHDLModel.Subprogram.Function.IsResolutionFunctionOf>`).
+		   * An array element resolution resolves the element type of an array type.
+		   * A record resolution resolves each named record element's type; the record element symbol references the
+		     record element.
+
+		.. seealso::
+
+		   :meth:`ResetAnalysis`
+		     Reset everything an analysis derived, including the references of resolution function names.
+
+		:raises UnhandledCriticalWarningError: If a resolution function name or a record element of a record resolution
+		                                       can't be resolved, and no :class:`~pyTooling.Warning.WarningCollector`
+		                                       collects the :exc:`~pyVHDLModel.Exception.UnresolvedNameWarning`.
+		"""
+		for designUnit in self._DesignUnitsInAnalysisOrder():
+			for region in designUnit.IterateDeclarationRegions():
+				for item in region._Declarations():
+					for typeMarkRegion, place, typeMark in item.IterateTypeMarks(region):
+						typeMark.ResolveResolutionFunctions(typeMarkRegion, place)
 
 	def IterateDocumentsInCompileOrder(self) -> Generator[Document, None, None]:
 		"""

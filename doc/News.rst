@@ -217,6 +217,10 @@ Version 0.45.0 (2026)
      :mod:`pyVHDLModel.IEEE` alike (e.g. :mod:`~pyVHDLModel.IEEE.NumericStdPkg`): a class of ``STD`` shares the name
      of its VHDL package (``Standard``), and ``IEEE`` follows for consistency. A VHDL package named ``*_pkg``
      (``fixed_pkg``) gets no second suffix, a context module keeps its name (:mod:`~pyVHDLModel.IEEE.IeeeStdContext`).
+   * ``use pkg.item;``: a two-part name ``x.y`` in a use clause, whose prefix ``x`` is neither ``work`` nor a visible
+     library, but a visible package (a local package, or an interface package of a generic clause), makes the member
+     ``y`` of that package potentially visible (IEEE Std 1076-2008, 12.4). Before, it was read as ``library.unit`` and
+     raised :exc:`~pyVHDLModel.Exception.UseClauseLibraryNotVisibleError`.
    * Breaking change: :meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations` yields the implied
      declarations (enumeration literals, physical units), no longer (key, declaration) pairs. A namespace takes the key
      from the new property ``NormalizedDesignator`` of

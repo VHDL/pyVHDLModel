@@ -149,6 +149,12 @@ Version 0.45.0 (2026)
      before ``boolean``, the literal ``read_write_mode`` of ``file_open_kind`` and the types ``file_open_state`` and
      ``file_origin_kind``.
    * With VHDL-2019, package ``std.textio`` declares the type ``line_vector`` (IEEE Std 1076-2019, 16.4).
+   * With VHDL-2019, package ``std.env`` declares the additions of IEEE Std 1076-2019, 16.5 after
+     ``resolution_limit``: the date and time API (``time_record``, ``localtime``, ``epoch``, ...), ``getenv``, the tool
+     information (``vhdl_version``, ``tool_name``, ...), the directory API (``directory``, ``dir_open``,
+     ``dir_separator``, ...), the call path API (``call_path_vector``, ``get_call_path``, ``file_name``, ...) and the
+     assert and PSL API (``getvhdlassertcount``, ``setvhdlassertenable``, ``clearpslstate``, ...): 82 declarations in
+     the order of the IEEE package ``std/env.vhdl``.
 
    .. rubric:: Changes
 

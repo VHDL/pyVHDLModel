@@ -33,14 +33,14 @@ from pyTooling.Testing       import Testcase
 
 from pyVHDLModel             import VHDLVersion
 from pyVHDLModel.Base        import Direction, Mode
-from pyVHDLModel.Expression  import IntegerLiteral
+from pyVHDLModel.Expression  import IntegerLiteral, StringLiteral, ConcatenationExpression
 from pyVHDLModel.Symbol      import ConstrainedScalarSubtypeSymbol, SimpleObjectOrFunctionCallSymbol
-from pyVHDLModel.Object      import File
+from pyVHDLModel.Object      import File, DeferredConstant
 from pyVHDLModel.Interface   import ParameterConstantInterfaceItem, ParameterVariableInterfaceItem, \
                                     ParameterFileInterfaceItem
 from pyVHDLModel.Declaration import Attribute
-from pyVHDLModel.Subprogram  import Procedure, Function
-from pyVHDLModel.Type        import EnumeratedType, ArrayType, AccessType, FileType, Subtype
+from pyVHDLModel.Subprogram  import Procedure, Function, Operator
+from pyVHDLModel.Type        import EnumeratedType, ArrayType, AccessType, FileType, Subtype, RecordType
 from pyVHDLModel.STD         import Standard, TextIO, Env, Boolean, Bit
 
 
@@ -474,3 +474,185 @@ class Envs(Testcase):
 		self.assertTrue(resolutionLimit.IsPure)
 		self.assertEqual("delay_length", resolutionLimit.ReturnType.Name.Identifier)
 		self.assertListEqual([], resolutionLimit.ParameterItems)
+
+	def test_Declarations_VHDL2019(self) -> None:
+		"""VHDL-2019 adds 82 declarations after ``resolution_limit``, each with the package as parent."""
+		env = Env(VHDLVersion.VHDL2019)
+
+		self.assertListEqual(
+			[
+				"stop", "stop", "finish", "finish", "resolution_limit",
+				"dayofweek", "time_record", "localtime", "gmtime", "epoch", "localtime", "gmtime", "epoch", "localtime",
+				"gmtime", "+", "+", "-", "-", "-", "time_to_seconds", "seconds_to_time", "to_string",
+				"getenv", "getenv", "vhdl_version", "tool_type", "tool_vendor", "tool_name", "tool_edition", "tool_version",
+				"directory_items", "directory", "dir_open_status", "dir_create_status", "dir_delete_status",
+				"file_delete_status", "dir_open", "dir_open", "dir_close", "dir_itemexists", "dir_itemisdir", "dir_itemisfile",
+				"dir_workingdir", "dir_workingdir", "dir_workingdir", "dir_createdir", "dir_createdir", "dir_createdir",
+				"dir_deletedir", "dir_deletedir", "dir_deletedir", "dir_deletefile", "dir_deletefile", "dir_separator",
+				"call_path_element", "to_string", "call_path_vector", "to_string", "call_path_vector_ptr", "to_string",
+				"get_call_path", "file_name", "file_name", "file_path", "file_path", "file_line", "file_line",
+				"isvhdlassertfailed", "isvhdlassertfailed", "getvhdlassertcount", "getvhdlassertcount", "clearvhdlassert",
+				"setvhdlassertenable", "setvhdlassertenable", "getvhdlassertenable", "setvhdlassertformat",
+				"setvhdlassertformat", "getvhdlassertformat", "setvhdlreadseverity", "getvhdlreadseverity",
+				"pslassertfailed", "psliscovered", "setpslcoverassert", "getpslcoverassert", "pslisassertcovered",
+				"clearpslstate"
+			],
+			[
+				declaration.Identifiers[0] if isinstance(declaration, DeferredConstant) else declaration.Identifier
+				for declaration in env.DeclaredItems
+			]
+		)
+		for declaration in env.DeclaredItems:
+			self.assertIs(env, declaration.Parent)
+
+	def test_TimeRecord_VHDL2019(self) -> None:
+		"""``type TIME_RECORD is record ... end record;`` with ranges of ``INTEGER`` and ``WEEKDAY : DAYOFWEEK``."""
+		env =        Env(VHDLVersion.VHDL2019)
+		timeRecord = env.Types["time_record"]
+
+		self.assertIsInstance(timeRecord, RecordType)
+		self.assertListEqual(
+			["microsecond", "second", "minute", "hour", "day", "month", "year", "weekday", "dayofyear"],
+			[element.Identifiers[0] for element in timeRecord.Elements]
+		)
+		integerElements = [element for element in timeRecord.Elements if element.Identifiers[0] != "weekday"]
+		self.assertListEqual(
+			[(0, 999_999), (0, 61), (0, 59), (0, 23), (1, 31), (0, 11), (1, 4095), (0, 365)],
+			[
+				(element.Subtype.Constraint.LeftBound.Value, element.Subtype.Constraint.RightBound.Value)
+				for element in integerElements
+			]
+		)
+		for element in integerElements:
+			self.assertIsInstance(element.Subtype, ConstrainedScalarSubtypeSymbol)
+			self.assertEqual("integer", element.Subtype.Name.Identifier)
+
+		self.assertEqual("dayofweek", timeRecord.Elements[7].Subtype.Name.Identifier)
+
+		self.assertListEqual(
+			["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+			[literal.NormalizedDesignator for literal in env.Types["dayofweek"].Literals]
+		)
+
+	def test_TimeFunctions_VHDL2019(self) -> None:
+		"""``LOCALTIME``, ``GMTIME`` and ``EPOCH`` without parameters are impure; the operators of ``TIME_RECORD``."""
+		env = Env(VHDLVersion.VHDL2019)
+		for identifier in ("localtime", "gmtime", "epoch"):
+			overloads = env.Functions[identifier]
+			self.assertListEqual([False] + [True] * (len(overloads) - 1), [function.IsPure for function in overloads])
+			self.assertListEqual([], overloads[0].ParameterItems)
+
+		self.assertListEqual(
+			[("TREC", "DELTA"), ("DELTA", "TREC")],
+			[tuple(item.Identifiers[0] for item in plus.ParameterItems) for plus in env.Functions["+"]]
+		)
+		for operator in (*env.Functions["+"], *env.Functions["-"]):
+			self.assertIsInstance(operator, Operator)
+
+		difference = env.Functions["-"][2]
+		self.assertTupleEqual(("TR1", "TR2"), difference.ParameterItems[0].Identifiers)
+		self.assertEqual("real", difference.ReturnType.Name.Identifier)
+
+	def test_ToString_VHDL2019(self) -> None:
+		"""``FRAC_DIGITS: INTEGER range 0 to 6 := 0``; ``Separator : STRING := "" & LF`` of the call path functions."""
+		toStrings = Env(VHDLVersion.VHDL2019).Functions["to_string"]
+
+		self.assertListEqual(
+			["time_record", "call_path_element", "call_path_vector", "call_path_vector_ptr"],
+			[function.ParameterItems[0].Subtype.Name.Identifier for function in toStrings]
+		)
+		self.assertListEqual([True, False, False, False], [function.IsPure for function in toStrings])
+
+		fracDigits = toStrings[0].ParameterItems[1]
+		self.assertIsInstance(fracDigits.Subtype, ConstrainedScalarSubtypeSymbol)
+		self.assertEqual(6, fracDigits.Subtype.Constraint.RightBound.Value)
+		self.assertEqual(0, fracDigits.DefaultExpression.Value)
+
+		for function in toStrings[2:]:
+			separator = function.ParameterItems[1].DefaultExpression
+			self.assertIsInstance(separator, ConcatenationExpression)
+			self.assertIsInstance(separator.LeftOperand, StringLiteral)
+			self.assertEqual("", separator.LeftOperand.Value)
+			self.assertEqual("lf", separator.RightOperand.Name.Identifier)
+
+	def test_Directories_VHDL2019(self) -> None:
+		"""``DIRECTORY_ITEMS`` is an access to ``LINE_VECTOR``; ``DIR_OPEN`` returns ``Dir`` as ``out`` parameter."""
+		env = Env(VHDLVersion.VHDL2019)
+
+		directoryItems = env.Types["directory_items"]
+		self.assertIsInstance(directoryItems, AccessType)
+		self.assertEqual("line_vector", directoryItems.DesignatedSubtype.Name.Identifier)
+		self.assertListEqual(
+			[("Name", "line"), ("Items", "directory_items")],
+			[(element.Identifiers[0], element.Subtype.Name.Identifier) for element in env.Types["directory"].Elements]
+		)
+
+		for dirOpen in (env.Procedures["dir_open"][0], env.Functions["dir_open"][0]):
+			directory = dirOpen.ParameterItems[0]
+			self.assertIsInstance(directory, ParameterVariableInterfaceItem)
+			self.assertIs(Mode.Out, directory.Mode)
+			self.assertEqual("directory", directory.Subtype.Name.Identifier)
+
+		self.assertFalse(env.Functions["dir_open"][0].IsPure)
+		self.assertEqual("false", env.Functions["dir_createdir"][0].ParameterItems[1].DefaultExpression.Name.Identifier)
+		self.assertIsInstance(env.DeferredConstants["dir_separator"], DeferredConstant)
+
+	def test_StatusTypes_VHDL2019(self) -> None:
+		"""The four status types share literals like ``STATUS_OK``."""
+		env = Env(VHDLVersion.VHDL2019)
+		for identifier, literals in (
+			("dir_open_status",    [
+				"status_ok", "status_not_found", "status_no_directory", "status_access_denied", "status_error"
+			]),
+			("dir_create_status",  ["status_ok", "status_item_exists", "status_access_denied", "status_error"]),
+			("dir_delete_status",  [
+				"status_ok", "status_no_directory", "status_not_empty", "status_access_denied", "status_error"
+			]),
+			("file_delete_status", ["status_ok", "status_no_file", "status_access_denied", "status_error"])
+		):
+			enumeration = env.Types[identifier]
+			self.assertIsInstance(enumeration, EnumeratedType)
+			self.assertListEqual(literals, [literal.NormalizedDesignator for literal in enumeration.Literals])
+
+	def test_Overloads_VHDL2019(self) -> None:
+		"""The number of overloads per designator."""
+		env = Env(VHDLVersion.VHDL2019)
+
+		self.assertDictEqual(
+			{
+				"stop": 2, "finish": 2, "dir_open": 1, "dir_close": 1, "dir_workingdir": 1, "dir_createdir": 2,
+				"dir_deletedir": 2, "dir_deletefile": 1, "clearvhdlassert": 1, "setvhdlassertenable": 2,
+				"setvhdlassertformat": 2, "setvhdlreadseverity": 1, "setpslcoverassert": 1, "clearpslstate": 1
+			},
+			{identifier: len(overloads) for identifier, overloads in env.Procedures.items()}
+		)
+		self.assertDictEqual(
+			{
+				"resolution_limit": 1, "localtime": 3, "gmtime": 3, "epoch": 2, "+": 2, "-": 3, "time_to_seconds": 1,
+				"seconds_to_time": 1, "to_string": 4, "getenv": 2, "vhdl_version": 1, "tool_type": 1, "tool_vendor": 1,
+				"tool_name": 1, "tool_edition": 1, "tool_version": 1, "dir_open": 1, "dir_itemexists": 1, "dir_itemisdir": 1,
+				"dir_itemisfile": 1, "dir_workingdir": 2, "dir_createdir": 1, "dir_deletedir": 1, "dir_deletefile": 1,
+				"get_call_path": 1, "file_name": 2, "file_path": 2, "file_line": 2, "isvhdlassertfailed": 2,
+				"getvhdlassertcount": 2, "getvhdlassertenable": 1, "getvhdlassertformat": 1, "getvhdlreadseverity": 1,
+				"pslassertfailed": 1, "psliscovered": 1, "getpslcoverassert": 1, "pslisassertcovered": 1
+			},
+			{identifier: len(overloads) for identifier, overloads in env.Functions.items()}
+		)
+
+	def test_AssertDefaults_VHDL2019(self) -> None:
+		"""``Enable : boolean := TRUE``, ``Level : SEVERITY_LEVEL := NOTE`` and ``:= FAILURE`` of the read severity."""
+		env = Env(VHDLVersion.VHDL2019)
+		enable, levelEnable = env.Procedures["setvhdlassertenable"]
+
+		self.assertEqual("true", enable.ParameterItems[0].DefaultExpression.Name.Identifier)
+		self.assertListEqual(
+			["note", "true"],
+			[item.DefaultExpression.Name.Identifier for item in levelEnable.ParameterItems]
+		)
+		self.assertEqual(
+			"failure",
+			env.Procedures["setvhdlreadseverity"][0].ParameterItems[0].DefaultExpression.Name.Identifier
+		)
+		valid = env.Procedures["setvhdlassertformat"][1].ParameterItems[2]
+		self.assertIsInstance(valid, ParameterVariableInterfaceItem)
+		self.assertIs(Mode.Out, valid.Mode)

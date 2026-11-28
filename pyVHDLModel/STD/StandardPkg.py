@@ -280,7 +280,11 @@ class Standard(PredefinedPackage):
 	* types ``boolean``, ``bit``, ``character``, ``severity_level``, ``integer``, ``real`` and ``time``
 	* subtype ``delay_length`` and function ``now``
 	* subtypes ``natural`` and ``positive``
-	* types ``string``, ``boolean_vector``, ``bit_vector``, ``integer_vector``, ``real_vector`` and ``time_vector``
+	* types ``string``, ``boolean_vector`` and ``bit_vector``
+	* aliases ``to_bstring``, ``to_binary_string`` (of ``to_string``), ``to_octal_string`` (of ``to_ostring``) and
+	  ``to_hex_string`` (of ``to_hstring``) of ``bit_vector``, e.g. ``alias TO_BSTRING is TO_STRING [BIT_VECTOR return
+	  STRING];``
+	* types ``integer_vector``, ``real_vector`` and ``time_vector``
 	* types ``file_open_kind`` and ``file_open_status``
 	* attribute ``foreign``
 
@@ -372,6 +376,14 @@ class Standard(PredefinedPackage):
 		self._DeclareItem(ArrayType("string", (self._TypeMark("positive"),), self._TypeMark("character")), self._types)
 		self._DeclareItem(ArrayType("boolean_vector", (self._TypeMark("natural"),), self._TypeMark("boolean")), self._types)
 		self._DeclareItem(BitVector(), self._types)
+		for identifier, name in (
+			("to_bstring",       "to_string"),
+			("to_binary_string", "to_string"),
+			("to_octal_string",  "to_ostring"),
+			("to_hex_string",    "to_hstring")
+		):
+			self._DeclareAlias(identifier, name, (self._TypeMark("bit_vector"), ), self._TypeMark("string"))
+
 		for identifier, element in (
 			("integer_vector", "integer"),
 			("real_vector",    "real"),

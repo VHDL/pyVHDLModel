@@ -74,8 +74,8 @@ class Standards(Testcase):
 		self.assertListEqual(
 			[
 				"boolean", "bit", "character", "severity_level", "integer", "real", "time", "delay_length", "now", "natural",
-				"positive", "string", "boolean_vector", "bit_vector", "integer_vector", "real_vector", "time_vector",
-				"file_open_kind", "file_open_status", "foreign"
+				"positive", "string", "boolean_vector", "bit_vector", "to_bstring", "to_binary_string", "to_octal_string",
+				"to_hex_string", "integer_vector", "real_vector", "time_vector", "file_open_kind", "file_open_status", "foreign"
 			],
 			[declaration.Identifier for declaration in standard.DeclaredItems]
 		)
@@ -158,8 +158,9 @@ class Standards(Testcase):
 		self.assertListEqual(
 			[
 				"range_direction", "boolean", "bit", "character", "severity_level", "integer", "real", "time", "delay_length",
-				"now", "natural", "positive", "string", "boolean_vector", "bit_vector", "integer_vector", "real_vector",
-				"time_vector", "file_open_kind", "file_open_status", "file_open_state", "file_origin_kind", "foreign"
+				"now", "natural", "positive", "string", "boolean_vector", "bit_vector", "to_bstring", "to_binary_string",
+				"to_octal_string", "to_hex_string", "integer_vector", "real_vector", "time_vector", "file_open_kind",
+				"file_open_status", "file_open_state", "file_origin_kind", "foreign"
 			],
 			[declaration.Identifier for declaration in standard.DeclaredItems]
 		)
@@ -194,6 +195,41 @@ class Standards(Testcase):
 		self.assertIsInstance(standard.Types["time"], Time)
 		self.assertIsInstance(standard.Types["bit_vector"], BitVector)
 		self.assertIs(standard.Types["time"], standard.Subtypes["delay_length"].BaseType)
+
+	def test_Aliases(self) -> None:
+		"""``alias TO_BSTRING is TO_STRING [BIT_VECTOR return STRING];``: 4 aliases of functions, each with a signature."""
+		aliases = [declaration for declaration in Standard().DeclaredItems if isinstance(declaration, Alias)]
+
+		self.assertListEqual(
+			["to_bstring", "to_binary_string", "to_octal_string", "to_hex_string"],
+			[alias.Identifier for alias in aliases]
+		)
+		self.assertListEqual(
+			["to_string", "to_string", "to_ostring", "to_hstring"],
+			[alias.Name.Name.Identifier for alias in aliases]
+		)
+		for alias in aliases:
+			self.assertEqual("[bit_vector return string]", str(alias.Signature))
+			self.assertIsNone(alias.Subtype)
+			self.assertIs(alias, alias.Signature.Parent)
+			self.assertTrue(alias.IsOverloadable)
+
+	def test_AnalyzeAliases(self) -> None:
+		"""The analysis resolves the name of each alias to the implicit operation of ``bit_vector``."""
+		design = Design("design")
+		design.LoadStdLibrary()
+		with WarningCollector() as collector:
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		standard =  design.Libraries["std"].Packages["standard"]
+		bitVector = standard.Types["bit_vector"]
+		aliases =   [declaration for declaration in standard.DeclaredItems if isinstance(declaration, Alias)]
+		self.assertEqual(4, len(aliases))
+		for alias in aliases:
+			self.assertIn(alias.Name.Reference, bitVector.ImplicitOperations)
+			self.assertEqual(alias.Name.Name.Identifier, alias.Name.Reference.NormalizedDesignator)
+			self.assertTrue(alias.Name.Reference.Signature.HasSameTypeProfile(alias.Signature))
 
 
 class Booleans(Testcase):

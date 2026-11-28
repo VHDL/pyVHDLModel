@@ -31,21 +31,21 @@
 #
 """This module contains the predefined package ``ieee.VITAL_Timing`` of VHDL library ``IEEE``."""
 
-from pyTooling.Decorators   import export
+from pyTooling.Decorators    import export
 
-from pyVHDLModel            import VHDLVersion
-from pyVHDLModel.Base       import Direction, SimpleRange
-from pyVHDLModel.Name       import SimpleName
-from pyVHDLModel.Symbol     import SimpleObjectOrFunctionCallSymbol, ConstrainedScalarSubtypeSymbol, \
-                                   ConstrainedArraySubtypeSymbol
-from pyVHDLModel.Expression import Aggregate, CharacterEnumerationLiteral, CharacterLiteral, EnumerationLiteral, \
-                                   IntegerLiteral, OthersAggregateElement, PhysicalIntegerLiteral, \
-                                   SimpleAggregateElement, StringLiteral, ExpressionUnion
-from pyVHDLModel.Type       import AccessType, ArrayType, EnumeratedType, RecordType, RecordTypeElement, Subtype
-from pyVHDLModel.Object     import Constant
+from pyVHDLModel             import VHDLVersion
+from pyVHDLModel.Base        import Direction, SimpleRange
+from pyVHDLModel.Name        import SimpleName
+from pyVHDLModel.Symbol      import SimpleObjectOrFunctionCallSymbol, ConstrainedScalarSubtypeSymbol, \
+                                    ConstrainedArraySubtypeSymbol
+from pyVHDLModel.Expression  import Aggregate, CharacterEnumerationLiteral, CharacterLiteral, EnumerationLiteral, \
+                                    IntegerLiteral, OthersAggregateElement, PhysicalIntegerLiteral, \
+                                    SimpleAggregateElement, StringLiteral, ExpressionUnion
+from pyVHDLModel.Type        import AccessType, ArrayType, EnumeratedType, RecordType, RecordTypeElement, Subtype
+from pyVHDLModel.Object      import Constant
 from pyVHDLModel.Declaration import Attribute
-from pyVHDLModel.Subprogram import Function
-from pyVHDLModel.Predefined import PredefinedPackage, PredefinedPackageBody
+from pyVHDLModel.Subprogram  import Function
+from pyVHDLModel.Predefined  import PredefinedPackage, PredefinedPackageBody
 
 
 @export

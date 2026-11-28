@@ -33,38 +33,38 @@
 This package contains library and package declarations for VHDL library ``IEEE``.
 
 Each predefined VHDL package of the library is declared in a module of its own, e.g. ``ieee.std_logic_1164`` in
-:mod:`~pyVHDLModel.IEEE.StdLogic1164`.
+:mod:`~pyVHDLModel.IEEE.StdLogic1164Pkg`.
 """
-from typing                              import Optional as Nullable
+from typing                                 import Optional as Nullable
 
-from pyTooling.Decorators                import export, readonly
+from pyTooling.Decorators                   import export, readonly
 
-from pyVHDLModel                         import VHDLVersion, IEEEFlavor, Package, PackageBody
-from pyVHDLModel.Exception               import UnknownIEEEFlavorError, IEEEFlavorChangeError
-from pyVHDLModel.Predefined              import PredefinedLibrary
-from pyVHDLModel.IEEE.MathReal           import Math_Real, Math_Real_Body
-from pyVHDLModel.IEEE.MathComplex        import Math_Complex, Math_Complex_Body
-from pyVHDLModel.IEEE.StdLogic1164       import Std_Logic_1164, Std_Logic_1164_Body
-from pyVHDLModel.IEEE.StdLogicTextIO     import Std_Logic_TextIO, Std_Logic_TextIO_Synopsys
-from pyVHDLModel.IEEE.NumericBit         import Numeric_Bit, Numeric_Bit_Body
-from pyVHDLModel.IEEE.NumericBitUnsigned import Numeric_Bit_Unsigned, Numeric_Bit_Unsigned_Body
-from pyVHDLModel.IEEE.NumericStd         import Numeric_Std, Numeric_Std_Body
-from pyVHDLModel.IEEE.NumericStdUnsigned import Numeric_Std_Unsigned, Numeric_Std_Unsigned_Body
-from pyVHDLModel.IEEE.FixedFloatTypes    import Fixed_Float_Types
-from pyVHDLModel.IEEE.FixedGenericPkg    import Fixed_Generic_Pkg, Fixed_Generic_Pkg_Body
-from pyVHDLModel.IEEE.FixedPkg           import Fixed_Pkg
-from pyVHDLModel.IEEE.FloatGenericPkg    import Float_Generic_Pkg, Float_Generic_Pkg_Body
-from pyVHDLModel.IEEE.FloatPkg           import Float_Pkg
-from pyVHDLModel.IEEE.StdLogicArith      import Std_Logic_Arith_MentorGraphics, Std_Logic_Arith_Body_MentorGraphics, \
-                                                Std_Logic_Arith_Synopsys
-from pyVHDLModel.IEEE.VITALTiming        import VITAL_Timing, VITAL_Timing_Body
-from pyVHDLModel.IEEE.VITALPrimitives    import VITAL_Primitives, VITAL_Primitives_Body
-from pyVHDLModel.IEEE.VITALMemory        import VITAL_Memory, VITAL_Memory_Body
-from pyVHDLModel.IEEE.StdLogicMisc       import Std_Logic_Misc, Std_Logic_Misc_Body
-from pyVHDLModel.IEEE.StdLogicSigned     import Std_Logic_Signed
-from pyVHDLModel.IEEE.StdLogicUnsigned   import Std_Logic_Unsigned
-from pyVHDLModel.IEEE.IeeeStdContext     import Ieee_Std_Context
-from pyVHDLModel.IEEE.IeeeBitContext     import Ieee_Bit_Context
+from pyVHDLModel                            import VHDLVersion, IEEEFlavor, Package, PackageBody
+from pyVHDLModel.Exception                  import UnknownIEEEFlavorError, IEEEFlavorChangeError
+from pyVHDLModel.Predefined                 import PredefinedLibrary
+from pyVHDLModel.IEEE.MathRealPkg           import Math_Real, Math_Real_Body
+from pyVHDLModel.IEEE.MathComplexPkg        import Math_Complex, Math_Complex_Body
+from pyVHDLModel.IEEE.StdLogic1164Pkg       import Std_Logic_1164, Std_Logic_1164_Body
+from pyVHDLModel.IEEE.StdLogicTextIOPkg     import Std_Logic_TextIO, Std_Logic_TextIO_Synopsys
+from pyVHDLModel.IEEE.NumericBitPkg         import Numeric_Bit, Numeric_Bit_Body
+from pyVHDLModel.IEEE.NumericBitUnsignedPkg import Numeric_Bit_Unsigned, Numeric_Bit_Unsigned_Body
+from pyVHDLModel.IEEE.NumericStdPkg         import Numeric_Std, Numeric_Std_Body
+from pyVHDLModel.IEEE.NumericStdUnsignedPkg import Numeric_Std_Unsigned, Numeric_Std_Unsigned_Body
+from pyVHDLModel.IEEE.FixedFloatTypesPkg    import Fixed_Float_Types
+from pyVHDLModel.IEEE.FixedGenericPkg       import Fixed_Generic_Pkg, Fixed_Generic_Pkg_Body
+from pyVHDLModel.IEEE.FixedPkg              import Fixed_Pkg
+from pyVHDLModel.IEEE.FloatGenericPkg       import Float_Generic_Pkg, Float_Generic_Pkg_Body
+from pyVHDLModel.IEEE.FloatPkg              import Float_Pkg
+from pyVHDLModel.IEEE.StdLogicArithPkg      import Std_Logic_Arith_MentorGraphics, \
+                                                   Std_Logic_Arith_Body_MentorGraphics, Std_Logic_Arith_Synopsys
+from pyVHDLModel.IEEE.VITALTimingPkg        import VITAL_Timing, VITAL_Timing_Body
+from pyVHDLModel.IEEE.VITALPrimitivesPkg    import VITAL_Primitives, VITAL_Primitives_Body
+from pyVHDLModel.IEEE.VITALMemoryPkg        import VITAL_Memory, VITAL_Memory_Body
+from pyVHDLModel.IEEE.StdLogicMiscPkg       import Std_Logic_Misc, Std_Logic_Misc_Body
+from pyVHDLModel.IEEE.StdLogicSignedPkg     import Std_Logic_Signed
+from pyVHDLModel.IEEE.StdLogicUnsignedPkg   import Std_Logic_Unsigned
+from pyVHDLModel.IEEE.IeeeStdContext        import Ieee_Std_Context
+from pyVHDLModel.IEEE.IeeeBitContext        import Ieee_Bit_Context
 
 
 @export
@@ -76,24 +76,24 @@ class Ieee(PredefinedLibrary):
 
 	* Math
 
-	  * :class:`~pyVHDLModel.IEEE.MathReal.Math_Real`
-	  * :class:`~pyVHDLModel.IEEE.MathComplex.Math_Complex`
+	  * :class:`~pyVHDLModel.IEEE.MathRealPkg.Math_Real`
+	  * :class:`~pyVHDLModel.IEEE.MathComplexPkg.Math_Complex`
 
 	* Std_logic
 
-	  * :class:`~pyVHDLModel.IEEE.StdLogic1164.Std_Logic_1164`
-	  * :class:`~pyVHDLModel.IEEE.StdLogicTextIO.Std_Logic_TextIO`
+	  * :class:`~pyVHDLModel.IEEE.StdLogic1164Pkg.Std_Logic_1164`
+	  * :class:`~pyVHDLModel.IEEE.StdLogicTextIOPkg.Std_Logic_TextIO`
 
 	* Numeric
 
-	  * :class:`~pyVHDLModel.IEEE.NumericBit.Numeric_Bit`
-	  * :class:`~pyVHDLModel.IEEE.NumericBitUnsigned.Numeric_Bit_Unsigned`
-	  * :class:`~pyVHDLModel.IEEE.NumericStd.Numeric_Std`
-	  * :class:`~pyVHDLModel.IEEE.NumericStdUnsigned.Numeric_Std_Unsigned`
+	  * :class:`~pyVHDLModel.IEEE.NumericBitPkg.Numeric_Bit`
+	  * :class:`~pyVHDLModel.IEEE.NumericBitUnsignedPkg.Numeric_Bit_Unsigned`
+	  * :class:`~pyVHDLModel.IEEE.NumericStdPkg.Numeric_Std`
+	  * :class:`~pyVHDLModel.IEEE.NumericStdUnsignedPkg.Numeric_Std_Unsigned`
 
 	* Fixed/floating point
 
-	  * :class:`~pyVHDLModel.IEEE.FixedFloatTypes.Fixed_Float_Types`
+	  * :class:`~pyVHDLModel.IEEE.FixedFloatTypesPkg.Fixed_Float_Types`
 	  * :class:`~pyVHDLModel.IEEE.FixedGenericPkg.Fixed_Generic_Pkg`
 	  * :class:`~pyVHDLModel.IEEE.FixedPkg.Fixed_Pkg`
 	  * :class:`~pyVHDLModel.IEEE.FloatGenericPkg.Float_Generic_Pkg`
@@ -106,21 +106,21 @@ class Ieee(PredefinedLibrary):
 
 	* Synopsys packages
 
-	  * :class:`~pyVHDLModel.IEEE.StdLogicArith.Std_Logic_Arith_Synopsys`
-	  * :class:`~pyVHDLModel.IEEE.StdLogicMisc.Std_Logic_Misc`
-	  * :class:`~pyVHDLModel.IEEE.StdLogicSigned.Std_Logic_Signed`
-	  * :class:`~pyVHDLModel.IEEE.StdLogicTextIO.Std_Logic_TextIO`
-	  * :class:`~pyVHDLModel.IEEE.StdLogicUnsigned.Std_Logic_Unsigned`
+	  * :class:`~pyVHDLModel.IEEE.StdLogicArithPkg.Std_Logic_Arith_Synopsys`
+	  * :class:`~pyVHDLModel.IEEE.StdLogicMiscPkg.Std_Logic_Misc`
+	  * :class:`~pyVHDLModel.IEEE.StdLogicSignedPkg.Std_Logic_Signed`
+	  * :class:`~pyVHDLModel.IEEE.StdLogicTextIOPkg.Std_Logic_TextIO`
+	  * :class:`~pyVHDLModel.IEEE.StdLogicUnsignedPkg.Std_Logic_Unsigned`
 
 	* Mentor Graphics packages
 
-	  * :class:`~pyVHDLModel.IEEE.StdLogicArith.Std_Logic_Arith_MentorGraphics`
+	  * :class:`~pyVHDLModel.IEEE.StdLogicArithPkg.Std_Logic_Arith_MentorGraphics`
 
 	* VITAL packages
 
-	  * :class:`~pyVHDLModel.IEEE.VITALTiming.VITAL_Timing`
-	  * :class:`~pyVHDLModel.IEEE.VITALPrimitives.VITAL_Primitives`
-	  * :class:`~pyVHDLModel.IEEE.VITALMemory.VITAL_Memory`
+	  * :class:`~pyVHDLModel.IEEE.VITALTimingPkg.VITAL_Timing`
+	  * :class:`~pyVHDLModel.IEEE.VITALPrimitivesPkg.VITAL_Primitives`
+	  * :class:`~pyVHDLModel.IEEE.VITALMemoryPkg.VITAL_Memory`
 
 	.. seealso::
 

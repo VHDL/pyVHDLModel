@@ -29,7 +29,7 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""This module contains the predefined package ``ieee.numeric_std_unsigned`` of VHDL library ``IEEE``."""
+"""This module contains the predefined package ``ieee.numeric_bit_unsigned`` of VHDL library ``IEEE``."""
 
 from typing                 import Iterable
 
@@ -45,31 +45,30 @@ from pyVHDLModel.Predefined import PredefinedPackage, PredefinedPackageBody
 
 
 @export
-class Numeric_Std_Unsigned(PredefinedPackage):
+class Numeric_Bit_Unsigned(PredefinedPackage):
 	"""
-	Predefined package ``ieee.numeric_std_unsigned`` (IEEE Std 1076-2008, 16.8).
+	Predefined package ``ieee.numeric_bit_unsigned`` (IEEE Std 1076-2008, 16.8).
 
-	It declares the operations of ``numeric_std`` for ``unsigned`` on ``std_ulogic_vector``. Its declarations, in the
-	order of the package:
+	It declares the operations of ``numeric_bit`` for ``unsigned`` on ``bit_vector``. Its declarations, in the order of
+	the package:
 
 	* the constant ``CopyRightNotice``
 	* the arithmetic operators and ``find_leftmost``/``find_rightmost``
 	* the ordering, equality and matching relational operators, ``minimum`` and ``maximum``
-	* the shift and rotate functions and operators, ``resize`` and the conversion functions ``to_integer``,
-	  ``to_stdlogicvector`` and ``to_stdulogicvector`` with their aliases (``to_std_logic_vector``, ``to_slv``,
-	  ``to_std_ulogic_vector``, ``to_sulv``)
+	* the shift and rotate functions and operators, ``resize`` and the conversion functions ``to_integer`` and
+	  ``to_bitvector`` with its aliases ``to_bit_vector`` and ``to_bv``
 
-	Each alias selects an overload by a signature, e.g. ``alias To_SLV is To_StdLogicVector [NATURAL, NATURAL return
-	STD_LOGIC_VECTOR];``.
+	Each alias selects an overload by a signature, e.g. ``alias To_BV is To_BitVector [NATURAL, NATURAL return
+	BIT_VECTOR];``.
 
 	.. seealso::
 
-	   Matching :class:`Package Body <pyVHDLModel.IEEE.NumericStdUnsigned.Numeric_Std_Unsigned_Body>` declaration.
+	   Matching :class:`Package Body <pyVHDLModel.IEEE.NumericBitUnsignedPkg.Numeric_Bit_Unsigned_Body>` declaration.
 	"""
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
-		Initializes the ``numeric_std_unsigned`` package.
+		Initializes the ``numeric_bit_unsigned`` package.
 
 		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
@@ -78,10 +77,7 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 		"""
 		super().__init__(vhdlVersion)
 
-		self._AddLibraryClause(("IEEE", ))
-		self._AddPackageClause(("IEEE.std_logic_1164.all", ))
-
-		vectorType = "std_ulogic_vector"
+		vectorType = "bit_vector"
 
 		def operands(left: SimpleSubtypeSymbol, right: SimpleSubtypeSymbol) -> tuple[ParameterConstantInterfaceItem, ...]:
 			"""
@@ -137,7 +133,7 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 		# Arithmetic operators
 		for operatorSymbol in ("+", "-"):
 			for left, right in (
-				(vectorType, vectorType), (vectorType, "std_ulogic"), ("std_ulogic", vectorType), (vectorType, "natural"),
+				(vectorType, vectorType), (vectorType, "bit"), ("bit", vectorType), (vectorType, "natural"),
 				("natural", vectorType)
 			):
 				operator(operatorSymbol, operands(self._TypeMark(left), self._TypeMark(right)), self._TypeMark(vectorType))
@@ -149,7 +145,7 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 		for identifier in ("find_leftmost", "find_rightmost"):
 			function(identifier, (
 				self._InParameter(("ARG", ), self._TypeMark(vectorType)),
-				self._InParameter(("Y", ), self._TypeMark("std_ulogic"))
+				self._InParameter(("Y", ), self._TypeMark("bit"))
 			), self._TypeMark("integer"))
 
 		# Relational operators, minimum and maximum
@@ -164,11 +160,7 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 
 		for operatorSymbol in ("?>", "?<", "?<=", "?>=", "?=", "?/="):
 			for left, right in relationalSignatures:
-				operator(
-					operatorSymbol,
-					operands(self._TypeMark(left), self._TypeMark(right)),
-					self._TypeMark("std_ulogic")
-				)
+				operator(operatorSymbol, operands(self._TypeMark(left), self._TypeMark(right)), self._TypeMark("bit"))
 
 		# Shift and rotate functions and operators, resize, conversion functions
 		for identifier in ("shift_left", "shift_right", "rotate_left", "rotate_right"):
@@ -177,7 +169,7 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 				self._InParameter(("COUNT", ), self._TypeMark("natural"))
 			), self._TypeMark(vectorType))
 
-		for operatorSymbol in ("sla", "sra"):
+		for operatorSymbol in ("sll", "srl", "rol", "ror", "sla", "sra"):
 			operator(operatorSymbol, (
 				self._InParameter(("ARG", ), self._TypeMark(vectorType)),
 				self._InParameter(("COUNT", ), self._TypeMark("integer"))
@@ -194,38 +186,34 @@ class Numeric_Std_Unsigned(PredefinedPackage):
 		)
 
 		function("to_integer", (self._InParameter(("ARG", ), self._TypeMark(vectorType)), ), self._TypeMark("natural"))
-		for identifier, typeName, aliasIdentifiers in (
-			("to_stdlogicvector",  "std_logic_vector", ("to_std_logic_vector", "to_slv")),
-			("to_stdulogicvector", vectorType,         ("to_std_ulogic_vector", "to_sulv"))
-		):
-			function(
-				identifier,
-				(self._InParameter(("ARG", "SIZE"), self._TypeMark("natural")), ),
-				self._TypeMark(typeName)
-			)
-			function(identifier, (
-				self._InParameter(("ARG", ), self._TypeMark("natural")),
-				self._InParameter(("SIZE_RES", ), self._TypeMark(vectorType))
-			), self._TypeMark(typeName))
-			for sizeType in ("natural", vectorType):
-				for aliasIdentifier in aliasIdentifiers:
-					self._DeclareAlias(
-						aliasIdentifier,
-						identifier,
-						(self._TypeMark("natural"), self._TypeMark(sizeType)),
-						self._TypeMark(typeName)
-					)
+		function(
+			"to_bitvector",
+			(self._InParameter(("ARG", "SIZE"), self._TypeMark("natural")), ),
+			self._TypeMark(vectorType)
+		)
+		function("to_bitvector", (
+			self._InParameter(("ARG", ), self._TypeMark("natural")),
+			self._InParameter(("SIZE_RES", ), self._TypeMark(vectorType))
+		), self._TypeMark(vectorType))
+		for sizeType in ("natural", vectorType):
+			for identifier in ("to_bit_vector", "to_bv"):
+				self._DeclareAlias(
+					identifier,
+					"to_bitvector",
+					(self._TypeMark("natural"), self._TypeMark(sizeType)),
+					self._TypeMark(vectorType)
+				)
 
 
 @export
-class Numeric_Std_Unsigned_Body(PredefinedPackageBody):
+class Numeric_Bit_Unsigned_Body(PredefinedPackageBody):
 	"""
-	Predefined package body of package ``ieee.numeric_std_unsigned``.
+	Predefined package body of package ``ieee.numeric_bit_unsigned``.
 	"""
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:
 		"""
-		Initializes the ``numeric_std_unsigned`` package body.
+		Initializes the ``numeric_bit_unsigned`` package body.
 
 		:param vhdlVersion: Optional, the VHDL version of the declarations. Default: ``VHDLVersion.VHDL2008``.
 		:raises ValueError: If parameter 'vhdlVersion' is None.
@@ -235,4 +223,4 @@ class Numeric_Std_Unsigned_Body(PredefinedPackageBody):
 		super().__init__(vhdlVersion)
 
 		self._AddLibraryClause(("IEEE", ))
-		self._AddPackageClause(("IEEE.numeric_std.all", ))
+		self._AddPackageClause(("IEEE.numeric_bit.all", ))

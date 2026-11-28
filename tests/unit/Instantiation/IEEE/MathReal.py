@@ -28,7 +28,7 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Tests for pyVHDLModel.IEEE.MathReal."""
+"""Tests for pyVHDLModel.IEEE.MathRealPkg."""
 from pyTooling.Testing      import Testcase
 
 from pyVHDLModel.Base       import Mode

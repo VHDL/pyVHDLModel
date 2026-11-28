@@ -37,34 +37,34 @@ Version 0.45.0 (2026)
    * Package ``ieee.math_real`` declares what IEEE Std 1076-2008, 16.8.2 lists: the constant ``copyrightnotice``, the
      mathematical constants (``math_e``, ``math_pi``, ...), the functions and operators ``"mod"`` and ``"**"`` on
      ``real``, and the procedure ``uniform``.
-   * Package ``ieee.math_complex`` (:class:`~pyVHDLModel.IEEE.MathComplex.Math_Complex`) declares what IEEE Std
+   * Package ``ieee.math_complex`` (:class:`~pyVHDLModel.IEEE.MathComplexPkg.Math_Complex`) declares what IEEE Std
      1076-2008, 16.8.3 lists, in its order: the record types ``complex`` and ``complex_polar``, the subtypes
      ``positive_real`` and ``principal_value``, the constants ``math_cbase_1``, ``math_cbase_j`` and ``math_czero``, and
      58 operators and functions, e.g. ``"+"`` of two complex numbers or of a complex number and a ``real``.
-   * Package ``ieee.numeric_std`` (:class:`~pyVHDLModel.IEEE.NumericStd.Numeric_Std`) declares what the VHDL-2008
+   * Package ``ieee.numeric_std`` (:class:`~pyVHDLModel.IEEE.NumericStdPkg.Numeric_Std`) declares what the VHDL-2008
      package lists, in its order: the constant ``CopyRightNotice``, the subtypes ``u_unsigned`` and ``u_signed``, 232
      functions (arithmetic, relational, matching, shift, conversion and logical operators and functions) and 18
      procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). Its declarations have the package
      as parent.
-   * Package ``ieee.numeric_bit`` (:class:`~pyVHDLModel.IEEE.NumericBit.Numeric_Bit`) declares what the VHDL-2008
+   * Package ``ieee.numeric_bit`` (:class:`~pyVHDLModel.IEEE.NumericBitPkg.Numeric_Bit`) declares what the VHDL-2008
      package lists, in its order: the constant ``CopyRightNotice``, the types ``unsigned`` and ``signed``, 218
      functions (arithmetic, relational, matching, shift, conversion and logical operators and functions) and 18
      procedures (``read``, ``write``, ``oread``, ``hread``, ``owrite``, ``hwrite``). Its declarations have the package
      as parent.
    * Package ``ieee.std_logic_1164`` declares what IEEE Std 1076-2008, 16.7 lists, in its order: the types
-     ``std_ulogic`` (:class:`~pyVHDLModel.IEEE.StdLogic1164.StdULogic`, with the matching relational operators) and
+     ``std_ulogic`` (:class:`~pyVHDLModel.IEEE.StdLogic1164Pkg.StdULogic`, with the matching relational operators) and
      ``std_ulogic_vector``, the function ``resolved``, the subtypes ``std_logic``, ``std_logic_vector``, ``x01``,
      ``x01z``, ``ux01``, ``ux01z``, the logical and shift operators, the conversion functions, ``"??"``,
      ``rising_edge``, ``falling_edge``, ``is_x``, ``to_ostring``, ``to_hstring`` and the ``read``/``write`` procedures.
-   * Package ``ieee.numeric_std_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericStdUnsigned.Numeric_Std_Unsigned`)
+   * Package ``ieee.numeric_std_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericStdUnsignedPkg.Numeric_Std_Unsigned`)
      declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 79 functions
      (arithmetic, relational, matching, shift and conversion operators and functions on ``std_ulogic_vector``). Its
      declarations have the package as parent.
-   * Package ``ieee.numeric_bit_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericBitUnsigned.Numeric_Bit_Unsigned`)
+   * Package ``ieee.numeric_bit_unsigned`` (:class:`~pyVHDLModel.IEEE.NumericBitUnsignedPkg.Numeric_Bit_Unsigned`)
      declares what the VHDL-2008 package lists, in its order: the constant ``CopyRightNotice`` and 81 functions
      (arithmetic, relational, matching, shift and conversion operators and functions on ``bit_vector``). Its
      declarations have the package as parent.
-   * Package ``ieee.fixed_float_types`` (:class:`~pyVHDLModel.IEEE.FixedFloatTypes.Fixed_Float_Types`) declares the
+   * Package ``ieee.fixed_float_types`` (:class:`~pyVHDLModel.IEEE.FixedFloatTypesPkg.Fixed_Float_Types`) declares the
      enumerated types ``fixed_round_style_type``, ``fixed_overflow_style_type`` and ``round_type``.
    * Package ``ieee.fixed_generic_pkg`` (:class:`~pyVHDLModel.IEEE.FixedGenericPkg.Fixed_Generic_Pkg`) declares the
      generics ``fixed_round_style``, ``fixed_overflow_style``, ``fixed_guard_bits`` and ``no_warning``, the constant
@@ -102,31 +102,31 @@ Version 0.45.0 (2026)
      (:class:`~pyVHDLModel.IEEE.IeeeBitContext.Ieee_Bit_Context`) of IEEE Std 1076-2008, 16.9.
      New base class :class:`~pyVHDLModel.Predefined.PredefinedContext` and
      :meth:`PredefinedLibrary.AddContexts() <pyVHDLModel.Predefined.PredefinedLibrary.AddContexts>`.
-   * Synopsys package ``ieee.std_logic_unsigned`` (:class:`~pyVHDLModel.IEEE.StdLogicUnsigned.Std_Logic_Unsigned`,
+   * Synopsys package ``ieee.std_logic_unsigned`` (:class:`~pyVHDLModel.IEEE.StdLogicUnsignedPkg.Std_Logic_Unsigned`,
      loaded with :data:`IEEEFlavor.Synopsys <pyVHDLModel.IEEEFlavor.Synopsys>`) declares its 33 operators and functions
      (arithmetic and relational operators on ``std_logic_vector``, ``shl``, ``shr``, ``conv_integer``). The module
      carries Synopsys' copyright notice, as the package requires for derivative work.
-   * Synopsys package ``ieee.std_logic_signed`` (:class:`~pyVHDLModel.IEEE.StdLogicSigned.Std_Logic_Signed`) declares
+   * Synopsys package ``ieee.std_logic_signed`` (:class:`~pyVHDLModel.IEEE.StdLogicSignedPkg.Std_Logic_Signed`) declares
      its 35 operators and functions (as ``std_logic_unsigned``, and the unary ``"-"`` and ``"abs"``), with Synopsys'
      copyright notice.
-   * Synopsys package ``ieee.std_logic_misc`` (:class:`~pyVHDLModel.IEEE.StdLogicMisc.Std_Logic_Misc`) declares the
+   * Synopsys package ``ieee.std_logic_misc`` (:class:`~pyVHDLModel.IEEE.StdLogicMiscPkg.Std_Logic_Misc`) declares the
      types ``strength`` and ``minomax`` and its 29 functions (``strength_map``, ``drive``, ``sense``, the conversions to
      ``bit``/``bit_vector``, the reduction functions ``and_reduce`` ..., ``fun_buf3s`` ...), with Synopsys' copyright
      notice.
-   * Synopsys package ``ieee.std_logic_textio`` (:class:`~pyVHDLModel.IEEE.StdLogicTextIO.Std_Logic_TextIO_Synopsys`)
+   * Synopsys package ``ieee.std_logic_textio`` (:class:`~pyVHDLModel.IEEE.StdLogicTextIOPkg.Std_Logic_TextIO_Synopsys`)
      declares its 21 procedures (``read``, ``write`` of ``std_ulogic``, ``std_ulogic_vector`` and ``std_logic_vector``,
      ``hread``, ``hwrite``, ``oread``, ``owrite``), with Synopsys' copyright notice.
-   * Synopsys package ``ieee.std_logic_arith`` (:class:`~pyVHDLModel.IEEE.StdLogicArith.Std_Logic_Arith_Synopsys`)
+   * Synopsys package ``ieee.std_logic_arith`` (:class:`~pyVHDLModel.IEEE.StdLogicArithPkg.Std_Logic_Arith_Synopsys`)
      declares the types ``unsigned`` and ``signed``, the subtype ``small_int`` and its 134 functions (arithmetic and
      relational operators, ``shl``, ``shr``, the ``conv_*`` conversions, ``ext``, ``sxt``), with Synopsys' copyright
      notice.
    * Mentor Graphics package ``ieee.std_logic_arith``
-     (:class:`~pyVHDLModel.IEEE.StdLogicArith.Std_Logic_Arith_MentorGraphics`, loaded with
+     (:class:`~pyVHDLModel.IEEE.StdLogicArithPkg.Std_Logic_Arith_MentorGraphics`, loaded with
      :data:`IEEEFlavor.MentorGraphics <pyVHDLModel.IEEEFlavor.MentorGraphics>`) declares its use clause
      ``use ieee.std_logic_1164.all;``, the types ``signed`` and ``unsigned`` and 139 functions (conversions,
      arithmetic, shift and logical operators, the comparison functions ``eq`` ... ``ge``), with Mentor Graphics'
      copyright notice.
-   * VITAL package ``ieee.VITAL_Timing`` (:class:`~pyVHDLModel.IEEE.VITALTiming.VITAL_Timing`, loaded with
+   * VITAL package ``ieee.VITAL_Timing`` (:class:`~pyVHDLModel.IEEE.VITALTimingPkg.VITAL_Timing`, loaded with
      :data:`IEEEFlavor.WithVITAL <pyVHDLModel.IEEEFlavor.WithVITAL>`) declares its types (transitions, delays, maps,
      records of timing, period, glitch, path and skew data, table and edge symbols), constants (zero delays, default
      maps, initial values), the attributes ``VITAL_Level0`` and ``VITAL_Level1`` and ``VitalTimingDataInit``.
@@ -208,12 +208,15 @@ Version 0.45.0 (2026)
    * Adding a declared item finds clashing declarations by an index of the declared items by name instead of visiting
      every declaration of the region: filling a package with n declarations took quadratic time.
    * :mod:`pyVHDLModel.IEEE` is a package with one module per VHDL package, e.g.
-     :mod:`~pyVHDLModel.IEEE.StdLogic1164` for ``ieee.std_logic_1164``. The classes are importable from
+     :mod:`~pyVHDLModel.IEEE.StdLogic1164Pkg` for ``ieee.std_logic_1164``. The classes are importable from
      :mod:`pyVHDLModel.IEEE` as before.
    * :mod:`pyVHDLModel.STD` is a package with one module per VHDL package too: :mod:`~pyVHDLModel.STD.StandardPkg`
      for ``std.standard``, :mod:`~pyVHDLModel.STD.TextIOPkg` for ``std.textio`` and :mod:`~pyVHDLModel.STD.EnvPkg` for
-     ``std.env``. The modules carry the suffix ``Pkg``, because the classes share the package names. The classes are
-     importable from :mod:`pyVHDLModel.STD` as before.
+     ``std.env``. The classes are importable from :mod:`pyVHDLModel.STD` as before.
+   * The modules of the predefined packages carry the suffix ``Pkg``, in :mod:`pyVHDLModel.STD` and
+     :mod:`pyVHDLModel.IEEE` alike (e.g. :mod:`~pyVHDLModel.IEEE.NumericStdPkg`): a class of ``STD`` shares the name
+     of its VHDL package (``Standard``), and ``IEEE`` follows for consistency. A VHDL package named ``*_pkg``
+     (``fixed_pkg``) gets no second suffix, a context module keeps its name (:mod:`~pyVHDLModel.IEEE.IeeeStdContext`).
    * Breaking change: :meth:`~pyVHDLModel.Base.ModelEntity.IterateImplicitDeclarations` yields the implied
      declarations (enumeration literals, physical units), no longer (key, declaration) pairs. A namespace takes the key
      from the new property ``NormalizedDesignator`` of

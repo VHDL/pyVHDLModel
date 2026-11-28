@@ -28,7 +28,7 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Tests for pyVHDLModel.IEEE.VITALTiming."""
+"""Tests for pyVHDLModel.IEEE.VITALTimingPkg."""
 from pyTooling.Testing       import Testcase
 from pyTooling.Warning       import WarningCollector
 

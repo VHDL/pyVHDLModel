@@ -28,18 +28,18 @@
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
 #
-"""Tests for pyVHDLModel.IEEE.MathComplex."""
-from pyTooling.Testing            import Testcase
+"""Tests for pyVHDLModel.IEEE.MathComplexPkg."""
+from pyTooling.Testing               import Testcase
 
-from pyVHDLModel.Base             import Direction, Mode
-from pyVHDLModel.Expression       import FloatingPointLiteral, StringLiteral, NegationExpression, QualifiedExpression, \
-                                         Aggregate, SimpleAggregateElement
-from pyVHDLModel.Symbol           import ConstrainedScalarSubtypeSymbol, SimpleObjectOrFunctionCallSymbol, \
-                                         IndexedObjectOrFunctionCallSymbol
-from pyVHDLModel.Interface        import ParameterConstantInterfaceItem
-from pyVHDLModel.Subprogram       import Function, Operator
-from pyVHDLModel.Type             import RecordType
-from pyVHDLModel.IEEE.MathComplex import Math_Complex
+from pyVHDLModel.Base                import Direction, Mode
+from pyVHDLModel.Expression          import FloatingPointLiteral, StringLiteral, NegationExpression, \
+                                            QualifiedExpression, Aggregate, SimpleAggregateElement
+from pyVHDLModel.Symbol              import ConstrainedScalarSubtypeSymbol, SimpleObjectOrFunctionCallSymbol, \
+                                            IndexedObjectOrFunctionCallSymbol
+from pyVHDLModel.Interface           import ParameterConstantInterfaceItem
+from pyVHDLModel.Subprogram          import Function, Operator
+from pyVHDLModel.Type                import RecordType
+from pyVHDLModel.IEEE.MathComplexPkg import Math_Complex
 
 
 if __name__ == "__main__":  # pragma: no cover

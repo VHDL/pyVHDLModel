@@ -27,8 +27,6 @@
 #                                                                                                                      #
 # SPDX-License-Identifier: Apache-2.0                                                                                  #
 # ==================================================================================================================== #
-"""Tests for pyVHDLModel.IEEE.NumericBitUnsigned."""
-from pyTooling.Testing       import Testcase
 """Tests for pyVHDLModel.IEEE.FixedGenericPkg."""
 from collections             import Counter
 

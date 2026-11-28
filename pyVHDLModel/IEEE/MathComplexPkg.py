@@ -67,7 +67,7 @@ class Math_Complex(PredefinedPackage):
 
 	.. seealso::
 
-	   Matching :class:`Package Body <pyVHDLModel.IEEE.MathComplex.Math_Complex_Body>` declaration.
+	   Matching :class:`Package Body <pyVHDLModel.IEEE.MathComplexPkg.Math_Complex_Body>` declaration.
 	"""
 
 	def __init__(self, vhdlVersion: VHDLVersion = VHDLVersion.VHDL2008) -> None:

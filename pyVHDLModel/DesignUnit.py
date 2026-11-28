@@ -814,6 +814,10 @@ class Package(
 	"""
 	Represents a package declaration.
 
+	A package declared in a declarative region, e.g. in an architecture, is a local package: its namespace is connected to
+	the namespace of the enclosing region, so its declarations see the declarations visible there (IEEE Std 1076-2008,
+	12.1). A package of a library has no enclosing region.
+
 	.. admonition:: Example
 
 	   .. code-block:: VHDL
@@ -876,6 +880,11 @@ class Package(
 
 		self._deferredConstants = {}
 		self._components = {}
+
+	@ModelEntity.Parent.setter
+	def Parent(self, parent: ModelEntity) -> None:
+		ModelEntity.Parent.fset(self, parent)
+		self._ConnectParentNamespace(parent)
 
 	@readonly
 	def PackageBody(self) -> Nullable[PackageBody]:

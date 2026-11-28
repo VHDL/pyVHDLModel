@@ -258,6 +258,9 @@ Version 0.45.0 (2026)
      (``fixed_pkg``) gets no second suffix, a context module keeps its name (:mod:`~pyVHDLModel.IEEE.IeeeStdContext`).
    * Doc-string examples mark their parts with carets in the columns of the code (``AggregateSymbol``, ``Alias``,
      ``InterfacePackage``, ``SubprogramSignature``, ``PhysicalUnit``); several stood one or two columns off.
+   * A local package (a package declared in a declarative region, e.g. an architecture) connects its namespace to the
+     namespace of the enclosing region: its declarations see what is visible there, e.g. ``integer`` or a type declared
+     before the package. Before, its own type marks weren't found.
    * :data:`~pyVHDLModel.Base.ExpressionUnion` includes :class:`~pyVHDLModel.Symbol.Symbol`: a name in an expression is
      a symbol (``read_mode``, ``TIME'HIGH``). It's defined once, in :mod:`pyVHDLModel.Base`; five modules had a copy of
      it. The helpers of the predefined packages annotate default values with it.

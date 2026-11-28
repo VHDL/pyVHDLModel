@@ -243,6 +243,35 @@ class UsePackage(Testcase):
 
 		self.assertTupleEqual((localType, ), architecture._namespace.Lookup("t", signal).Declarations)
 
+	def test_LocalPackage_EnclosingRegions(self) -> None:
+		"""A local package's declarations see the enclosing regions: ``integer`` and a type of the architecture."""
+		localType =    _enumeration("T", "a", "b")
+		standard =     _constant("K", "integer")
+		enclosing =    _constant("L", "T")
+		localPackage = Package("lp", declaredItems=[standard, enclosing])
+		architecture = Architecture("rtl", _entitySymbol("e"), declaredItems=[localType, localPackage])
+		with WarningCollector() as collector:
+			design = _design(Entity("e"), architecture, analyze=False)
+			design.Analyze()
+
+		self.assertListEqual([], list(collector.Warnings))
+		self.assertIs(design.Libraries["std"].Packages["standard"].Types["integer"], standard.Subtype.Reference)
+		self.assertIs(localType, enclosing.Subtype.Reference)
+
+	def test_LocalPackage_DeclaredAfter(self) -> None:
+		"""A type of the architecture declared after the local package isn't visible in it."""
+		constant =     _constant("L", "T")
+		architecture = Architecture(
+			"rtl",
+			_entitySymbol("e"),
+			declaredItems=[Package("lp", declaredItems=[constant]), _enumeration("T", "a")]
+		)
+		with WarningCollector() as collector:
+			_design(Entity("e"), architecture, analyze=False).Analyze()
+
+		self.assertListEqual(["Type mark 'T' not found in: lp, rtl, e."], [str(warning) for warning in collector.Warnings])
+		self.assertIsNone(constant.Subtype.Reference)
+
 	def test_LocalPackage_Item(self) -> None:
 		"""``use lp.T;``: the prefix of the two-part name denotes a local package, not a library (12.4)."""
 		localType =    _enumeration("T", "a", "b")
